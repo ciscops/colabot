@@ -28,7 +28,7 @@ spec:
                 checkout scm
             }
             stage('Build image') {
-                colabot = docker.build("jasonking/colabbot")
+                colabot = docker.build("jasonking/colabot")
             }
             stage('Test image') {
                 colabot.inside {
