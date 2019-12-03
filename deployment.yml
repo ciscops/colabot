@@ -1,0 +1,33 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: colabot
+  labels:
+    app: colabot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: colabot
+  template:
+    metadata:
+      labels:
+        app: colabot
+    spec:
+      containers:
+      - image: jasonking/colabot:latest
+        name: colabot
+        env:
+        - name: access_token
+          valueFrom:
+            secretKeyRef:
+              name: colabot-secrets
+              key: access_token
+        - name: public_address
+          valueFrom:
+            secretKeyRef:
+              name: colabot-secrets
+              key: public_address
+        ports:
+        - containerPort: 3000  
