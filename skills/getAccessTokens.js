@@ -7,7 +7,7 @@
 // virlServers = virlServersList.serverList
 // virlServers = ['https://cpn-sjc-virl1.ciscops.net']
 virlServers = []
-virlServers = process.env.SERVER_LIST.split(',');
+virlServers = process.env.server_list.split(',');
 virlServersToken = []
 var request = require("request");
 // var adminInfo = require("./variables/adminInformation.json")
