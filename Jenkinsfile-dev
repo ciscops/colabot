@@ -21,24 +21,24 @@ spec:
         value: ""
 ''') {
     node(POD_LABEL) {
-        def colabot-dev
+        def colabot
         git 'https://github.com/ciscops/colabot.git'
         container('docker') {
             stage('Clone repository') {
                 checkout scm
             }
             stage('Build image') {
-                colabot-dev = docker.build("jasonking/colabot-dev")
+                colabot = docker.build("jasonking/colabot-dev")
             }
             stage('Test image') {
-                colabot-dev.inside {
+                colabot.inside {
                     sh 'node --version'
                 }
             }
             stage('Push image') {
                 docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
-                    colabot-dev.push("${env.BUILD_NUMBER}")
-                    colabot-dev.push("latest")
+                    colabot.push("${env.BUILD_NUMBER}")
+                    colabot.push("latest")
                 }
             }             
         }
