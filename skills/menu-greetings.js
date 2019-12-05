@@ -22,7 +22,7 @@ module.exports = function (controller) {
             menuText += "\n- " + bot.enrichCommand(message, "List ") + "Labs: Will List Your Current Labs";
             menuText += "\n- " + bot.enrichCommand(message, "Show ") + "Lab Details: Will List Details of Lab specified by Lab ID";
             menuText += "\n- " + bot.enrichCommand(message, "Help ") + ": Will Reload This Main Menu";
-            convo.say('Hello, I am the VIRL2 Bot </br>My Role is to help you with getting started in VIRL2<br/>'+ menuText)
+            convo.say('Hello, I am the VIRL2 Bot </br>My Role is to help you with getting started in VIRL2!<br/>'+ menuText)
         })
     });
 
