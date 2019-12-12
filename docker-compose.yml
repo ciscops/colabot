@@ -1,8 +1,8 @@
 version: '2'
-  services:
-    teamsbot:
-     build: .
-     image: jasonking/colabot:latest
-     env_file: 'botkit-vars.env'
-     ports:
-       - '3000:3000'
+services:
+  teamsbot:
+    build: .
+    image: jasonking/colabot:latest
+    env_file: botkit-vars.env
+    ports:
+      - '3000:3000'
