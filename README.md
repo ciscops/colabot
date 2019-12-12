@@ -3,7 +3,7 @@ WebEx Teams user self-service bot for CIDR
 
 ## Deploying locally with docker-compose
 
-Create a filed called `botkit-vars.env` in the local directory with the folling environment variables set for your environment:
+Create a file called `botkit-vars.env` in the local directory with the folling environment variables set for your environment:
 ```
 # Environment Config
 
