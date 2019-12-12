@@ -19,8 +19,8 @@ VIRL_PASSWORD=foo
 DEBUG=*
 # note .env is a shell file so there can't be spaces around =
 ```
-> Note: replace 
-Then build and run the bot.
+
+Build and run the bot:
 ```
 docker-compose up
 ```
