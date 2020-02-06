@@ -16,7 +16,7 @@ module.exports = function (controller) {
     controller.hears(["hello", "hi","help"], 'direct_message,direct_mention', function (bot, message) {
         bot.startConversation(message,function(err,convo)
         {
-            var menuText = "Here are my List of Options:";
+            var menuText = "Here are my list of Options:";
             menuText += "\n- " + bot.enrichCommand(message, "Create ") + "Account: Will Create an Account on the Virl2 Servers";
             menuText += "\n- " + bot.enrichCommand(message, "Reset ") + "Password: Will Reset Your Password";
             menuText += "\n- " + bot.enrichCommand(message, "List ") + "Labs: Will List Your Current Labs";
