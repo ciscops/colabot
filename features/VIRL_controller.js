@@ -346,6 +346,28 @@ function VIRL_methods(obj) {
             obj.list_labs_ids = []
         }
     };
+    this.get_system_status = async () => {
+        let get_system_status_options = {
+            method: 'GET',
+            uri: obj.server_name + '/api/v0/system_stats',
+            rejectUnauthorized: false,
+            headers:
+                {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'cache-control': "no-cache",
+                    "Authorization": "Bearer " + obj.bearer
+                },
+            json: true
+        };
+        let response = async () =>
+            request(get_system_status_options).then(function (resp) {
+                return resp
+            }).catch(function (err) {
+                return err
+            });
+        obj.system_status = await response();
+    };
 }
 
 function WEBEX_data() {
@@ -374,6 +396,7 @@ function WEBEX_methods(obj) {
         let result = await response();
         obj.webex_user_email = result.items[0].emails[0];
         obj.webex_username = obj.webex_user_email.substring(0, obj.webex_user_email.lastIndexOf("@"));
+        obj.display_name = result.items[0].displayName;
     };
     this.get_id_from_email = async function (email) {
         let web_email = email.replace(/@/, "%40");
@@ -429,8 +452,9 @@ module.exports = function (controller) {
      */
     const ADD_USER_DIALOG = 'AddUser';
     const add_dialog = new BotkitConversation(ADD_USER_DIALOG, controller);
-    add_dialog.say('I created this room so we could continue our create account conversation in private...');
-    add_dialog.ask("\n\nWould you like to create a VIRL account? (yes|no)", async (response, convo, bot) => {
+    add_dialog.say('I created this room so we could continue our create account conversation in private.');
+    add_dialog.say('Please prepend "@my_bot_name" to replies');
+    add_dialog.ask("\nWould you like to create a VIRL account? (yes|no)", async (response, convo, bot) => {
 
         if (convo.vars.response_add === 'yes') {
             let webex_data = new WEBEX_data();
@@ -467,6 +491,11 @@ module.exports = function (controller) {
     add_dialog.say('{{vars.response_add}}');
     controller.addDialog(add_dialog);
     controller.hears('VIRL create account', 'message,direct_message', async (bot, message) => {
+        let webex_data = new WEBEX_data();
+        webex_data.webex_user_id = message.user;
+        let webex_methods = new WEBEX_methods(webex_data);
+        await webex_methods.get_webex_email_and_username();
+        await bot.reply(message, webex_data.display_name + ' - Please join me in room "VIRL Create User"');
         let room = await bot.api.rooms.create({title: 'VIRL Create User'});
         let membership2 = await bot.api.memberships.create({
             roomId: room.id,
@@ -483,8 +512,9 @@ module.exports = function (controller) {
      */
     const DELETE_USER_DIALOG = 'DeleteUser';
     const delete_dialog = new BotkitConversation(DELETE_USER_DIALOG, controller);
-    delete_dialog.say('I created this room so we could continue our delete account conversation in private...');
-    delete_dialog.ask("\n\nWould you like to delete your VIRL account? (yes|no)", async (response, convo, bot) => {
+    delete_dialog.say('I created this room so we could continue our delete account conversation in private.');
+    delete_dialog.say('Please prepend "@my_bot_name" to replies');
+    delete_dialog.ask("\nWould you like to delete your VIRL account? (yes|no)", async (response, convo, bot) => {
         if (convo.vars.response_delete === 'yes') {
             let webex_data = new WEBEX_data();
             webex_data.webex_user_id = convo.vars.user;
@@ -525,6 +555,11 @@ module.exports = function (controller) {
     delete_dialog.say('{{vars.response_delete}}');
     controller.addDialog(delete_dialog);
     controller.hears('VIRL delete account', 'message,direct_message', async (bot, message) => {
+        let webex_data = new WEBEX_data();
+        webex_data.webex_user_id = message.user;
+        let webex_methods = new WEBEX_methods(webex_data);
+        await webex_methods.get_webex_email_and_username();
+        await bot.reply(message, webex_data.display_name + ' - Please join me in room "VIRL Delete User"');
         let room = await bot.api.rooms.create({title: 'VIRL Delete User'});
         let membership2 = await bot.api.memberships.create({
             roomId: room.id,
@@ -541,8 +576,9 @@ module.exports = function (controller) {
      */
     const CHANGE_PASSWORD_DIALOG = 'ChangePassword';
     const change_password_dialog = new BotkitConversation(CHANGE_PASSWORD_DIALOG, controller);
-    change_password_dialog.say('I created this room so we could continue our reset password conversation in private...');
-    change_password_dialog.ask("\n\nWould you like to reset your VIRL account password? (yes|no)", async (response, convo, bot) => {
+    change_password_dialog.say('I created this room so we could continue our reset password conversation in private.');
+    change_password_dialog.say('Please prepend "@my_bot_name" to replies');
+    change_password_dialog.ask("\nWould you like to reset your VIRL account password? (yes|no)", async (response, convo, bot) => {
 
 
         if (convo.vars.response_change_password === 'yes') {
@@ -580,6 +616,11 @@ module.exports = function (controller) {
     change_password_dialog.say('{{vars.response_change_password}}');
     controller.addDialog(change_password_dialog);
     controller.hears('VIRL reset password', 'message,direct_message', async (bot, message) => {
+        let webex_data = new WEBEX_data();
+        webex_data.webex_user_id = message.user;
+        let webex_methods = new WEBEX_methods(webex_data);
+        await webex_methods.get_webex_email_and_username();
+        await bot.reply(message, webex_data.display_name + ' - Please join me in room "VIRL Reset Password"');
         let room = await bot.api.rooms.create({title: 'VIRL Reset Password'});
         let membership2 = await bot.api.memberships.create({
             roomId: room.id,
@@ -665,7 +706,8 @@ module.exports = function (controller) {
     */
     const DELETE_LAB_DIALOG = 'DeleteLab';
     const delete_lab_dialog = new BotkitConversation(DELETE_LAB_DIALOG, controller);
-    delete_lab_dialog.say('I created this room so we could continue our delete labs conversation in private...');
+    delete_lab_dialog.say('I created this room so we could continue our delete labs conversation in private.');
+    delete_lab_dialog.say('Please prepend "@my_bot_name" to replies');
     delete_lab_dialog.ask("What is your VIRL password?", async (response, convo, bot) => {
         let webex_data = new WEBEX_data();
         webex_data.webex_user_id = convo.vars.user;
@@ -711,7 +753,7 @@ module.exports = function (controller) {
         }
     }, {key: 'virl_password'});
     delete_lab_dialog.say('{{vars.labs}}');
-    delete_lab_dialog.ask("\n\nPlease provide the fully qualified domain name of your VIRL server, e.g.'cpn-rtp-virl5.ciscops.net': ", async (response, convo, bot) => {
+    delete_lab_dialog.ask("\nPlease provide the fully qualified domain name of your VIRL server, e.g.'cpn-rtp-virl5.ciscops.net': ", async (response, convo, bot) => {
         let webex_data = new WEBEX_data();
         webex_data.webex_user_id = convo.vars.user;
         let webex_methods = new WEBEX_methods(webex_data);
@@ -768,6 +810,11 @@ module.exports = function (controller) {
     delete_lab_dialog.addMessage('Ok - Bye', 'goodbye');
     controller.addDialog(delete_lab_dialog);
     controller.hears('VIRL delete lab', 'message,direct_message', async (bot, message) => {
+        let webex_data = new WEBEX_data();
+        webex_data.webex_user_id = message.user;
+        let webex_methods = new WEBEX_methods(webex_data);
+        await webex_methods.get_webex_email_and_username();
+        await bot.reply(message, webex_data.display_name + ' - Please join me in room "VIRL Delete Lab"');
         let room = await bot.api.rooms.create({title: 'VIRL Delete Lab'});
         let membership2 = await bot.api.memberships.create({
             roomId: room.id,
@@ -784,8 +831,8 @@ module.exports = function (controller) {
     */
     const LAB_DETAILS_DIALOG = 'LabDetails';
     const details_lab_dialog = new BotkitConversation(LAB_DETAILS_DIALOG, controller);
-    details_lab_dialog.say('I created this room so we could continue our delete labs conversation in private...');
-
+    details_lab_dialog.say('I created this room so we could continue our delete labs conversation in private.');
+    details_lab_dialog.say('Please prepend "@my_bot_name" to replies');
     details_lab_dialog.ask("What is your VIRL password?", async (response, convo, bot) => {
         let webex_data = new WEBEX_data();
         webex_data.webex_user_id = convo.vars.user;
@@ -836,6 +883,11 @@ module.exports = function (controller) {
 
     controller.addDialog(details_lab_dialog);
     controller.hears('VIRL list my lab details', 'message,direct_message', async (bot, message) => {
+        let webex_data = new WEBEX_data();
+        webex_data.webex_user_id = message.user;
+        let webex_methods = new WEBEX_methods(webex_data);
+        await webex_methods.get_webex_email_and_username();
+        await bot.reply(message, webex_data.display_name + ' - Please join me in room "VIRL my lab details"');
         let room = await bot.api.rooms.create({title: 'VIRL my lab details'});
         let membership2 = await bot.api.memberships.create({
             roomId: room.id,
@@ -858,29 +910,51 @@ module.exports = function (controller) {
         await bot.reply(message, pwd)
     });
     /*
+    VIRL Show Server Utilization Code
+     */
+    controller.hears('VIRL show server utilization', 'message,direct_message', async (bot, message) => {
+        let utilization_string = '';
+        let n;
+        for (n = 0; n < virlServers.length; n++) {
+            let virl_server_url = 'https://' + virlServers[n];
+            let virl_data = new VIRL_data(VIRL_USERNAME, VIRL_PASSWORD, virl_server_url);
+            let virl_methods = new VIRL_methods(virl_data);
+            await virl_methods.get_token();
+            await virl_methods.get_system_status();
+            let cpu = Math.round(virl_data.system_status.clusters.cluster_1.high_level_drivers.compute_1.cpu.percent);
+            let memory_ratio = Math.round(virl_data.system_status.clusters.cluster_1.high_level_drivers.compute_1.memory.used / virl_data.system_status.clusters.cluster_1.high_level_drivers.compute_1.memory.total * 100);
+            utilization_string += '** ' + virlServers[n] + ':' + '\n            CPU: ' + cpu + '%' + '        Memory: ' + memory_ratio + '%\n'
+        }
+        await bot.reply(message, utilization_string)
+    });
+    /*
     Below commandHelp statements are read by the Help function
      */
     controller.commandHelp.push({
         command: 'VIRL create account',
-        text: 'Use to create your account on a VIRL server(creates private room)'
+        text: 'Use to create your VIRL account(creates private room)'
     });
     controller.commandHelp.push({
         command: 'VIRL delete account',
-        text: 'Use to delete your account from a VIRL server(creates private room)'
+        text: 'Use to delete your VIRL account(creates private room)'
     });
     controller.commandHelp.push({
         command: 'VIRL reset password',
-        text: 'Use to reset your account password on a VIRL server(creates private room)'
+        text: 'Use to reset your VIRL account password(creates private room)'
     });
     controller.commandHelp.push({command: 'VIRL list users', text: 'Use to list user accounts'});
-    controller.commandHelp.push({command: 'VIRL list my labs', text: 'Use to list your labs running on VIRL servers'});
+    controller.commandHelp.push({command: 'VIRL list my labs', text: 'Use to list your labs'});
     controller.commandHelp.push({
         command: 'VIRL list my lab details',
-        text: 'Use to list your labs with details(creates private room)'
+        text: 'Use to list your lab with details(creates private room)'
     });
-    controller.commandHelp.push({command: 'VIRL list all labs', text: 'Use to list all labs running on VIRL servers'});
+    controller.commandHelp.push({command: 'VIRL list all labs', text: 'Use to list all labs running'});
     controller.commandHelp.push({
         command: 'VIRL delete lab',
         text: 'Choose a lab to delete from a list of your labs(creates private room)'
+    });
+    controller.commandHelp.push({
+        command: 'VIRL show server utilization',
+        text: 'Use to show current CPU and Memory usage'
     });
 };
