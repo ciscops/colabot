@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 const {BotkitConversation} = require('botkit');
-const request = require('request-promise');
 const WEBEX_methods = require('./WEBEX_methods_class.js');
 const WEBEX_data = require('./WEBEX_data_class.js');
 const VIRL_methods = require('./VIRL_methods_class.js');
