@@ -27,7 +27,7 @@ DEBUG=*
 # note .env is a shell file so there can't be spaces around =
 ```
 
-Build and run the bot:
+To locally build and run the bot:
 ```
 docker-compose up
 ```
