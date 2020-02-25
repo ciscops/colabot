@@ -303,6 +303,50 @@ function VIRL_methods_class(obj) {
             });
         obj.result = await response();
     };
+    this.stop_lab = async function (lab_id) {
+        let stop_lab_options = {
+            method: 'PUT',
+            uri: obj.server_name + '/api/v0/labs/' + lab_id + '/stop',
+            rejectUnauthorized: false,
+            headers:
+                {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'cache-control': "no-cache",
+                    "Authorization": "Bearer " + obj.bearer
+                },
+            json: true
+        };
+        let response = async () =>
+            request(stop_lab_options).then(function (resp) {
+                return resp
+            }).catch(function (err) {
+                return err
+            });
+        obj.result = await response();
+    };
+    this.wipe_lab = async function (lab_id) {
+        let wipe_lab_options = {
+            method: 'PUT',
+            uri: obj.server_name + '/api/v0/labs/' + lab_id + '/wipe',
+            rejectUnauthorized: false,
+            headers:
+                {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'cache-control': "no-cache",
+                    "Authorization": "Bearer " + obj.bearer
+                },
+            json: true
+        };
+        let response = async () =>
+            request(wipe_lab_options).then(function (resp) {
+                return resp
+            }).catch(function (err) {
+                return err
+            });
+        obj.result = await response();
+    };
     this.list_labs_ids = async (username_webex) => {
         let list_labs_ids_options = {
             method: 'GET',
