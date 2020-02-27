@@ -24,7 +24,6 @@ if (process.env.MONGO_URI) {
     });
 }
 
-
 const adapter = new WebexAdapter({
     // REMOVE THIS OPTION AFTER YOU HAVE CONFIGURED YOUR APP!
     enable_incomplete: false,
@@ -32,9 +31,9 @@ const adapter = new WebexAdapter({
     webhook_name: 'CoLabBot Webhook',
     access_token: process.env.ACCESS_TOKEN,
     public_address: process.env.PUBLIC_ADDRESS,
-    limit_to_domain: 'cisco.com'
+    // BELOW LINE ADDED BY CIDR
+    limit_to_domain: process.env.APPROVED_ORG_DOMAINS.split(',')
 })
-adapter.use(CheckDomainMiddleware);
 
 const controller = new Botkit({
     webhook_uri: '/api/messages',
@@ -92,6 +91,7 @@ controller.webserver.get('/', (req, res) => {
 
 });
 
+adapter.use(CheckDomainMiddleware);
 async function CheckDomainMiddleware(turnContext, next) {
     if (turnContext._adapter.options.limit_to_domain) {
         var domains = [];
@@ -117,10 +117,37 @@ async function CheckDomainMiddleware(turnContext, next) {
         if (!allowed) {
             console.warn('WARNING: Message received from ' + turnContext._activity.from.name);
             console.warn('WARNING - Allowed domains are: ', turnContext._adapter.options.limit_to_domain);
-            // this message came from a domain that is outside of the allowed list.
             return false;
         }
     }
-
     await next();
 }
+
+// adapter.use(LogToMongoDBMiddleware);
+// async function LogToMongoDBMiddleware(turnContext, next) {
+//     // console.log(turnContext._activity)
+//     // or
+//     // Below to log to a MongoDB
+//     const MongoClient = require('mongodb').MongoClient;
+//     const assert = require('assert');
+//     const MONGO_INITDB_ROOT_USERNAME = process.env.MONGO_INITDB_ROOT_USERNAME;
+//     const MONGO_INITDB_ROOT_PASSWORD = process.env.MONGO_INITDB_ROOT_PASSWORD;
+//     const MONGO_SERVER = process.env.MONGO_SERVER;
+//     const MONGO_PORT = process.env.MONGO_PORT;
+//     const MONGO_DB_ACTIVITY = process.env.MONGO_DB_ACTIVITY;
+//     const MONGO_COLLECTIONS_ACTIVITY = process.env.MONGO_COLLECTIONS_ACTIVITY;
+//     if (MONGO_DB_ACTIVITY != 'default') {
+//         const url = 'mongodb://' + MONGO_INITDB_ROOT_USERNAME + ':' + MONGO_INITDB_ROOT_PASSWORD + '@' + MONGO_SERVER + ':' + MONGO_PORT;
+//         const client = new MongoClient(url, {useNewUrlParser: true});
+//         let result = await client.connect();
+//         if (result.s.url === undefined) {
+//             console.log('Error connecting to database')
+//         } else {
+//             const db = await client.db(MONGO_DB_ACTIVITY);
+//             const collection = await db.collection(MONGO_COLLECTIONS_ACTIVITY);
+//             const record = await collection.insertOne(turnContext._activity);
+//             console.log(record)
+//         }
+//     }
+//         await next();
+//     }

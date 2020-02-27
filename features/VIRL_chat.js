@@ -48,13 +48,12 @@ module.exports = function (controller) {
                 let virl_methods = new VIRL_methods(virl_data);
                 await virl_methods.get_token();
                 await virl_methods.add_user(webex_data.webex_username, webex_data.webex_user_email, new_virl_pwd);
-                console.log(virl_data.result);
 
                 if (virl_data.result === 'OK') {
-                    console.log('Account Created: \n' + '    username: ' + webex_data.webex_username + '\n    password: ' + new_virl_pwd);
+                    console.log('Success - created account: \n' + '    username: ' + webex_data.webex_username);
                     virl_result += '\n        ** Success: ' + virlServers[n]
                 } else {
-                    console.log('Error: ' + virl_data.result.error.code + ' - ' + virl_data.result.error.description);
+                    console.log('Fail - error creating account username : ' + webex_data.webex_username + ' ' + virl_data.result.error.code + ' - ' + virl_data.result.error.description);
                     virl_result += '\n        ** Failure: ' + virlServers[n] + ' ' + virl_data.result.error.code + ' - ' + virl_data.result.error.description
                 }
                 convo.vars.response_add = virl_result;
@@ -80,7 +79,6 @@ module.exports = function (controller) {
         await bot.beginDialog(ADD_USER_DIALOG);
     });
     controller.on('memberships.created', async (bot, message) => {
-        console.log('memberships created', message);
     });
     /*
     VIRL Delete Account Code
@@ -96,7 +94,7 @@ module.exports = function (controller) {
             let webex_methods = new WEBEX_methods(webex_data);
             await webex_methods.get_webex_email_and_username();
             let virl_result;
-            virl_result = 'Account ' + webex_data.webex_username + ' deleted from servers:'
+            virl_result = 'Account ' + webex_data.webex_username + ' deleted from servers:';
             let n;
             for (n = 0; n < virlServers.length; n++) {
                 let virl_server_url = 'https://' + virlServers[n];
@@ -114,13 +112,12 @@ module.exports = function (controller) {
                     }
                 }
                 await virl_methods.delete_user(webex_data.webex_username);
-                console.log(virl_data.result);
 
                 if (virl_data.result === 'OK') {
-                    console.log('Account ' + webex_data.webex_username + ' successfully deleted');
+                    console.log('Success - Account deleted: ' + webex_data.webex_username);
                     virl_result += '\n        ** Success: ' + virlServers[n]
                 } else {
-                    console.log('Error: ' + virl_data.result.error.code + ' - ' + virl_data.result.error.description);
+                    console.log('Fail - Error deleting account: ' + webex_data.webex_username + ' ' + virl_data.result.error.code + ' - ' + virl_data.result.error.description);
                     virl_result += '\n        ** Failure: ' + virlServers[n] + ' ' + virl_data.result.error.code + ' - ' + virl_data.result.error.description
                 }
                 convo.vars.response_delete = virl_result;
@@ -146,7 +143,6 @@ module.exports = function (controller) {
         await bot.beginDialog(DELETE_USER_DIALOG);
     });
     controller.on('memberships.created', async (bot, message) => {
-        console.log('memberships created', message);
     });
     /*
     VIRL Change Password Code
@@ -178,10 +174,10 @@ module.exports = function (controller) {
                 await virl_methods.change_password(webex_data.webex_username, new_virl_pwd);
 
                 if (virl_data.result === null) {
-                    console.log('Password reset: \n' + '    username: ' + webex_data.webex_username + '\n    password: ' + new_virl_pwd);
+                    console.log('Success -  Password reset: \n' + '    username: ' + webex_data.webex_username + '\n    password: ' + new_virl_pwd);
                     virl_result += '\n        ** Success: ' + virlServers[n]
                 } else {
-                    console.log('Error: ' + virl_data.result.error.code + ' - ' + virl_data.result.error.description);
+                    console.log('Fail - Error resetting password username: ' + webex_data.webex_username + ' ' +virl_data.result.error.code + ' - ' + virl_data.result.error.description);
                     virl_result += '\n        ** Failure: ' + virlServers[n] + ' ' + virl_data.result.error.code + ' - ' + virl_data.result.error.description
                 }
                 convo.vars.response_change_password = virl_result;
@@ -207,7 +203,6 @@ module.exports = function (controller) {
         await bot.beginDialog(CHANGE_PASSWORD_DIALOG);
     });
     controller.on('memberships.created', async (bot, message) => {
-        console.log('memberships created', message);
     });
     /*
     VIRL Display Users Code
@@ -306,12 +301,10 @@ module.exports = function (controller) {
             } else {
                 virl_data.lab_details = [];
                 await virl_methods.list_user_labs();
-                let labs_details = [];
                 let c;
                 for (c = 0; c < virl_data.labs.length; c++) {
                     await virl_methods.get_lab_details(virl_data.labs[c]);
                 }
-                console.log(virl_data.lab_details);
                 if (virl_data.lab_details.length > 0) {
                     lab_string += '\n' + virlServers[n] + ' labs are: ';
                     let i;
@@ -322,7 +315,6 @@ module.exports = function (controller) {
                 if (lab_string.length > 0) {
                     convo.setVar('labs', lab_string)
                 } else {
-                    // convo.setVar('labs', '** You have no labs')
                     convo.gotoThread('no_labs')
                 }
 
@@ -346,10 +338,10 @@ module.exports = function (controller) {
             await virl_methods.delete_lab(convo.vars.lab_id);
             let virl_result;
             if (virl_data.result === '') {
-                console.log('Lab ID: ' + convo.vars.lab_id + ' successfully deleted');
+                console.log('Success - Deleted Lab ID: ' + convo.vars.lab_id + ' for user ' + convo.vars.virl_username);
                 virl_result = 'Lab successfully deleted'
             } else {
-                console.log('Error: ' + virl_data.result.error.code + ' - ' + virl_data.result.error.description);
+                console.log('Fail - Error deleting lab: ' + convo.vars.lab_id + ' for user ' + convo.vars.virl_username + ' ' + virl_data.result.error.code + ' - ' + virl_data.result.error.description);
                 virl_result = 'Error: ' + virl_data.result.error.code + ' - ' + virl_data.result.error.description
             }
             convo.setVar('delete_result', virl_result);
@@ -375,7 +367,6 @@ module.exports = function (controller) {
         await bot.beginDialog(DELETE_LAB_DIALOG);
     });
     controller.on('memberships.created', async (bot, message) => {
-        console.log('memberships created', message);
     });
     /*
     VIRL List your lab details Code
@@ -410,7 +401,6 @@ module.exports = function (controller) {
                 for (c = 0; c < virl_data.labs.length; c++) {
                     await virl_methods.get_lab_details(virl_data.labs[c]);
                 }
-                console.log(virl_data.lab_details);
                 if (virl_data.lab_details.length > 0) {
                     lab_string += '\n' + virlServers[n] + ' labs are: ';
                     let i;
@@ -446,7 +436,6 @@ module.exports = function (controller) {
         await bot.beginDialog(LAB_DETAILS_DIALOG);
     });
     controller.on('memberships.created', async (bot, message) => {
-        console.log('memberships created', message);
     });
     /*
     VIRL Test Password Generation Function Code
@@ -547,10 +536,10 @@ module.exports = function (controller) {
             await virl_methods.stop_lab(convo.vars.lab_id);
             let virl_result;
             if (virl_data.result === 'Success') {
-                console.log('Lab ID: ' + convo.vars.lab_id + ' successfully stopped');
+                console.log('Success - Stopped Lab ID: ' + convo.vars.lab_id + ' on server: ' + convo.vars.virl_server + ' for user: ' + convo.vars.virl_username);
                 virl_result = 'Lab successfully stopped'
             } else {
-                console.log('Error: ' + virl_data.result.error.code + ' - ' + virl_data.result.error.description);
+                console.log('Fail - Error stopping Lab Id: ' + convo.vars.lab_id + ' on server: ' + convo.vars.virl_server + ' for user: ' + convo.vars.virl_username + ' '+ virl_data.result.error.code + ' - ' + virl_data.result.error.description);
                 virl_result = 'Error: ' + virl_data.result.error.code + ' - ' + virl_data.result.error.description
             }
             convo.setVar('stop_result', virl_result);
@@ -576,7 +565,6 @@ module.exports = function (controller) {
         await bot.beginDialog(STOP_LAB_DIALOG);
     });
     controller.on('memberships.created', async (bot, message) => {
-        console.log('memberships created', message);
     });
     /*
     VIRL Extend Lab Code
@@ -597,7 +585,6 @@ module.exports = function (controller) {
                     'user_id': message.personId,
                     'lab_id': lab_and_server_list[0]
                 };
-                console.log(query_filter);
                 let result = await client.connect();
                 if (result.s.url === undefined) {
                     await bot.reply(message, 'Error connecting to database')
@@ -606,7 +593,7 @@ module.exports = function (controller) {
                     const collection = await db.collection(MONGO_COLLECTIONS);
                     const record = await collection.findOne(query_filter);
                     if (record == null) {
-                        await bot.reply(message, 'Could not find record for lab ' + lab_and_server_list[0] + ' on server ' + lab_and_server_list[0])
+                        await bot.reply(message, 'Could not find record for lab ' + lab_and_server_list[0] + ' on server ' + lab_and_server_list[1])
                     } else {
                         let epoch_time_now = Math.floor(new Date().getTime() / 1000.0);
                         result = await collection.updateOne(query_filter, {
@@ -616,8 +603,10 @@ module.exports = function (controller) {
                             }
                         });
                         if (result.modifiedCount === 1) {
-                            await bot.reply(message, 'Record for lab ' + lab_and_server_list[0] + ' on server ' + lab_and_server_list[0] + 'extended')
+                            console.log('Success - Extended Lab ID: ' + lab_and_server_list[0] + ' on server ' + lab_and_server_list[1] + ' for user: ' + message.user);
+                            await bot.reply(message, 'Record for lab ' + lab_and_server_list[0] + ' on server ' + lab_and_server_list[1] + 'extended')
                         } else {
+                            console.log('Fail - Extending Lab ID: ' + lab_and_server_list[0] + ' on server ' + lab_and_server_list[1] + ' for user: ' + message.user);
                             await bot.reply(message, 'Error extending lab')
                         }
                     }
