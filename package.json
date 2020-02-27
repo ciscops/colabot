@@ -1,0 +1,23 @@
+{
+  "name": "botkit-colabot",
+  "version": "1.0.0",
+  "description": "This is a Botkit starter kit for webex, created with the [Yeoman generator](https://github.com/howdyai/botkit/tree/master/packages/generator-botkit#readme).",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "botbuilder-adapter-webex": "^1.0.5",
+    "botbuilder-storage-mongodb": "^0.9.5",
+    "botkit": "^4.6.2",
+    "botkit-plugin-cms": "^1.0.3",
+    "dotenv": "^7.0.0",
+    "mongodb": "^3.5.3",
+    "request": "^2.88.2",
+    "request-promise": "^4.2.5"
+  },
+  "devDependencies": {},
+  "author": "",
+  "license": "ISC"
+}
