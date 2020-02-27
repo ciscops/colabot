@@ -338,10 +338,10 @@ module.exports = function (controller) {
             await virl_methods.delete_lab(convo.vars.lab_id);
             let virl_result;
             if (virl_data.result === '') {
-                console.log('Success - Deleted Lab ID: ' + convo.vars.lab_id);
+                console.log('Success - Deleted Lab ID: ' + convo.vars.lab_id + ' for user ' + convo.vars.virl_username);
                 virl_result = 'Lab successfully deleted'
             } else {
-                console.log('Fail - Error deleting lab: ' + convo.vars.lab_id + ' ' + virl_data.result.error.code + ' - ' + virl_data.result.error.description);
+                console.log('Fail - Error deleting lab: ' + convo.vars.lab_id + ' for user ' + convo.vars.virl_username + ' ' + virl_data.result.error.code + ' - ' + virl_data.result.error.description);
                 virl_result = 'Error: ' + virl_data.result.error.code + ' - ' + virl_data.result.error.description
             }
             convo.setVar('delete_result', virl_result);
@@ -536,10 +536,10 @@ module.exports = function (controller) {
             await virl_methods.stop_lab(convo.vars.lab_id);
             let virl_result;
             if (virl_data.result === 'Success') {
-                console.log('Success - Stopped Lab ID: ' + convo.vars.lab_id);
+                console.log('Success - Stopped Lab ID: ' + convo.vars.lab_id + ' on server: ' + convo.vars.virl_server + ' for user: ' + convo.vars.virl_username);
                 virl_result = 'Lab successfully stopped'
             } else {
-                console.log('Fail - Error stopping Lab Id: ' + convo.vars.lab_id + ' ' + virl_data.result.error.code + ' - ' + virl_data.result.error.description);
+                console.log('Fail - Error stopping Lab Id: ' + convo.vars.lab_id + ' on server: ' + convo.vars.virl_server + ' for user: ' + convo.vars.virl_username + ' '+ virl_data.result.error.code + ' - ' + virl_data.result.error.description);
                 virl_result = 'Error: ' + virl_data.result.error.code + ' - ' + virl_data.result.error.description
             }
             convo.setVar('stop_result', virl_result);
@@ -603,10 +603,10 @@ module.exports = function (controller) {
                             }
                         });
                         if (result.modifiedCount === 1) {
-                            console.log('Success - Extended Lab ID: ' + lab_and_server_list[0] + ' on server ' + lab_and_server_list[1]);
+                            console.log('Success - Extended Lab ID: ' + lab_and_server_list[0] + ' on server ' + lab_and_server_list[1] + ' for user: ' + message.user);
                             await bot.reply(message, 'Record for lab ' + lab_and_server_list[0] + ' on server ' + lab_and_server_list[1] + 'extended')
                         } else {
-                            console.log('Fail - Extending Lab ID: ' + lab_and_server_list[0] + ' on server ' + lab_and_server_list[1]);
+                            console.log('Fail - Extending Lab ID: ' + lab_and_server_list[0] + ' on server ' + lab_and_server_list[1] + ' for user: ' + message.user);
                             await bot.reply(message, 'Error extending lab')
                         }
                     }
