@@ -24,7 +24,6 @@ if (process.env.MONGO_URI) {
     });
 }
 
-
 const adapter = new WebexAdapter({
     // REMOVE THIS OPTION AFTER YOU HAVE CONFIGURED YOUR APP!
     enable_incomplete: false,
@@ -32,7 +31,7 @@ const adapter = new WebexAdapter({
     webhook_name: 'CoLabBot Webhook',
     access_token: process.env.ACCESS_TOKEN,
     public_address: process.env.PUBLIC_ADDRESS,
-    limit_to_domain: 'cisco.com'
+    limit_to_domain: process.env.APPROVED_ORG_DOMAINS.split(',')
 })
 adapter.use(CheckDomainMiddleware);
 

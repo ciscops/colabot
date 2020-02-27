@@ -23,6 +23,7 @@ MONGO_SERVER=mongodb.example.com
 MONGO_PORT=27017
 MONGO_DB=myproject
 MONGO_COLLECTIONS=documents
+APPROVED_ORG_DOMAINS=example1.com,example2.com,example3.com
 DEBUG=*
 # note .env is a shell file so there can't be spaces around =
 ```
