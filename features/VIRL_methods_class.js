@@ -57,7 +57,6 @@ function VIRL_methods_class(obj) {
         for (let [key, value] of Object.entries(results)) {
             obj.users.push(results[key].username);
         }
-        console.log(obj.users);
     };
     this.add_user = async (username_webex, user_email, new_password) => {
         let add_user_options = {
@@ -163,7 +162,6 @@ function VIRL_methods_class(obj) {
         let result = await response();
 
         let labs = result.user_roles.labs_by_user[username_webex];
-        console.log(labs);
         if (labs) {
             let epoch_time_now = Math.floor(new Date().getTime() / 1000.0);
             let results_list = [];
