@@ -1,5 +1,5 @@
 # colabot
-WebEx Teams user self-service bot for CIDR
+WebEx Teams user self-service bot for CIDR Group
 
 ## Deploying locally with docker-compose
 
