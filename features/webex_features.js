@@ -44,8 +44,27 @@ module.exports = function(controller) {
 
     });
 
-    controller.on('memberships.created', async(bot, message) => {
-    });
+    // controller.on('memberships.created', async(bot, message) => {
+    //             console.log(message)
+    //             console.log(controller.adapter._identity)
+    //
+    //
+    //     if (controller.adapter._identity.id === message.data.personId) {
+    //         let markDown = '**Available commands:**  \n';
+    //
+    //         controller.commandHelp.sort((a, b) => {
+    //
+    //             return ((a.command < b.command) ? -1 : ((a.command > b.command) ? 1 : 0));
+    //         });
+    //
+    //         controller.commandHelp.forEach(element => {
+    //
+    //             markDown += `**${controller.checkAddMention(message.roomType, element.command)}**: ${element.text}  \n`
+    //         });
+    //
+    //         await bot.reply(message, {markdown: markDown});
+    //     }
+    // });
 
 
 }

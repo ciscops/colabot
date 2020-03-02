@@ -78,8 +78,8 @@ module.exports = function (controller) {
         await bot.startConversationInRoom(room.id, message.user);
         await bot.beginDialog(ADD_USER_DIALOG);
     });
-    controller.on('memberships.created', async (bot, message) => {
-    });
+    // controller.on('memberships.created', async (bot, message) => {
+    // });
     /*
     VIRL Delete Account Code
      */
@@ -142,8 +142,8 @@ module.exports = function (controller) {
         await bot.startConversationInRoom(room.id, message.user);
         await bot.beginDialog(DELETE_USER_DIALOG);
     });
-    controller.on('memberships.created', async (bot, message) => {
-    });
+    // controller.on('memberships.created', async (bot, message) => {
+    // });
     /*
     VIRL Change Password Code
      */
@@ -202,8 +202,8 @@ module.exports = function (controller) {
         await bot.startConversationInRoom(room.id, message.user);
         await bot.beginDialog(CHANGE_PASSWORD_DIALOG);
     });
-    controller.on('memberships.created', async (bot, message) => {
-    });
+    // controller.on('memberships.created', async (bot, message) => {
+    // });
     /*
     VIRL Display Users Code
      */
@@ -366,8 +366,8 @@ module.exports = function (controller) {
         await bot.startConversationInRoom(room.id, message.user);
         await bot.beginDialog(DELETE_LAB_DIALOG);
     });
-    controller.on('memberships.created', async (bot, message) => {
-    });
+    // controller.on('memberships.created', async (bot, message) => {
+    // });
     /*
     VIRL List your lab details Code
     */
@@ -435,8 +435,8 @@ module.exports = function (controller) {
         await bot.startConversationInRoom(room.id, message.user);
         await bot.beginDialog(LAB_DETAILS_DIALOG);
     });
-    controller.on('memberships.created', async (bot, message) => {
-    });
+    // controller.on('memberships.created', async (bot, message) => {
+    // });
     /*
     VIRL Test Password Generation Function Code
      */
@@ -564,8 +564,8 @@ module.exports = function (controller) {
         await bot.startConversationInRoom(room.id, message.user);
         await bot.beginDialog(STOP_LAB_DIALOG);
     });
-    controller.on('memberships.created', async (bot, message) => {
-    });
+    // controller.on('memberships.created', async (bot, message) => {
+    // });
     /*
     VIRL Extend Lab Code
      */

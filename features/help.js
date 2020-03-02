@@ -3,24 +3,44 @@
 //
 module.exports = function (controller) {
 
-    controller.hears( 'help', 'message,direct_message', async ( bot, message ) => {
+    controller.hears('help', 'message,direct_message', async (bot, message) => {
 
         let markDown = '**Available commands:**  \n';
 
-        controller.commandHelp.sort( ( a,b ) => {
+        controller.commandHelp.sort((a, b) => {
 
-            return ( ( a.command < b.command ) ? -1 : ( ( a.command > b.command ) ? 1 : 0 ));
+            return ((a.command < b.command) ? -1 : ((a.command > b.command) ? 1 : 0));
         });
 
-        controller.commandHelp.forEach( element => {
+        controller.commandHelp.forEach(element => {
 
-            markDown += `**${ controller.checkAddMention( message.roomType, element.command ) }**: ${ element.text }  \n`
+            markDown += `**${controller.checkAddMention(message.roomType, element.command)}**: ${element.text}  \n`
         });
 
-        await bot.reply( message, { markdown: markDown } );
+        await bot.reply(message, {markdown: markDown});
 
         // text += "\n- " + bot.appendMention(message, "storage") + ": store picked color as a user preference";
     });
+    controller.on('memberships.created', async (bot, message) => {
+        console.log(message)
+        console.log(controller.adapter._identity)
 
-    controller.commandHelp.push( { command: 'help', text: 'Show available commands/descriptions' } );
+        if (controller.adapter._identity.id === message.data.personId) {
+            let markDown = '**Available commands:**  \n';
+
+            controller.commandHelp.sort((a, b) => {
+
+                return ((a.command < b.command) ? -1 : ((a.command > b.command) ? 1 : 0));
+            });
+
+            controller.commandHelp.forEach(element => {
+
+                markDown += `**${controller.checkAddMention(message.roomType, element.command)}**: ${element.text}  \n`
+            });
+
+            await bot.reply(message, {markdown: markDown});
+        }
+    });
+
+    controller.commandHelp.push({command: 'help', text: 'Show available commands/descriptions'});
 };
