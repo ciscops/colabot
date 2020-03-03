@@ -177,7 +177,7 @@ module.exports = function (controller) {
                     console.log('Success -  Password reset: \n' + '    username: ' + webex_data.webex_username + '\n    password: ' + new_virl_pwd);
                     virl_result += '\n        ** Success: ' + virlServers[n]
                 } else {
-                    console.log('Fail - Error resetting password username: ' + webex_data.webex_username + ' ' +virl_data.result.error.code + ' - ' + virl_data.result.error.description);
+                    console.log('Fail - Error resetting password username: ' + webex_data.webex_username + ' ' + virl_data.result.error.code + ' - ' + virl_data.result.error.description);
                     virl_result += '\n        ** Failure: ' + virlServers[n] + ' ' + virl_data.result.error.code + ' - ' + virl_data.result.error.description
                 }
                 convo.vars.response_change_password = virl_result;
@@ -216,10 +216,18 @@ module.exports = function (controller) {
             let virl_methods = new VIRL_methods(virl_data);
             await virl_methods.get_token();
             await virl_methods.list_users();
+            virl_data.users = [];
             user_string += '\n' + virlServers[n] + ' users are: ';
-            let i;
-            for (i = 0; i < virl_data.users.length; i++) {
-                user_string += '\n' + '        **  ' + virl_data.users[i]
+            if (virl_data.list_users_result.error) {
+                user_string += '\n' + '        ** Error getting users';
+            } else {
+                for (let [key, value] of Object.entries(virl_data.list_users_result)) {
+                    virl_data.users.push(virl_data.list_users_result[key].username);
+                }
+                let i;
+                for (i = 0; i < virl_data.users.length; i++) {
+                    user_string += '\n' + '        **  ' + virl_data.users[i]
+                }
             }
         }
         await bot.reply(message, user_string)
@@ -539,7 +547,7 @@ module.exports = function (controller) {
                 console.log('Success - Stopped Lab ID: ' + convo.vars.lab_id + ' on server: ' + convo.vars.virl_server + ' for user: ' + convo.vars.virl_username);
                 virl_result = 'Lab successfully stopped'
             } else {
-                console.log('Fail - Error stopping Lab Id: ' + convo.vars.lab_id + ' on server: ' + convo.vars.virl_server + ' for user: ' + convo.vars.virl_username + ' '+ virl_data.result.error.code + ' - ' + virl_data.result.error.description);
+                console.log('Fail - Error stopping Lab Id: ' + convo.vars.lab_id + ' on server: ' + convo.vars.virl_server + ' for user: ' + convo.vars.virl_username + ' ' + virl_data.result.error.code + ' - ' + virl_data.result.error.description);
                 virl_result = 'Error: ' + virl_data.result.error.code + ' - ' + virl_data.result.error.description
             }
             convo.setVar('stop_result', virl_result);

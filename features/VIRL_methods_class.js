@@ -52,11 +52,7 @@ function VIRL_methods_class(obj) {
             }).catch(function (err) {
                 return err
             });
-        let results = await response();
-        obj.users = [];
-        for (let [key, value] of Object.entries(results)) {
-            obj.users.push(results[key].username);
-        }
+        obj.list_users_result = await response();
     };
     this.add_user = async (username_webex, user_email, new_password) => {
         let add_user_options = {
