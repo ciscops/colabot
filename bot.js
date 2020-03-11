@@ -104,6 +104,8 @@ async function CheckDomainMiddleware(turnContext, next) {
         let allowed = false;
         if (controller.adapter._identity.id === turnContext._activity.from.id) {
             allowed = true;
+        } else if (turnContext._activity.channelData.resource === 'memberships' && turnContext._activity.channelData.event==='created' && turnContext._activity.channelData.data.personId === controller.adapter._identity.id) {
+            allowed = true;
         } else {
             let d;
             for (d = 0; d < domains.length; d++) {
