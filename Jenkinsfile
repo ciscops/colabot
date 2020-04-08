@@ -22,8 +22,6 @@ spec:
         value: ""
 ''') {
     node(POD_LABEL) {
-
-//         def colabot
         git 'https://github.com/ciscops/colabot.git'
         container('docker') {
             stage('Clone repository') {
@@ -34,18 +32,9 @@ spec:
                 sh "echo '${branch}'"
                 sh "echo '${scmVars.GIT_BRANCH}'"
                 sh "echo '${scmVars}'"
-                def payload = JsonOutput
-                sh "echo the build worked! The payload is '$payload'"
-//                 + echo '[GIT_BRANCH:origin/master, GIT_COMMIT:aa6f29de1a5f3c5f33c6631cab409b5d7f0f2ab2, GIT_PREVIOUS_COMMIT:aa6f29de1a5f3c5f33c6631cab409b5d7f0f2ab2, GIT_PREVIOUS_SUCCESSFUL_COMMIT:aa6f29de1a5f3c5f33c6631cab409b5d7f0f2ab2, GIT_URL:https://github.com/ciscops/colabot.git]'
+// + echo '[GIT_BRANCH:origin/master, GIT_COMMIT:aa6f29de1a5f3c5f33c6631cab409b5d7f0f2ab2, GIT_PREVIOUS_COMMIT:aa6f29de1a5f3c5f33c6631cab409b5d7f0f2ab2, GIT_PREVIOUS_SUCCESSFUL_COMMIT:aa6f29de1a5f3c5f33c6631cab409b5d7f0f2ab2, GIT_URL:https://github.com/ciscops/colabot.git]'
 // [GIT_BRANCH:origin/master, GIT_COMMIT:aa6f29de1a5f3c5f33c6631cab409b5d7f0f2ab2, GIT_PREVIOUS_COMMIT:aa6f29de1a5f3c5f33c6631cab409b5d7f0f2ab2, GIT_PREVIOUS_SUCCESSFUL_COMMIT:aa6f29de1a5f3c5f33c6631cab409b5d7f0f2ab2, GIT_URL:https://github.com/ciscops/colabot.git]
-                if ( "${scmVars.GIT_BRANCH}" == "master" ) {
-                    sh 'echo this is the master branch'
-// 							customImage = docker.build(dockerImageName + ":1.0-${env.BUILD_NUMBER}", "docker")
-				} else {
-				    sh 'echo this is the other branch'
-//         						customImage = docker.build(dockerImageName + ":1.0-${scmVars.GIT_BRANCH.replace("/", "-")}-${env.BUILD_NUMBER}", "docker")
-				}
-                sh 'echo this step works6'
+                sh 'echo this step works7'
             }
 //             stage('Test dev') {
 //                 when {
@@ -59,9 +48,17 @@ spec:
 //                     }
 //                 sh 'echo this the master branch'
 //             }
-//             stage('Build image') {
-//                 colabot = docker.build("stmosher/colabot-dev")
-//             }
+            stage('Build image') {
+                if ( "${branch}" == "master" ) {
+                    sh 'echo this is the master branch'
+// 					imageName = "stmosher/colabot-prod"
+				} else if ( "${branch}" == "dev" ) {
+				    sh 'echo this is the dev branch'
+//         			imageName = "stmosher/colabot-dev"
+				}
+                colabot = docker.build(imageName)
+                sh "echo '${env.BUILD_NUMBER}'"
+            }
 //             stage('Test image') {
 //                 colabot.inside {
 //                     sh 'python --version'
