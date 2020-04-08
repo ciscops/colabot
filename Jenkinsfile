@@ -64,6 +64,8 @@ spec:
                     sh "apk add curl"
                     sh 'k8sversion=v1.14.6'
                     sh 'curl -LO https://storage.googleapis.com/kubernetes-release/release/$k8sversion/bin/linux/amd64/kubectl'
+                    sh 'pwd'
+                    sh 'ls /usr/local/bin/'
                     sh "chmod +x ./kubectl"
                     sh 'mv ./kubectl /usr/local/bin/kubectl'
                     sh 'export KUBECONFIG=kubeconfig.yaml'
