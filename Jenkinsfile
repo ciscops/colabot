@@ -27,6 +27,7 @@ spec:
             stage('Clone repository') {
                 scmVars = checkout scm
                 sh "echo '${scmVars.GIT_BRANCH}'"
+                sh "echo '${scmVars}'"
                 if ( "${scmVars.GIT_BRANCH}" == "master" ) {
                     sh 'echo this is the master branch'
 // 							customImage = docker.build(dockerImageName + ":1.0-${env.BUILD_NUMBER}", "docker")
