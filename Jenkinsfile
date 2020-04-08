@@ -60,7 +60,7 @@ spec:
                 sh 'curl -LO https://storage.googleapis.com/kubernetes-release/release/$k8sversion/bin/linux/amd64/kubectl'
                 sh "chmod +x ./kubectl"
                 sh 'export KUBECONFIG=kubeconfig.yaml'
-                sh "kubectl get pods"
+                sh "/usr/local/bin/kubectl get pods"
                 sh 'mv ./kubectl /usr/local/bin/kubectl'
                 }
             stage('Apply new COLABot-dev to K8s cluster') {
@@ -69,9 +69,9 @@ spec:
                 sh 'ls'
                 sh 'apk add bash'
                 sh 'which kubectl'
-                sh("kubectl get pods")
+                sh "kubectl get pods"
                 sh '''#!/bin/bash
-                      /usr/local/bin/kubectl get pods
+                   /usr/local/bin/kubectl get pods
                    '''
 //                 sh "/usr/local/bin/kubectl get pods"
 //                 sh "/usr/local/bin/kubectl delete -f colabot-private/colabot_dev/colabot-dev.yaml"
