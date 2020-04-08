@@ -67,6 +67,8 @@ spec:
                     sh "chmod +x ./kubectl"
                     sh 'mv ./kubectl /usr/local/bin/kubectl'
                     sh 'export KUBECONFIG=kubeconfig.yaml'
+                    sh 'pwd'
+                    sh 'ls /usr/local/bin/'
                     sh "/usr/local/bin/kubectl get pods"
 				} else if ( "${branch}" == "master" ) {
         			sh 'echo skipping Install k8s client'
