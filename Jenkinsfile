@@ -29,7 +29,7 @@ spec:
                 branch = getBranch()
                 sh "echo '${branch}'"
             }
-            stage('Build image') {
+            stage('Build container') {
                 if ( "${branch}" == "master" ) {
 					imageName = "stmosher/colabot-prod"
 				} else if ( "${branch}" == "dev" ) {
@@ -42,7 +42,7 @@ spec:
 //                     sh 'python --version'
 //                 }
 //             }
-            stage('Push image') {
+            stage('Push container to docker hub ') {
                 docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
                     colabot.push("${env.BUILD_NUMBER}")
                     colabot.push("latest")
@@ -54,16 +54,17 @@ spec:
                 sh "chmod +x ./kubectl"
                 sh 'mv ./kubectl /usr/local/bin/kubectl'
                 }
-
-            stage('Clone repository') {
+            stage('Clone k8s manifest') {
                 sh "apk add git"
                 sh 'git config --global credential.helper cache'
                 withCredentials([usernamePassword(credentialsId: 'github', passwordVariable: 'pass', usernameVariable: 'user')]) {
-                    // the code in here can access $pass and $user
                     sh 'git clone https://"$user":"$pass"@github.com/ciscops/colabot-private.git'
                 }
-                sh "ls"
-                sj "pwd"
+                }
+            stage('Apply new COLABot-dev to K8s cluster') {
+                sh "cd colabot-private/colabot_dev/"
+                sh "kubectl apply -f colabot-dev.yaml --kubeconfig=kubeconfig.yaml"
+//                 sh "kubectl create -f colabot-dev.yaml --kubeconfig=kubeconfig.yaml"
                 }
             }
         }
