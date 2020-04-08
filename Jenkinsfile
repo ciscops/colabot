@@ -67,9 +67,9 @@ spec:
                 sh 'ls'
                 sh 'pwd'
                 sh 'which kubectl'
-                sh 'kubectl'
-                sh "kubectl delete -f colabot-private/colabot_dev/colabot-dev.yaml"
-                sh "kubectl create -f colabot-private/colabot_dev/colabot-dev.yaml"
+                sh '/usr/local/bin/kubectl'
+                sh "/usr/local/bin/kubectl delete -f colabot-private/colabot_dev/colabot-dev.yaml"
+                sh "/usr/local/bin/kubectl create -f colabot-private/colabot_dev/colabot-dev.yaml"
                 sh 'echo Finished'
 //                 sh "kubectl create -f colabot-dev.yaml --kubeconfig=kubeconfig.yaml"
                 }
