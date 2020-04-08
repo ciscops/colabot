@@ -65,6 +65,9 @@ spec:
 //                 sh "cd colabot-private/colabot_dev/"
                 sh 'export KUBECONFIG=kubeconfig.yaml'
                 sh 'ls'
+                sh 'pwd'
+                sh 'which kubectl'
+                sh 'kubectl'
                 sh "kubectl delete -f colabot-private/colabot_dev/colabot-dev.yaml"
                 sh "kubectl create -f colabot-private/colabot_dev/colabot-dev.yaml"
                 sh 'echo Finished'
