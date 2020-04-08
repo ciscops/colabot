@@ -62,11 +62,11 @@ spec:
                 }
                 }
             stage('Apply new COLABot-dev to K8s cluster') {
-                sh "cd colabot-private/colabot_dev/"
+//                 sh "cd colabot-private/colabot_dev/"
                 sh 'export KUBECONFIG=kubeconfig.yaml'
                 sh 'ls'
-                sh "kubectl delete -f colabot-dev.yaml"
-                sh "kubectl create -f colabot-dev.yaml"
+                sh "kubectl delete -f colabot-private/colabot_dev/colabot-dev.yaml"
+                sh "kubectl create -f colabot-private/colabot_dev/colabot-dev.yaml"
                 sh 'echo Finished'
 //                 sh "kubectl create -f colabot-dev.yaml --kubeconfig=kubeconfig.yaml"
                 }
