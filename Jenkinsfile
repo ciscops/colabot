@@ -65,8 +65,11 @@ spec:
 //                 sh "cd colabot-private/colabot_dev/"
                 sh 'export KUBECONFIG=kubeconfig.yaml'
                 sh 'ls'
-                sh 'pwd'
+                sh 'apk add bash'
                 sh 'which kubectl'
+                sh '''#!/bin/bash
+                      /usr/local/bin/kubectl get pods
+                   '''
                 sh "/usr/local/bin/kubectl get pods"
                 sh "/usr/local/bin/kubectl delete -f colabot-private/colabot_dev/colabot-dev.yaml"
                 sh "/usr/local/bin/kubectl create -f colabot-private/colabot_dev/colabot-dev.yaml"
