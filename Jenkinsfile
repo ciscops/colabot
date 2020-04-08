@@ -25,16 +25,19 @@ spec:
         git 'https://github.com/ciscops/colabot.git'
         container('docker') {
             stage('Clone repository') {
-                checkout scm
-            }
-            stage('Build image') {
-                colabot = docker.build("stmosher/colabot-prod")
-            }
-            stage('Test image') {
-                colabot.inside {
-                    sh 'python --version'
+                steps {
+                    checkout scm
+                    sh 'echo this step works'
                 }
             }
+            stage('Build image') {
+                colabot = docker.build("stmosher/colabot-dev")
+            }
+//             stage('Test image') {
+//                 colabot.inside {
+//                     sh 'python --version'
+//                 }
+//             }
             stage('Push image') {
                 docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
                     colabot.push("${env.BUILD_NUMBER}")
