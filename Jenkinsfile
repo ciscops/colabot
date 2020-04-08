@@ -27,7 +27,7 @@ spec:
             stage('Clone repository') {
                 steps {
                     checkout scm
-                    sh 'echo this step works'
+                    shell 'echo this step works'
                 }
             }
             stage('Build image') {
