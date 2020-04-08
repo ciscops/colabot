@@ -21,26 +21,79 @@ spec:
         value: ""
 ''') {
     node(POD_LABEL) {
-        def colabot
+//         def colabot
         git 'https://github.com/ciscops/colabot.git'
         container('docker') {
             stage('Clone repository') {
-                checkout scm
+                scmVars = checkout scm
+                sh "echo '${scmVars.GIT_BRANCH}'"
+                sh "echo '${scmVars}'"
+//                 + echo '[GIT_BRANCH:origin/master, GIT_COMMIT:aa6f29de1a5f3c5f33c6631cab409b5d7f0f2ab2, GIT_PREVIOUS_COMMIT:aa6f29de1a5f3c5f33c6631cab409b5d7f0f2ab2, GIT_PREVIOUS_SUCCESSFUL_COMMIT:aa6f29de1a5f3c5f33c6631cab409b5d7f0f2ab2, GIT_URL:https://github.com/ciscops/colabot.git]'
+// [GIT_BRANCH:origin/master, GIT_COMMIT:aa6f29de1a5f3c5f33c6631cab409b5d7f0f2ab2, GIT_PREVIOUS_COMMIT:aa6f29de1a5f3c5f33c6631cab409b5d7f0f2ab2, GIT_PREVIOUS_SUCCESSFUL_COMMIT:aa6f29de1a5f3c5f33c6631cab409b5d7f0f2ab2, GIT_URL:https://github.com/ciscops/colabot.git]
+                if ( "${scmVars.GIT_BRANCH}" == "master" ) {
+                    sh 'echo this is the master branch'
+// 							customImage = docker.build(dockerImageName + ":1.0-${env.BUILD_NUMBER}", "docker")
+				} else {
+				    sh 'echo this is the other branch'
+//         						customImage = docker.build(dockerImageName + ":1.0-${scmVars.GIT_BRANCH.replace("/", "-")}-${env.BUILD_NUMBER}", "docker")
+				}
+                sh 'echo this step works2'
             }
-            stage('Build image') {
-                colabot = docker.build("stmosher/colabot-prod")
-            }
+//             stage('Test dev') {
+//                 when {
+//                     branch 'dev'
+//                     }
+//                 sh 'echo this the dev branch'
+//             }
+//             stage('Test master') {
+//                 when {
+//                     branch 'master'
+//                     }
+//                 sh 'echo this the master branch'
+//             }
+//             stage('Build image') {
+//                 colabot = docker.build("stmosher/colabot-dev")
+//             }
 //             stage('Test image') {
 //                 colabot.inside {
-//                     sh 'node --version'
+//                     sh 'python --version'
 //                 }
 //             }
-            stage('Push image') {
-                docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
-                    colabot.push("${env.BUILD_NUMBER}")
-                    colabot.push("latest")
-                }
-            }             
+//             stage('Push image') {
+//                 docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
+//                     colabot.push("${env.BUILD_NUMBER}")
+//                     colabot.push("latest")
+//                 }
+//             }
         }
     }
 }
+
+// #!groovy
+// // Parameters to define in the CloudBees UI in order for this job to work:
+// // * CODE_BRANCH
+//
+// def Credentials = 'Abhay@1988'
+// def dockerImageName = 'docker-datadog'
+// def repoUrl = 'https://github.com/AbhayBhovi/test-jenkinsfile.git'
+// def customImage = ""
+//
+// node('master') {
+// 	timestamps {
+// 		wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+// 			stage ('build') {
+// 				dir('my-code-checkout') {
+// 					scmVars = checkout scm
+// 					if ( "${scmVars.GIT_BRANCH}" == "master" ) {
+// 							customImage = docker.build(dockerImageName + ":1.0-${env.BUILD_NUMBER}", "docker")
+// 						} else {
+//         						customImage = docker.build(dockerImageName + ":1.0-${scmVars.GIT_BRANCH.replace("/", "-")}-${env.BUILD_NUMBER}", "docker")
+// 						}
+//
+// 						/* Push the container to the custom Registry */
+// 						customImage.push()
+// 				}
+// 			}
+// 		}
+// 	}
+// }

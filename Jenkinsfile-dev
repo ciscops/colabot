@@ -32,7 +32,7 @@ spec:
             }
 //             stage('Test image') {
 //                 colabot.inside {
-//                     sh 'node --version'
+//                     sh 'python --version'
 //                 }
 //             }
             stage('Push image') {
