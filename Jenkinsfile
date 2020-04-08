@@ -89,7 +89,6 @@ spec:
             }
         }
     }
-}
 
 def getBranch() {
     tokens = "${env.JOB_NAME}".tokenize('/')
