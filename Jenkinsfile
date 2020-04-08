@@ -51,19 +51,19 @@ spec:
             stage('Build image') {
                 if ( "${branch}" == "master" ) {
                     sh 'echo this is the master branch'
-// 					imageName = "stmosher/colabot-prod"
+					imageName = "stmosher/colabot-prod"
 				} else if ( "${branch}" == "dev" ) {
 				    sh 'echo this is the dev branch'
-//         			imageName = "stmosher/colabot-dev"
+        			imageName = "stmosher/colabot-dev"
 				}
                 colabot = docker.build(imageName)
                 sh "echo '${env.BUILD_NUMBER}'"
             }
-//             stage('Test image') {
-//                 colabot.inside {
-//                     sh 'python --version'
-//                 }
-//             }
+            stage('Test image') {
+                colabot.inside {
+                    sh 'python --version'
+                }
+            }
 //             stage('Push image') {
 //                 docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
 //                     colabot.push("${env.BUILD_NUMBER}")
