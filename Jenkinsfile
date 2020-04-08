@@ -47,20 +47,21 @@ spec:
                     colabot.push("${env.BUILD_NUMBER}")
                     colabot.push("latest")
                 }
-            stage('Install k8s client') {
-                sh "apk add curl"
-                sh 'k8sversion=v1.14.6'
-                sh 'curl -LO https://storage.googleapis.com/kubernetes-release/release/$k8sversion/bin/linux/amd64/kubectl'
-                sh "chmod +x ./kubectl"
-                sh 'mv ./kubectl /usr/local/bin/kubectl'
-                sh "kubectl get pods"
-                }
             stage('Clone k8s manifest') {
                 sh "apk add git"
                 sh 'git config --global credential.helper cache'
                 withCredentials([usernamePassword(credentialsId: 'github', passwordVariable: 'pass', usernameVariable: 'user')]) {
                     sh 'git clone https://"$user":"$pass"@github.com/ciscops/colabot-private.git'
                 }
+                }
+            stage('Install k8s client') {
+                sh "apk add curl"
+                sh 'k8sversion=v1.14.6'
+                sh 'curl -LO https://storage.googleapis.com/kubernetes-release/release/$k8sversion/bin/linux/amd64/kubectl'
+                sh "chmod +x ./kubectl"
+                sh 'export KUBECONFIG=kubeconfig.yaml'
+                sh "kubectl get pods"
+                sh 'mv ./kubectl /usr/local/bin/kubectl'
                 }
             stage('Apply new COLABot-dev to K8s cluster') {
 //                 sh "cd colabot-private/colabot_dev/"
