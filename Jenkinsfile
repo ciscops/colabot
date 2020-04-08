@@ -30,6 +30,8 @@ spec:
                 scmVars = checkout scm
                 sh "echo '${env}'"
                 sh "echo '${env.JOB_NAME}'"
+                branch = getBranch()
+                sh "echo '${branch}'"
                 sh "echo '${scmVars.GIT_BRANCH}'"
                 sh "echo '${scmVars}'"
                 def payload = JsonOutput
@@ -75,6 +77,11 @@ spec:
     }
 }
 
+def getBranch() {
+    tokens = "${env.JOB_NAME}".tokenize('/')
+    branch = tokens[tokens.size()-1]
+    return "${branch}"
+}
 // #!groovy
 // // Parameters to define in the CloudBees UI in order for this job to work:
 // // * CODE_BRANCH
