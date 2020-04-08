@@ -25,10 +25,8 @@ spec:
         git 'https://github.com/ciscops/colabot.git'
         container('docker') {
             stage('Clone repository') {
-                steps {
-                    checkout scm
-                    shell 'echo this step works'
-                }
+                checkout scm
+                sh 'echo this step works'
             }
             stage('Build image') {
                 colabot = docker.build("stmosher/colabot-dev")
