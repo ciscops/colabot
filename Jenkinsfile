@@ -63,6 +63,7 @@ spec:
                     sh 'git clone https://"$user":"$pass"@github.com/ciscops/colabot-private.git'
                 }
                 sh "ls"
+                sj "pwd"
                 }
             }
         }
