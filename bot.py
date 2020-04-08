@@ -25,7 +25,7 @@ help_menu_list = ['**VIRL create account** > create account\n',
                   '**VIRL list users** > list users\n',
                   '**VIRL reset password** > reset password\n',
                   '**VIRL show server utilization** > show current CPU and Memory usage\n',
-                  '**VIRL stop lab** > stop labs or your choice\n',
+                  '**VIRL stop lab** > stop labs of your choice\n',
                   '**help** > display available commands\n']
 
 

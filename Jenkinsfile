@@ -28,7 +28,7 @@ spec:
                 checkout scm
             }
             stage('Build image') {
-                colabot = docker.build("stmosher/colabot-dev")
+                colabot = docker.build("stmosher/colabot-prod")
             }
 //             stage('Test image') {
 //                 colabot.inside {
