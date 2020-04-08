@@ -65,9 +65,9 @@ spec:
                     sh 'k8sversion=v1.14.6'
                     sh 'curl -LO https://storage.googleapis.com/kubernetes-release/release/$k8sversion/bin/linux/amd64/kubectl'
                     sh 'pwd'
-                    sh 'ls /usr/local/bin/'
+                    sh 'ls /home/jenkins/agent/workspace/colabot_dev_and_prod_dev'
                     sh "chmod +x ./kubectl"
-                    sh 'mv ./kubectl /usr/local/bin/kubectl'
+                    sh 'cp ./kubectl /usr/local/bin/kubectl'
                     sh 'export KUBECONFIG=kubeconfig.yaml'
                     sh 'pwd'
                     sh 'ls /usr/local/bin/'
