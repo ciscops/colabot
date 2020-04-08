@@ -28,6 +28,7 @@ spec:
                 scmVars = checkout scm
                 sh "echo '${scmVars.GIT_BRANCH}'"
                 sh "echo '${scmVars}'"
+                sh "echo the build worked! The payload is '$payload'"
 //                 + echo '[GIT_BRANCH:origin/master, GIT_COMMIT:aa6f29de1a5f3c5f33c6631cab409b5d7f0f2ab2, GIT_PREVIOUS_COMMIT:aa6f29de1a5f3c5f33c6631cab409b5d7f0f2ab2, GIT_PREVIOUS_SUCCESSFUL_COMMIT:aa6f29de1a5f3c5f33c6631cab409b5d7f0f2ab2, GIT_URL:https://github.com/ciscops/colabot.git]'
 // [GIT_BRANCH:origin/master, GIT_COMMIT:aa6f29de1a5f3c5f33c6631cab409b5d7f0f2ab2, GIT_PREVIOUS_COMMIT:aa6f29de1a5f3c5f33c6631cab409b5d7f0f2ab2, GIT_PREVIOUS_SUCCESSFUL_COMMIT:aa6f29de1a5f3c5f33c6631cab409b5d7f0f2ab2, GIT_URL:https://github.com/ciscops/colabot.git]
                 if ( "${scmVars.GIT_BRANCH}" == "master" ) {
@@ -37,7 +38,7 @@ spec:
 				    sh 'echo this is the other branch'
 //         						customImage = docker.build(dockerImageName + ":1.0-${scmVars.GIT_BRANCH.replace("/", "-")}-${env.BUILD_NUMBER}", "docker")
 				}
-                sh 'echo this step works4'
+                sh 'echo this step works5'
             }
 //             stage('Test dev') {
 //                 when {
