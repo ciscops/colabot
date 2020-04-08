@@ -21,7 +21,7 @@ spec:
         value: ""
 ''') {
     node(POD_LABEL) {
-        git 'https://github.com/ciscops/colabot.git'
+//         git 'https://github.com/ciscops/colabot.git'
         container('docker') {
             stage('Clone repository') {
                 checkout scm
@@ -46,6 +46,17 @@ spec:
                 docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
                     colabot.push("${env.BUILD_NUMBER}")
                     colabot.push("latest")
+                }
+            stage('Install k8s client') {
+                sh "apk add curl"
+                sh 'k8sversion=v1.14.6'
+                sh 'curl -LO https://storage.googleapis.com/kubernetes-release/release/$k8sversion/bin/linux/amd64/kubectl'
+                sh "chmod +x ./kubectl"
+                sh 'mv ./kubectl /usr/local/bin/kubectl'
+                }
+            git 'https://github.com/ciscops/colabot-private.git'
+            stage('Clone repository') {
+                sh "ls"
                 }
             }
         }
