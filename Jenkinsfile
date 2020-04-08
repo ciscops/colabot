@@ -21,6 +21,7 @@ spec:
         value: ""
 ''') {
     node(POD_LABEL) {
+        import groovy.json.JsonOutput;
 //         def colabot
         git 'https://github.com/ciscops/colabot.git'
         container('docker') {
