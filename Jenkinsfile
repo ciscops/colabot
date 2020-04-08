@@ -58,7 +58,7 @@ spec:
             stage('Clone repository') {
                 sh "apk add git"
                 sh 'git config --global credential.helper cache'
-                withCredentials([usernamePassword(credentialsId: 'hello-kb', passwordVariable: 'pass', usernameVariable: 'user')]) {
+                withCredentials([usernamePassword(credentialsId: 'github', passwordVariable: 'pass', usernameVariable: 'user')]) {
                     // the code in here can access $pass and $user
                     sh 'git clone https://"$user":"$pass"@github.com/ciscops/colabot-private.git'
                 }
