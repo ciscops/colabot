@@ -71,7 +71,7 @@ spec:
                     sh 'export KUBECONFIG=kubeconfig.yaml'
                     sh 'pwd'
                     sh 'ls /usr/local/bin/'
-                    sh "/usr/local/bin/kubectl get pods"
+                    sh "/home/jenkins/agent/workspace/colabot_dev_and_prod_dev/kubectl get pods"
 				} else if ( "${branch}" == "master" ) {
         			sh 'echo skipping Install k8s client'
                 }
