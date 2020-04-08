@@ -47,33 +47,40 @@ spec:
                     colabot.push("${env.BUILD_NUMBER}")
                     colabot.push("latest")
                 }
+            }
             stage('Clone k8s manifest') {
-                sh "apk add git"
-                sh 'git config --global credential.helper cache'
-                withCredentials([usernamePassword(credentialsId: 'github', passwordVariable: 'pass', usernameVariable: 'user')]) {
-                    sh 'git clone https://"$user":"$pass"@github.com/ciscops/colabot-private.git'
-                }
-                }
+                if ( "${branch}" == "dev" ) {
+                    sh "apk add git"
+                    sh 'git config --global credential.helper cache'
+                    withCredentials([usernamePassword(credentialsId: 'github', passwordVariable: 'pass', usernameVariable: 'user')]) {
+                        sh 'git clone https://"$user":"$pass"@github.com/ciscops/colabot-private.git'
+                        }
+				} else if ( "${branch}" == "master" ) {
+        			sh 'echo skipping clone k8s manifest'
+			    }
+		    }
             stage('Install k8s client') {
-                sh "apk add curl"
-                sh 'k8sversion=v1.14.6'
-                sh 'curl -LO https://storage.googleapis.com/kubernetes-release/release/$k8sversion/bin/linux/amd64/kubectl'
-                sh "chmod +x ./kubectl"
-                sh 'export KUBECONFIG=kubeconfig.yaml'
-                sh "/usr/local/bin/kubectl get pods"
-                sh 'mv ./kubectl /usr/local/bin/kubectl'
+                if ( "${branch}" == "dev" ) {
+                    sh "apk add curl"
+                    sh 'k8sversion=v1.14.6'
+                    sh 'curl -LO https://storage.googleapis.com/kubernetes-release/release/$k8sversion/bin/linux/amd64/kubectl'
+                    sh "chmod +x ./kubectl"
+                    sh 'mv ./kubectl /usr/local/bin/kubectl'
+                    sh 'export KUBECONFIG=kubeconfig.yaml'
+                    sh "/usr/local/bin/kubectl get pods"
+				} else if ( "${branch}" == "master" ) {
+        			sh 'echo skipping Install k8s client'
                 }
+            }
             stage('Apply new COLABot-dev to K8s cluster') {
-//                 sh "cd colabot-private/colabot_dev/"
-                sh 'export KUBECONFIG=kubeconfig.yaml'
-                sh 'ls'
-                sh 'apk add bash'
-                sh 'which kubectl'
-                sh "kubectl get pods"
-                sh '''#!/bin/bash
-                   /usr/local/bin/kubectl get pods
-                   '''
-//                 sh "/usr/local/bin/kubectl get pods"
+//                 sh 'export KUBECONFIG=kubeconfig.yaml'
+//                 sh 'ls'
+//                 sh 'apk add bash'
+//                 sh 'which kube .tl'
+//                 sh "kubectl get pods"
+//                 sh '''#!/bin/bash
+//                    /usr/local/bin/kubectl get pods
+//                    '''
 //                 sh "/usr/local/bin/kubectl delete -f colabot-private/colabot_dev/colabot-dev.yaml"
 //                 sh "/usr/local/bin/kubectl create -f colabot-private/colabot_dev/colabot-dev.yaml"
                 sh 'echo Finished'
