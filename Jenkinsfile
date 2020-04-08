@@ -25,7 +25,7 @@ spec:
         git 'https://github.com/ciscops/colabot.git'
         container('docker') {
             stage('Clone repository') {
-                smcVars = checkout scm
+                scmVars = checkout scm
                 if ( "${scmVars.GIT_BRANCH}" == "master" ) {
                     sh 'echo this is the master branch'
 // 							customImage = docker.build(dockerImageName + ":1.0-${env.BUILD_NUMBER}", "docker")
