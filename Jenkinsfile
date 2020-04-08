@@ -28,7 +28,8 @@ spec:
         container('docker') {
             stage('Clone repository') {
                 scmVars = checkout scm
-                sh 'echo "${env.JOB_NAME}"'
+                sh "echo '${env}'"
+                sh "echo '${env.JOB_NAME}'"
                 sh "echo '${scmVars.GIT_BRANCH}'"
                 sh "echo '${scmVars}'"
                 def payload = JsonOutput
