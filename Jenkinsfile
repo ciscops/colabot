@@ -28,6 +28,18 @@ spec:
                 checkout scm
                 sh 'echo this step works'
             }
+            stage('Test dev') {
+                when {
+                    branch 'dev'
+                    }
+                sh 'echo this the dev branch'
+            }
+            stage('Test master') {
+                when {
+                    branch 'master'
+                    }
+                sh 'echo this the master branch'
+            }
             stage('Build image') {
                 colabot = docker.build("stmosher/colabot-dev")
             }
