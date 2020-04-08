@@ -67,12 +67,13 @@ spec:
                 sh 'ls'
                 sh 'apk add bash'
                 sh 'which kubectl'
+                sh("kubectl get pods")
                 sh '''#!/bin/bash
                       /usr/local/bin/kubectl get pods
                    '''
-                sh "/usr/local/bin/kubectl get pods"
-                sh "/usr/local/bin/kubectl delete -f colabot-private/colabot_dev/colabot-dev.yaml"
-                sh "/usr/local/bin/kubectl create -f colabot-private/colabot_dev/colabot-dev.yaml"
+//                 sh "/usr/local/bin/kubectl get pods"
+//                 sh "/usr/local/bin/kubectl delete -f colabot-private/colabot_dev/colabot-dev.yaml"
+//                 sh "/usr/local/bin/kubectl create -f colabot-private/colabot_dev/colabot-dev.yaml"
                 sh 'echo Finished'
 //                 sh "kubectl create -f colabot-dev.yaml --kubeconfig=kubeconfig.yaml"
                 }
