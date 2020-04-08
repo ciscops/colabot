@@ -25,7 +25,14 @@ spec:
         git 'https://github.com/ciscops/colabot.git'
         container('docker') {
             stage('Clone repository') {
-                checkout scm
+                smcVars = checkout scm
+                if ( "${scmVars.GIT_BRANCH}" == "master" ) {
+                    sh 'echo this is the master branch'
+// 							customImage = docker.build(dockerImageName + ":1.0-${env.BUILD_NUMBER}", "docker")
+				} else {
+				    sh 'echo this is the other branch'
+//         						customImage = docker.build(dockerImageName + ":1.0-${scmVars.GIT_BRANCH.replace("/", "-")}-${env.BUILD_NUMBER}", "docker")
+				}
                 sh 'echo this step works'
             }
 //             stage('Test dev') {
@@ -48,12 +55,12 @@ spec:
 //                     sh 'python --version'
 //                 }
 //             }
-            stage('Push image') {
-                docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
-                    colabot.push("${env.BUILD_NUMBER}")
-                    colabot.push("latest")
-                }
-            }             
+//             stage('Push image') {
+//                 docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
+//                     colabot.push("${env.BUILD_NUMBER}")
+//                     colabot.push("latest")
+//                 }
+//             }
         }
     }
 }
