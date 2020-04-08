@@ -30,11 +30,11 @@ spec:
             stage('Build image') {
                 colabot = docker.build("stmosher/colabot-dev")
             }
-            stage('Test image') {
-                colabot.inside {
-                    sh 'python --version'
-                }
-            }
+//             stage('Test image') {
+//                 colabot.inside {
+//                     sh 'python --version'
+//                 }
+//             }
             stage('Push image') {
                 docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
                     colabot.push("${env.BUILD_NUMBER}")
