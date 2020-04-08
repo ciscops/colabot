@@ -47,6 +47,7 @@ class WebExClient:
 
                 response = WebExResponse()
             except aiohttp.ContentTypeError:
+                print('There was an exception in WebEx client line 50')
                 pass
         await session.close()
         return response
