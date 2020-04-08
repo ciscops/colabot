@@ -39,7 +39,7 @@ spec:
 				    sh 'echo this is the other branch'
 //         						customImage = docker.build(dockerImageName + ":1.0-${scmVars.GIT_BRANCH.replace("/", "-")}-${env.BUILD_NUMBER}", "docker")
 				}
-                sh 'echo this step works5'
+                sh 'echo this step works6'
             }
 //             stage('Test dev') {
 //                 when {
