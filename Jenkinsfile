@@ -70,7 +70,7 @@ spec:
                     sh 'cp ./kubectl /usr/local/bin/kubectl'
                     sh 'export KUBECONFIG=kubeconfig.yaml'
                     sh 'pwd'
-                    sh 'ls /usr/local/bin/'
+                    sh 'ls -alF /usr/local/bin/'
                     sh 'kubectl get pods'
                     sh "/home/jenkins/agent/workspace/colabot_dev_and_prod_dev/kubectl get pods"
 				} else if ( "${branch}" == "master" ) {
