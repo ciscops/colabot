@@ -21,79 +21,50 @@ spec:
         value: ""
 ''') {
     node(POD_LABEL) {
-//         def colabot
-        git 'https://github.com/ciscops/colabot.git'
+//         git 'https://github.com/ciscops/colabot.git'
         container('docker') {
             stage('Clone repository') {
-                scmVars = checkout scm
-                sh "echo '${scmVars.GIT_BRANCH}'"
-                sh "echo '${scmVars}'"
-//                 + echo '[GIT_BRANCH:origin/master, GIT_COMMIT:aa6f29de1a5f3c5f33c6631cab409b5d7f0f2ab2, GIT_PREVIOUS_COMMIT:aa6f29de1a5f3c5f33c6631cab409b5d7f0f2ab2, GIT_PREVIOUS_SUCCESSFUL_COMMIT:aa6f29de1a5f3c5f33c6631cab409b5d7f0f2ab2, GIT_URL:https://github.com/ciscops/colabot.git]'
-// [GIT_BRANCH:origin/master, GIT_COMMIT:aa6f29de1a5f3c5f33c6631cab409b5d7f0f2ab2, GIT_PREVIOUS_COMMIT:aa6f29de1a5f3c5f33c6631cab409b5d7f0f2ab2, GIT_PREVIOUS_SUCCESSFUL_COMMIT:aa6f29de1a5f3c5f33c6631cab409b5d7f0f2ab2, GIT_URL:https://github.com/ciscops/colabot.git]
-                if ( "${scmVars.GIT_BRANCH}" == "master" ) {
-                    sh 'echo this is the master branch'
-// 							customImage = docker.build(dockerImageName + ":1.0-${env.BUILD_NUMBER}", "docker")
-				} else {
-				    sh 'echo this is the other branch'
-//         						customImage = docker.build(dockerImageName + ":1.0-${scmVars.GIT_BRANCH.replace("/", "-")}-${env.BUILD_NUMBER}", "docker")
-				}
-                sh 'echo this step works2'
+                checkout scm
+                sh "echo '${env.JOB_NAME}'"
+                branch = getBranch()
+                sh "echo '${branch}'"
             }
-//             stage('Test dev') {
-//                 when {
-//                     branch 'dev'
-//                     }
-//                 sh 'echo this the dev branch'
-//             }
-//             stage('Test master') {
-//                 when {
-//                     branch 'master'
-//                     }
-//                 sh 'echo this the master branch'
-//             }
-//             stage('Build image') {
-//                 colabot = docker.build("stmosher/colabot-dev")
-//             }
+            stage('Build image') {
+                if ( "${branch}" == "master" ) {
+					imageName = "stmosher/colabot-prod"
+				} else if ( "${branch}" == "dev" ) {
+        			imageName = "stmosher/colabot-dev"
+				}
+                colabot = docker.build(imageName)
+            }
 //             stage('Test image') {
 //                 colabot.inside {
 //                     sh 'python --version'
 //                 }
 //             }
-//             stage('Push image') {
-//                 docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
-//                     colabot.push("${env.BUILD_NUMBER}")
-//                     colabot.push("latest")
-//                 }
-//             }
+            stage('Push image') {
+                docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
+                    colabot.push("${env.BUILD_NUMBER}")
+                    colabot.push("latest")
+                }
+            stage('Install k8s client') {
+                sh "apk add curl"
+                sh 'k8sversion=v1.14.6'
+                sh 'curl -LO https://storage.googleapis.com/kubernetes-release/release/$k8sversion/bin/linux/amd64/kubectl'
+                sh "chmod +x ./kubectl"
+                sh 'mv ./kubectl /usr/local/bin/kubectl'
+                }
+            git 'https://github.com/ciscops/colabot-private.git'
+            stage('Clone repository') {
+                sh "ls"
+                }
+            }
         }
     }
 }
 
-// #!groovy
-// // Parameters to define in the CloudBees UI in order for this job to work:
-// // * CODE_BRANCH
-//
-// def Credentials = 'Abhay@1988'
-// def dockerImageName = 'docker-datadog'
-// def repoUrl = 'https://github.com/AbhayBhovi/test-jenkinsfile.git'
-// def customImage = ""
-//
-// node('master') {
-// 	timestamps {
-// 		wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
-// 			stage ('build') {
-// 				dir('my-code-checkout') {
-// 					scmVars = checkout scm
-// 					if ( "${scmVars.GIT_BRANCH}" == "master" ) {
-// 							customImage = docker.build(dockerImageName + ":1.0-${env.BUILD_NUMBER}", "docker")
-// 						} else {
-//         						customImage = docker.build(dockerImageName + ":1.0-${scmVars.GIT_BRANCH.replace("/", "-")}-${env.BUILD_NUMBER}", "docker")
-// 						}
-//
-// 						/* Push the container to the custom Registry */
-// 						customImage.push()
-// 				}
-// 			}
-// 		}
-// 	}
-// }
+def getBranch() {
+    tokens = "${env.JOB_NAME}".tokenize('/')
+    branch = tokens[tokens.size()-1]
+    return "${branch}"
+}
