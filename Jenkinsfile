@@ -28,6 +28,8 @@ spec:
                 scmVars = checkout scm
                 sh "echo '${scmVars.GIT_BRANCH}'"
                 sh "echo '${scmVars}'"
+                + echo '[GIT_BRANCH:origin/master, GIT_COMMIT:aa6f29de1a5f3c5f33c6631cab409b5d7f0f2ab2, GIT_PREVIOUS_COMMIT:aa6f29de1a5f3c5f33c6631cab409b5d7f0f2ab2, GIT_PREVIOUS_SUCCESSFUL_COMMIT:aa6f29de1a5f3c5f33c6631cab409b5d7f0f2ab2, GIT_URL:https://github.com/ciscops/colabot.git]'
+// [GIT_BRANCH:origin/master, GIT_COMMIT:aa6f29de1a5f3c5f33c6631cab409b5d7f0f2ab2, GIT_PREVIOUS_COMMIT:aa6f29de1a5f3c5f33c6631cab409b5d7f0f2ab2, GIT_PREVIOUS_SUCCESSFUL_COMMIT:aa6f29de1a5f3c5f33c6631cab409b5d7f0f2ab2, GIT_URL:https://github.com/ciscops/colabot.git]
                 if ( "${scmVars.GIT_BRANCH}" == "master" ) {
                     sh 'echo this is the master branch'
 // 							customImage = docker.build(dockerImageName + ":1.0-${env.BUILD_NUMBER}", "docker")
@@ -49,9 +51,9 @@ spec:
 //                     }
 //                 sh 'echo this the master branch'
 //             }
-            stage('Build image') {
-                colabot = docker.build("stmosher/colabot-dev")
-            }
+//             stage('Build image') {
+//                 colabot = docker.build("stmosher/colabot-dev")
+//             }
 //             stage('Test image') {
 //                 colabot.inside {
 //                     sh 'python --version'
