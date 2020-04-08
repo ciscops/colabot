@@ -21,25 +21,25 @@ spec:
         value: ""
 ''') {
     node(POD_LABEL) {
-        def colabot
+//         def colabot
         git 'https://github.com/ciscops/colabot.git'
         container('docker') {
             stage('Clone repository') {
                 checkout scm
                 sh 'echo this step works'
             }
-            stage('Test dev') {
-                when {
-                    branch 'dev'
-                    }
-                sh 'echo this the dev branch'
-            }
-            stage('Test master') {
-                when {
-                    branch 'master'
-                    }
-                sh 'echo this the master branch'
-            }
+//             stage('Test dev') {
+//                 when {
+//                     branch 'dev'
+//                     }
+//                 sh 'echo this the dev branch'
+//             }
+//             stage('Test master') {
+//                 when {
+//                     branch 'master'
+//                     }
+//                 sh 'echo this the master branch'
+//             }
             stage('Build image') {
                 colabot = docker.build("stmosher/colabot-dev")
             }
