@@ -295,16 +295,11 @@ async def virl_chat(activity):
                            toPersonId=activity['sender'],
                            attachments=[{'contentType': 'application/vnd.microsoft.card.adaptive', 'content': card}])
             result = await webex.post_message_to_webex(message)
-            print('\n')
-            print(result.data)
-            print(result.status_code)
-            print(result.data['roomId'])
-            print('\n')
             message = dict(text="I've direct messaged you. Let's continue this request in private.",
                            roomId=activity['roomId'],
                            attachments=[])
             await webex.post_message_to_webex(message)
-            activity['roomId'] = result.data['roomId']
+            activity['roomId'] = result.get('roomId', '')
         # if direct, send a card to the same room
         else:
             message = dict(text='Delete VIRL Account',
@@ -436,7 +431,7 @@ async def virl_chat(activity):
                            roomId=activity['roomId'],
                            attachments=[])
             await webex.post_message_to_webex(message)
-            activity['roomId'] = result.data['roomId']
+            activity['roomId'] = result.get('roomId', '')
         # if direct, send a card to the same room
         else:
             message = dict(text='Stop VIRL lab',
@@ -528,10 +523,6 @@ async def virl_chat(activity):
                            attachments=[
                                {'contentType': 'application/vnd.microsoft.card.adaptive', 'content': card_json}])
             result = await webex.post_message_to_webex(message)
-            print('\n')
-            print(result.data)
-            print(result.status_code)
-            print('\n')
 
             with pymongo.MongoClient(mongo_url) as client:
                 db = client[CONFIG.MONGO_DB_ACTIVITY]
@@ -625,15 +616,11 @@ async def virl_chat(activity):
                            toPersonId=activity['sender'],
                            attachments=[{'contentType': 'application/vnd.microsoft.card.adaptive', 'content': card}])
             result = await webex.post_message_to_webex(message)
-            # Now roomId is result.data['roomId']
-            print(result.status_code)
-            print(result.data['roomId'])
-            print('\n')
             message = dict(text="I've direct messaged you. Let's continue this stop lab request in private.",
                            roomId=activity['roomId'],
                            attachments=[])
             await webex.post_message_to_webex(message)
-            activity['roomId'] = result.data['roomId']
+            activity['roomId'] = result.get('roomId', '')
         # if direct, send a card to the same room
         else:
             message = dict(text='Delete VIRL lab',
@@ -722,7 +709,7 @@ async def virl_chat(activity):
                            roomId=activity['roomId'],
                            attachments=[
                                {'contentType': 'application/vnd.microsoft.card.adaptive', 'content': card_json}])
-            result = await webex.post_message_to_webex(message)
+            result100 = await webex.post_message_to_webex(message)
             # This needs to be an update
             with pymongo.MongoClient(mongo_url) as client:
                 db = client[CONFIG.MONGO_DB_ACTIVITY]
@@ -824,17 +811,11 @@ async def virl_chat(activity):
                            toPersonId=activity['sender'],
                            attachments=[{'contentType': 'application/vnd.microsoft.card.adaptive', 'content': card}])
             result = await webex.post_message_to_webex(message)
-            print('\n')
-            print(result.data)
-            # Now roomId is result.data['roomId']
-            print(result.status_code)
-            print(result.data['roomId'])
-            print('\n')
             message = dict(text="I've direct messaged you. Let's continue this request in private.",
                            roomId=activity['roomId'],
                            attachments=[])
             await webex.post_message_to_webex(message)
-            activity['roomId'] = result.data['roomId']
+            activity['roomId'] = result.get('roomId', '')
         # if direct, send a card to the same room
         else:
             message = dict(text='List my lab details',

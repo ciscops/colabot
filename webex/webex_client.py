@@ -32,24 +32,21 @@ class WebExClient:
             files=message.get('files'),
         )
         session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30), )
-
-        async with session.request(method="POST", url='https://api.ciscospark.com/v1/messages',
-                                   headers=headers,
-                                   data=json.dumps(post_data)) as res:
-            response_content = {}
-            try:
+        response_content = {}
+        try:
+            async with session.request(method="POST", url='https://api.ciscospark.com/v1/messages',
+                                       headers=headers,
+                                       data=json.dumps(post_data)) as res:
                 response_content = await res.json()
-
-                class WebExResponse:
-                    def __init__(self):
-                        self.status_code = res.status
-                        self.data = response_content
-
-                response = WebExResponse()
-            except aiohttp.ContentTypeError:
+                await session.close()
+                return response_content
+        except Exception as e:
+            print(e)
+            try:
+                await session.close()
+            except:
                 pass
-        await session.close()
-        return response
+            return response_content
 
     async def get_message_details(self, message_id):
         api_url = 'https://api.ciscospark.com/v1/messages/' + message_id
@@ -58,14 +55,19 @@ class WebExClient:
             "Authorization": "Bearer " + self.webex_bot_token
         }
         session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30), )
-        async with session.request(method="GET", url=api_url, headers=headers) as res:
-            response_content = {}
-            try:
+        response_content = {}
+        try:
+            async with session.request(method="GET", url=api_url, headers=headers) as res:
                 response_content = await res.json()
-            except aiohttp.ContentTypeError:
+                await session.close()
+                return response_content
+        except Exception as e:
+            print(e)
+            try:
+                await session.close()
+            except:
                 pass
-        await session.close()
-        return response_content
+            return response_content
 
     async def get_card_attachment(self, message_id):
         api_url = 'https://api.ciscospark.com/v1/attachment/actions/' + message_id
@@ -74,14 +76,19 @@ class WebExClient:
             "Authorization": "Bearer " + self.webex_bot_token
         }
         session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30), )
-        async with session.request(method="GET", url=api_url, headers=headers) as res:
-            response_content = {}
-            try:
+        response_content = {}
+        try:
+            async with session.request(method="GET", url=api_url, headers=headers) as res:
                 response_content = await res.json()
-            except aiohttp.ContentTypeError as e:
+                await session.close()
+                return response_content
+        except Exception as e:
+            print(e)
+            try:
+                await session.close()
+            except:
                 pass
-        await session.close()
-        return response_content
+            return response_content
 
     async def delete_message(self, message_id):
         api_url = 'https://api.ciscospark.com/v1/messages/' + message_id
@@ -90,14 +97,19 @@ class WebExClient:
             "Authorization": "Bearer " + self.webex_bot_token
         }
         session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30), )
-        async with session.request(method="DELETE", url=api_url, headers=headers) as res:
-            response_content = {}
-            try:
+        response_content = {}
+        try:
+            async with session.request(method="DELETE", url=api_url, headers=headers) as res:
                 response_content = await res.json()
-            except aiohttp.ContentTypeError as e:
+                await session.close()
+                return response_content
+        except Exception as e:
+            print(e)
+            try:
+                await session.close()
+            except:
                 pass
-        await session.close()
-        return response_content
+            return response_content
 
     @staticmethod
     def dict_from_items_with_values(*dictionaries, **items):
