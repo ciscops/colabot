@@ -30,11 +30,12 @@ class VIRL:
         u = self.url + api_path
         body = {'username': self.virl_username, 'password': self.virl_password}
         session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
-        async with session.request(method="POST", url=u,
-                                   headers=headers,
-                                   data=json.dumps(body), ssl=False) as res:
-            response_content = {}
-            try:
+        try:
+            async with session.request(method="POST", url=u,
+                                       headers=headers,
+                                       data=json.dumps(body), ssl=False) as res:
+                response_content = {}
+
                 response_content = await res.json()
                 print('BELOW IS THE RESPONSE')
                 print(response_content)
@@ -50,14 +51,17 @@ class VIRL:
                     self.bearer_token = response_content
                     await session.close()
                     return True
-            except aiohttp.ContentTypeError:
-                self.status_code = 500
-                self.bearer_token = response_content
-                try:
-                    await session.close()
-                except:
-                    pass
-                return False
+        except aiohttp.ContentTypeError:
+            self.status_code = 500
+            self.bearer_token = response_content
+            try:
+                await session.close()
+            except:
+                pass
+            return False
+        except Exception as e:
+            print(e)
+            return False
 
     async def get_users(self):
         api_path = '/api/v0/users'
