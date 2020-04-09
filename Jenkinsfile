@@ -62,23 +62,12 @@ spec:
             stage('Install k8s client') {
                 if ( "${branch}" == "dev" ) {
                     sh "apk add curl"
-                    sh 'apk add bash'
-                    sh 'apk add chsh'
-                    sh 'whoami'
-                    sh 'chsh -s /bin/bash'
-//                     sh 'usermod --shell /bin/bash root'
-                    sh 'echo $SHELL'
                     sh 'k8sversion=v1.14.6'
                     sh 'curl -LO https://storage.googleapis.com/kubernetes-release/release/$k8sversion/bin/linux/amd64/kubectl'
-                    sh 'pwd'
-                    sh 'ls /home/jenkins/agent/workspace/colabot_dev_and_prod_dev'
                     sh "chmod +x ./kubectl"
-                    sh 'cp ./kubectl /usr/local/bin/kubectl'
-                    sh 'export KUBECONFIG=kubeconfig.yaml'
-                    sh 'pwd'
-                    sh 'ls -alF /usr/local/bin/'
-                    sh 'kubectl get pods'
-                    sh "/home/jenkins/agent/workspace/colabot_dev_and_prod_dev/kubectl get pods"
+                    sh 'mv ./kubectl /usr/local/bin/kubectl'
+                    sh 'export KUBECONFIG=/home/jenkins/agent/workspace/colabot_dev_and_prod_dev/colabot-private/colabot_dev/kubeconfig.yaml'
+                    sh "/usr/local/bin/kubectl get pods"
 				} else if ( "${branch}" == "master" ) {
         			sh 'echo skipping Install k8s client'
                 }
