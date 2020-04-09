@@ -13,7 +13,7 @@ spec:
       - name: DOCKER_HOST
         value: tcp://localhost:2375
   - name: docker-daemon
-    image: docker:19.03.8-dind
+    image: docker:latest
     securityContext:
       privileged: true
     env:
