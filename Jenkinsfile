@@ -13,7 +13,7 @@ spec:
       - name: DOCKER_HOST
         value: tcp://localhost:2375
   - name: docker-daemon
-    image: docker:latest
+    image: docker:19.03.8-dind
     securityContext:
       privileged: true
     env:
@@ -78,18 +78,14 @@ spec:
                 }
             }
             stage('Apply new COLABot-dev to K8s cluster') {
-//                 sh 'export KUBECONFIG=kubeconfig.yaml'
-//                 sh 'ls'
-//                 sh 'apk add bash'
-//                 sh 'which kube .tl'
-//                 sh "kubectl get pods"
-//                 sh '''#!/bin/bash
-//                    /usr/local/bin/kubectl get pods
-//                    '''
-//                 sh "/usr/local/bin/kubectl delete -f colabot-private/colabot_dev/colabot-dev.yaml"
-//                 sh "/usr/local/bin/kubectl create -f colabot-private/colabot_dev/colabot-dev.yaml"
-                sh 'echo Finished'
-//                 sh "kubectl create -f colabot-dev.yaml --kubeconfig=kubeconfig.yaml"
+                if ( "${branch}" == "dev" ) {
+                    sh "/usr/local/bin/kubectl delete -f colabot-private/colabot_dev/colabot-dev.yaml"
+                    sh "/usr/local/bin/kubectl create -f colabot-private/colabot_dev/colabot-dev.yaml"
+                    sh 'echo Finished'
+                } else if ( "${branch}" == "master" ) {
+        			sh 'echo skipping Apply new COLABot-dev to K8s cluster'
+                    sh 'echo Finished'
+                }
                 }
             }
         }
