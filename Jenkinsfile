@@ -62,6 +62,9 @@ spec:
             stage('Install k8s client') {
                 if ( "${branch}" == "dev" ) {
                     sh "apk add curl"
+                    sh 'apk add bash'
+                    sh 'chsh -s /bin/bash'
+                    sh 'echo $SHELL'
                     sh 'k8sversion=v1.14.6'
                     sh 'curl -LO https://storage.googleapis.com/kubernetes-release/release/$k8sversion/bin/linux/amd64/kubectl'
                     sh 'pwd'
@@ -86,10 +89,10 @@ spec:
         			sh 'echo skipping Apply new COLABot-dev to K8s cluster'
                     sh 'echo Finished'
                 }
-                }
             }
         }
     }
+}
 
 def getBranch() {
     tokens = "${env.JOB_NAME}".tokenize('/')
