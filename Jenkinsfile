@@ -63,6 +63,7 @@ spec:
                 if ( "${branch}" == "dev" ) {
                     sh "apk add curl"
                     sh 'apk add bash'
+                    sh 'whoami'
                     sh 'chsh -s /bin/bash'
                     sh 'echo $SHELL'
                     sh 'k8sversion=v1.14.6'
