@@ -51,9 +51,19 @@ class VIRL:
                     self.bearer_token = response_content
                     await session.close()
                     return True
-        except aiohttp.ContentTypeError:
+        except aiohttp.ContentTypeError as e:
+            print(e)
             self.status_code = 500
             self.bearer_token = response_content
+            try:
+                await session.close()
+            except:
+                pass
+            return False
+        except Exception as e:
+            print(e)
+            self.status_code = 500
+            self.bearer_token = ''
             try:
                 await session.close()
             except:
@@ -70,10 +80,10 @@ class VIRL:
         }
         u = self.url + api_path
         session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
-        async with session.request(method="GET", url=u,
-                                   headers=headers, ssl=False) as res:
-            response_content = {}
-            try:
+        try:
+            async with session.request(method="GET", url=u,
+                                       headers=headers, ssl=False) as res:
+                response_content = {}
                 response_content = await res.json()
                 if res.status != 200:
                     self.status_code = res.status
@@ -85,14 +95,24 @@ class VIRL:
                     self.users = response_content
                     await session.close()
                     return True
-            except aiohttp.ContentTypeError:
-                self.status_code = 500
-                self.users = response_content
-                try:
-                    await session.close()
-                except:
-                    pass
-                return False
+        except aiohttp.ContentTypeError as e:
+            print(e)
+            self.status_code = 500
+            self.users = response_content
+            try:
+                await session.close()
+            except:
+                pass
+            return False
+        except Exception as e:
+            print(e)
+            self.status_code = 500
+            self.users = {}
+            try:
+                await session.close()
+            except:
+                pass
+            return False
 
     async def get_diagnostics(self):
         api_path = '/api/v0/diagnostics'
@@ -104,10 +124,10 @@ class VIRL:
         }
         u = self.url + api_path
         session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
-        async with session.request(method="GET", url=u,
-                                   headers=headers, ssl=False) as res:
-            response_content = {}
-            try:
+        try:
+            async with session.request(method="GET", url=u,
+                                       headers=headers, ssl=False) as res:
+                response_content = {}
                 response_content = await res.json()
                 if res.status != 200:
                     self.status_code = res.status
@@ -119,14 +139,24 @@ class VIRL:
                     self.diagnostics = response_content
                     await session.close()
                     return True
-            except aiohttp.ContentTypeError:
-                self.status_code = 500
-                self.diagnostics = response_content
-                try:
-                    await session.close()
-                except:
-                    pass
-                return False
+        except aiohttp.ContentTypeError as e:
+            print(e)
+            self.status_code = 500
+            self.diagnostics = response_content
+            try:
+                await session.close()
+            except:
+                pass
+            return False
+        except Exception as e:
+            print(e)
+            self.status_code = 500
+            self.diagnostics = {}
+            try:
+                await session.close()
+            except:
+                pass
+            return False
 
     async def get_user_labs(self):
         api_path = '/api/v0/labs'
@@ -138,10 +168,10 @@ class VIRL:
         }
         u = self.url + api_path
         session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
-        async with session.request(method="GET", url=u,
-                                   headers=headers, ssl=False) as res:
-            response_content = {}
-            try:
+        try:
+            async with session.request(method="GET", url=u,
+                                       headers=headers, ssl=False) as res:
+                response_content = {}
                 response_content = await res.json()
                 if res.status != 200:
                     self.status_code = res.status
@@ -153,14 +183,24 @@ class VIRL:
                     self.user_labs = response_content
                     await session.close()
                     return True
-            except aiohttp.ContentTypeError:
-                self.status_code = 500
-                self.user_labs = response_content
-                try:
-                    await session.close()
-                except:
-                    pass
-                return False
+        except aiohttp.ContentTypeError as e:
+            print(e)
+            self.status_code = 500
+            self.user_labs = response_content
+            try:
+                await session.close()
+            except:
+                pass
+            return False
+        except Exception as e:
+            print(e)
+            self.status_code = 500
+            self.user_labs = {}
+            try:
+                await session.close()
+            except:
+                pass
+            return False
 
     async def get_user_lab_details(self, lab_id):
         api_path = '/api/v0/labs/' + lab_id
@@ -172,10 +212,10 @@ class VIRL:
         }
         u = self.url + api_path
         session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
-        async with session.request(method="GET", url=u,
-                                   headers=headers, ssl=False) as res:
-            response_content = {}
-            try:
+        try:
+            async with session.request(method="GET", url=u,
+                                       headers=headers, ssl=False) as res:
+                response_content = {}
                 response_content = await res.json()
                 if res.status != 200:
                     self.status_code = res.status
@@ -187,14 +227,24 @@ class VIRL:
                     self.user_lab_details = response_content
                     await session.close()
                     return True
-            except aiohttp.ContentTypeError:
-                self.status_code = 500
-                self.user_lab_details = response_content
-                try:
-                    await session.close()
-                except:
-                    pass
-                return False
+        except aiohttp.ContentTypeError as e:
+            print(e)
+            self.status_code = 500
+            self.user_lab_details = response_content
+            try:
+                await session.close()
+            except:
+                pass
+            return False
+        except Exception as e:
+            print(e)
+            self.status_code = 500
+            self.user_lab_details = {}
+            try:
+                await session.close()
+            except:
+                pass
+            return False
 
     async def get_system_status(self):
         api_path = '/api/v0/system_stats'
@@ -206,10 +256,10 @@ class VIRL:
         }
         u = self.url + api_path
         session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
-        async with session.request(method="GET", url=u,
-                                   headers=headers, ssl=False) as res:
-            response_content = {}
-            try:
+        try:
+            async with session.request(method="GET", url=u,
+                                       headers=headers, ssl=False) as res:
+                response_content = {}
                 response_content = await res.json()
                 if res.status != 200:
                     self.status_code = res.status
@@ -221,14 +271,24 @@ class VIRL:
                     self.system_status = response_content
                     await session.close()
                     return True
-            except aiohttp.ContentTypeError:
-                self.status_code = 500
-                self.system_status = response_content
-                try:
-                    await session.close()
-                except:
-                    pass
-                return False
+        except aiohttp.ContentTypeError as e:
+            print(e)
+            self.status_code = 500
+            self.system_status = response_content
+            try:
+                await session.close()
+            except:
+                pass
+            return False
+        except Exception as e:
+            print(e)
+            self.status_code = 500
+            self.system_status = {}
+            try:
+                await session.close()
+            except:
+                pass
+            return False
 
     async def stop_lab(self, lab_id):
         api_path = '/api/v0/labs/' + lab_id + '/stop'
@@ -240,10 +300,10 @@ class VIRL:
         }
         u = self.url + api_path
         session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
-        async with session.request(method="PUT", url=u,
-                                   headers=headers, ssl=False) as res:
-            response_content = {}
-            try:
+        try:
+            async with session.request(method="PUT", url=u,
+                                       headers=headers, ssl=False) as res:
+                response_content = {}
                 response_content = await res.json()
                 if res.status != 200:
                     self.status_code = res.status
@@ -255,14 +315,24 @@ class VIRL:
                     self.result = response_content
                     await session.close()
                     return True
-            except aiohttp.ContentTypeError:
-                self.status_code = 500
-                self.result = response_content
-                try:
-                    await session.close()
-                except:
-                    pass
-                return False
+        except aiohttp.ContentTypeError as e:
+            print(e)
+            self.status_code = 500
+            self.result = response_content
+            try:
+                await session.close()
+            except:
+                pass
+            return False
+        except Exception as e:
+            print(e)
+            self.status_code = 500
+            self.result = {}
+            try:
+                await session.close()
+            except:
+                pass
+            return False
 
     async def wipe_lab(self, lab_id):
         api_path = '/api/v0/labs/' + lab_id + '/wipe'
@@ -274,10 +344,10 @@ class VIRL:
         }
         u = self.url + api_path
         session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
-        async with session.request(method="PUT", url=u,
-                                   headers=headers, ssl=False) as res:
-            response_content = {}
-            try:
+        try:
+            async with session.request(method="PUT", url=u,
+                                       headers=headers, ssl=False) as res:
+                response_content = {}
                 response_content = await res.json()
                 if res.status != 200:
                     self.status_code = res.status
@@ -289,14 +359,24 @@ class VIRL:
                     self.result = response_content
                     await session.close()
                     return True
-            except aiohttp.ContentTypeError:
-                self.status_code = 500
-                self.result = response_content
-                try:
-                    await session.close()
-                except:
-                    pass
-                return False
+        except aiohttp.ContentTypeError as e:
+            print(e)
+            self.status_code = 500
+            self.result = response_content
+            try:
+                await session.close()
+            except:
+                pass
+            return False
+        except Exception as e:
+            print(e)
+            self.status_code = 500
+            self.result = {}
+            try:
+                await session.close()
+            except:
+                pass
+            return False
 
     async def delete_lab(self, lab_id):
         api_path = '/api/v0/labs/' + lab_id
@@ -308,10 +388,10 @@ class VIRL:
         }
         u = self.url + api_path
         session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
-        async with session.request(method="DELETE", url=u,
-                                   headers=headers, ssl=False) as res:
-            response_content = {}
-            try:
+        try:
+            async with session.request(method="DELETE", url=u,
+                                       headers=headers, ssl=False) as res:
+                response_content = {}
                 response_content = await res.json()
                 if res.status != 200:
                     self.status_code = res.status
@@ -323,14 +403,24 @@ class VIRL:
                     self.result = response_content
                     await session.close()
                     return True
-            except aiohttp.ContentTypeError:
-                self.status_code = 500
-                self.result = response_content
-                try:
-                    await session.close()
-                except:
-                    pass
-                return False
+        except aiohttp.ContentTypeError as e:
+            print(e)
+            self.status_code = 500
+            self.result = response_content
+            try:
+                await session.close()
+            except:
+                pass
+            return False
+        except Exception as e:
+            print(e)
+            self.status_code = 500
+            self.result = {}
+            try:
+                await session.close()
+            except:
+                pass
+            return False
 
     async def change_password(self, username_webex, new_password):
         api_path = '/api/v0/users/' + username_webex + '/change_password'
@@ -343,10 +433,10 @@ class VIRL:
         body = {'old_password': '', 'new_password': new_password}
         u = self.url + api_path
         session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
-        async with session.request(method="PUT", url=u,
-                                   headers=headers, data=json.dumps(body),ssl=False) as res:
-            response_content = {}
-            try:
+        try:
+            async with session.request(method="PUT", url=u,
+                                       headers=headers, data=json.dumps(body),ssl=False) as res:
+                response_content = {}
                 response_content = await res.json()
                 if res.status != 200:
                     self.status_code = res.status
@@ -358,14 +448,24 @@ class VIRL:
                     self.result = response_content
                     await session.close()
                     return True
-            except aiohttp.ContentTypeError:
-                self.status_code = 500
-                self.result = response_content
-                try:
-                    await session.close()
-                except:
-                    pass
-                return False
+        except aiohttp.ContentTypeError as e:
+            print(e)
+            self.status_code = 500
+            self.result = response_content
+            try:
+                await session.close()
+            except:
+                pass
+            return False
+        except Exception as e:
+            print(e)
+            self.status_code = 500
+            self.result = {}
+            try:
+                await session.close()
+            except:
+                pass
+            return False
 
     async def add_user(self, username_webex, user_email, new_password):
         api_path = '/api/v0/users/' + username_webex
@@ -385,10 +485,10 @@ class VIRL:
                 }
         u = self.url + api_path
         session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
-        async with session.request(method="POST", url=u,
-                                   headers=headers, data=json.dumps(body),ssl=False) as res:
-            response_content = {}
-            try:
+        try:
+            async with session.request(method="POST", url=u,
+                                       headers=headers, data=json.dumps(body),ssl=False) as res:
+                response_content = {}
                 response_content = await res.json()
                 if res.status != 200:
                     self.status_code = res.status
@@ -404,14 +504,24 @@ class VIRL:
                     print(type(response_content))
                     await session.close()
                     return True
-            except aiohttp.ContentTypeError:
-                self.status_code = 500
-                self.result = response_content
-                try:
-                    await session.close()
-                except:
-                    pass
-                return False
+        except aiohttp.ContentTypeError as e:
+            print(e)
+            self.status_code = 500
+            self.result = response_content
+            try:
+                await session.close()
+            except:
+                pass
+            return False
+        except Exception as e:
+            print(e)
+            self.status_code = 500
+            self.result = {}
+            try:
+                await session.close()
+            except:
+                pass
+            return False
 
     async def delete_user(self, username_webex):
         api_path = '/api/v0/users/' + username_webex
@@ -423,10 +533,10 @@ class VIRL:
         }
         u = self.url + api_path
         session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
-        async with session.request(method="DELETE", url=u,
-                                   headers=headers, ssl=False) as res:
-            response_content = {}
-            try:
+        try:
+            async with session.request(method="DELETE", url=u,
+                                       headers=headers, ssl=False) as res:
+                response_content = {}
                 response_content = await res.json()
                 if res.status != 200:
                     self.status_code = res.status
@@ -442,14 +552,24 @@ class VIRL:
                     print(type(response_content))
                     await session.close()
                     return True
-            except aiohttp.ContentTypeError:
-                self.status_code = 500
-                self.result = response_content
-                try:
-                    await session.close()
-                except:
-                    pass
-                return False
+        except aiohttp.ContentTypeError as e:
+            print(e)
+            self.status_code = 500
+            self.result = response_content
+            try:
+                await session.close()
+            except:
+                pass
+            return False
+        except Exception as e:
+            print(e)
+            self.status_code = 500
+            self.result = {}
+            try:
+                await session.close()
+            except:
+                pass
+            return False
 
     async def list_user_lab_ids(self, username_webex):
         if await self.get_diagnostics():
