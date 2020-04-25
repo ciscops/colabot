@@ -148,7 +148,7 @@ class COLABot:
 
             if self.activity['description'] == 'bot_added':
                 await self.bot_added()
-
+# Start Add elif for new Feature ---->
             elif self.activity['description'] == 'card_details':
                 if self.activity['inputs']['card_feature_index'] == 'virl':
                     result = await virl_chat(self.activity)
@@ -166,7 +166,7 @@ class COLABot:
                 elif self.activity.get('text')[:4] == 'VIRL':  # Add searches for virl dialogue here
                     result = await virl_chat(self.activity)
                     print(result.get('status_code'))
-
+# End Add elif for new Feature ---->
                 else:
                     await self.catch_all()
             return {'status_code': 200}
