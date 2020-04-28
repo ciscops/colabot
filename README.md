@@ -14,7 +14,7 @@ The GitHub [COLABot](https://github.com/ciscops/colabot) repository is configure
  to the Jenkinsfile located at the root of this repository. 
 
 
-A push to the dev branch will build a new image, push to docker hub, and deploy in CPN K8S.
+A push to the dev branch will build a new image, push to docker hub, and deploy in CPN Kubernetes.
 
 
 A push to the master branch will build a new image and push to docker hub. 
