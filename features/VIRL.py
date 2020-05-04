@@ -594,3 +594,32 @@ class VIRL:
             rand = random.randint(0, len(pos) - 1)
             pwd += pos[rand]
         return pwd
+
+
+if __name__ == '__main__':
+    import asyncio
+    import time
+
+    async def check_get_token():
+        print('\ncpn-rtp-cml4.ciscops.net')
+        virl = VIRL('stmosher', 'xx', 'cpn-rtp-cml4.ciscops.net')
+        print(await virl.get_token())
+        print('Error accessing server ' + 'cpn-rtp-cml4.ciscops.net' + ': ' + str(
+                    virl.status_code) + ' ' + virl.bearer_token)
+        print(virl.bearer_token)
+        print(type(virl.bearer_token))
+        print('\ncpn-rtp-virl5.ciscops.net')
+        virl = VIRL('stmosher', 'xx', 'cpn-rtp-virl5.ciscops.net')
+        print(await virl.get_token())
+        print('Error accessing server ' + 'cpn-rtp-virl5.ciscops.net' + ': ' + str(
+                    virl.status_code) + ' ' + virl.bearer_token)
+        print('\ncpn-rtp-virl6.ciscops.net')
+        virl = VIRL('stmosher', 'xx', 'cpn-rtp-virl6.ciscops.net')
+        print(await virl.get_token())
+        print('Error accessing server ' + 'cpn-rtp-virl6.ciscops.net' + ': ' + str(
+                    virl.status_code) + ' ' + virl.bearer_token)
+
+    s = time.perf_counter()
+    asyncio.run(check_get_token())
+    elapsed = time.perf_counter() - s
+    print(f"{__file__} executed in {elapsed:0.2f} seconds.")

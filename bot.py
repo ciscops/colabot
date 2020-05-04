@@ -12,6 +12,7 @@ from config import DefaultConfig as CONFIG
 import pymongo
 import time
 import urllib3
+import logging
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 mongo_url = 'mongodb://' + CONFIG.MONGO_INITDB_ROOT_USERNAME + ':' + CONFIG.MONGO_INITDB_ROOT_PASSWORD + '@' + CONFIG.MONGO_SERVER + ':' + CONFIG.MONGO_PORT
@@ -55,13 +56,13 @@ class COLABot:
             raise Exception(warning + "Required: include a clientSigningSecret to verify incoming Events API webhooks")
         else:
             body = await req.read()
-            print('This is the initial message')
-            print(body)
+            logging.info('TEST LOGGING')
+            logging.info('This is the initial message')
             key_bytes = self.webex_client_signing_secret.encode()
             hashed = hmac.new(key_bytes, body, hashlib.sha1)
             body_signature = hashed.hexdigest()
-            print('This is from digest sent in the webhook header: ' + req.headers['X-Spark-Signature'])
-            print('This is the resulting digest from hashing the webhook body with the local secret: ' + body_signature)
+            # print('This is from digest sent in the webhook header: ' + req.headers['X-Spark-Signature'])
+            # print('This is the resulting digest from hashing the webhook body with the local secret: ' + body_signature)
             if req.headers['X-Spark-Signature'] != body_signature:
                 return {'status_code': 403}
 
@@ -81,95 +82,107 @@ class COLABot:
 
         # Create activity from webhook
         self.activity = await self.translate_request_to_activity(request_dict)
+        logging.info(self.activity)
+        if not self.activity:
+            logging.error('Error - no activity')
+            return {'status_code': 400}
+
         # Apply any security checks, i.e., domain name, room name, etc...
-        if (self.activity.get('sender_email')) and (self.activity.get('sender') != CONFIG.BOT_ID) \
+        # if (self.activity.get('sender_email')) and (self.activity.get('sender') != CONFIG.BOT_ID) \
+        #         and (self.activity.get('resource') == 'messages') and (self.activity.get('event') == 'created'):
+        if (self.activity.get('sender')) and (self.activity.get('sender') != CONFIG.BOT_ID) \
                 and (self.activity.get('resource') == 'messages') and (self.activity.get('event') == 'created'):
-            domain = self.activity.get('sender_email').split('@')
-            approved_domains = CONFIG.APPROVED_ORG_DOMAINS.split(',')
-            if domain[1] not in approved_domains:
-                return {'status_code': 403}
+            # domain = self.activity.get('sender_email').split('@')
+            # approved_domains = CONFIG.APPROVED_ORG_DOMAINS.split(',')
+            # if domain[1] not in approved_domains:
+            #     return {'status_code': 403}
+            if CONFIG.AUTHORIZED_ROOMS:
+                room_list = CONFIG.AUTHORIZED_ROOMS.split(',')
+                denied = True
+                for r in room_list:
+                    membership = await self.webex_client.get_room_memberships(r)
+                    member_list = await self.webex_client.create_user_id_list_from_room_membership_content(membership)
+                    if self.activity['sender'] in member_list:
+                        denied = False
+                        break
+                if denied:
+                    logging.warning('Denied Access - user: ' + self.activity['sender'])
+                    return {'status_code': 403}
 
         # Check activity for active dialogue. If active, apply saved dialogue data to activity
-        if not self.activity:
-            return {'status_code': 400}
-        else:
-            with pymongo.MongoClient(mongo_url) as client:
-                db = client[CONFIG.MONGO_DB_ACTIVITY]
-                posts = db[CONFIG.MONGO_COLLECTIONS_ACTIVITY]
-                query_lab_filter = {'sender': self.activity.get('sender'),
-                                    'roomId': self.activity.get('roomId')}
-                try:
-                    result = posts.find_one(query_lab_filter)  # Q: Is this lab already in DB?
-                except Exception as e:
-                    print('Failed to connect to DB')
-                    print(e)
-                    return {'status_code': 500}
+        with pymongo.MongoClient(mongo_url) as client:
+            db = client[CONFIG.MONGO_DB_ACTIVITY]
+            posts = db[CONFIG.MONGO_COLLECTIONS_ACTIVITY]
+            query_lab_filter = {'sender': self.activity.get('sender'),
+                                'roomId': self.activity.get('roomId')}
+            try:
+                result = posts.find_one(query_lab_filter)  # Q: Is this lab already in DB?
+            except Exception as e:
+                logging.error('Failed to connect to DB')
+                logging.error(e)
+                return {'status_code': 500}
 
-                # Check if dialogue record is too old, delete it
-                pattern = '%Y-%m-%dT%H:%M:%S.%fZ'
-                if result:
-                    epoch_time_now = time.time()
-                    last_dialogue_epoch_time = int(time.mktime(time.strptime(result['created'], pattern)))
-                    if epoch_time_now - last_dialogue_epoch_time >= int(CONFIG.DIALOGUE_TIMEOUT):  # Remove any conversations over X seconds
-                        try:
-                            r = posts.delete_many(query_lab_filter)
-                        except Exception as e:
-                            print('Could not remove stale dialogue record from DB')
-                            print(e)
-                            return {'status_code': 500}
-                # If somehow the dialogue_max_step is maxed out
-                    elif result['dialogue_step'] > result['dialogue_max_steps']:
-                        try:
-                            r = posts.delete_many(query_lab_filter)
-                        except Exception as e:
-                            print('Could not remove stale dialogue record from DB')
-                            print(e)
-                            return {'status_code': 500}
-                # Update the activity record with the dialogue fields
-                    else:
-                        self.activity['sender'] = result.get('sender', '')
-                        self.activity['sender_email'] = result.get('sender_email', '')
-                        self.activity['roomId'] = result.get('roomId', '')
-                        self.activity['roomType'] = result.get('roomType', '')
-                        self.activity['id'] = result.get('id', '')
-                        self.activity['created'] = result.get('created', '')
-                        self.activity['dialogue_name'] = result.get('dialogue_name', '')
-                        self.activity['dialogue_step'] = result.get('dialogue_step', '')
-                        self.activity['dialogue_max_steps'] = result.get('dialogue_max_steps', '')
-                        self.activity['dialogue_data'] = result.get('dialogue_data', '')
-                        self.activity['card_dialogue_index'] = result.get('card_dialogue_index', '')
-                        self.activity['card_feature_index'] = result.get('card_feature_index', '')
-                        self.activity['virl_password'] = result.get('virl_password', '')
-
-            print('\n')
-            print('This is the fully populated activity')
-            print(self.activity)
-            print('\n')
-
-            if self.activity['description'] == 'bot_added':
-                await self.bot_added()
-# Start Add elif for new Feature ---->
-            elif self.activity['description'] == 'card_details':
-                if self.activity['inputs']['card_feature_index'] == 'virl':
-                    result = await virl_chat(self.activity)
-                    print(result['status_code'])
-
-            elif self.activity['description'] == 'message_details':
-                # This will remove bot name from text if message was "at mention" to the bot
-                if self.activity.get('roomType', '') == 'group':
-                    self.activity['text'] = self.activity.get('text').replace(self.activity.get('bot_name') + ' ', '')
-
-                # Main Message Activities
-                if self.activity.get('text').lower() == 'help':
-                    await self.display_help_menu()
-
-                elif self.activity.get('text')[:4] == 'VIRL':  # Add searches for virl dialogue here
-                    result = await virl_chat(self.activity)
-                    print(result.get('status_code'))
-# End Add elif for new Feature ---->
+            # Check if dialogue record is too old, delete it
+            pattern = '%Y-%m-%dT%H:%M:%S.%fZ'
+            if result:
+                epoch_time_now = time.time()
+                last_dialogue_epoch_time = int(time.mktime(time.strptime(result['created'], pattern)))
+                if epoch_time_now - last_dialogue_epoch_time >= int(CONFIG.DIALOGUE_TIMEOUT):  # Remove any conversations over X seconds
+                    try:
+                        r = posts.delete_many(query_lab_filter)
+                    except Exception as e:
+                        logging.error('Could not remove stale dialogue record from DB')
+                        logging.error(e)
+                        return {'status_code': 500}
+            # If somehow the dialogue_max_step is maxed out
+                elif result['dialogue_step'] > result['dialogue_max_steps']:
+                    try:
+                        r = posts.delete_many(query_lab_filter)
+                    except Exception as e:
+                        logging.error('Could not remove stale dialogue record from DB')
+                        logging.error(e)
+                        return {'status_code': 500}
+            # Update the activity record with the dialogue fields
                 else:
-                    await self.catch_all()
-            return {'status_code': 200}
+                    self.activity['sender'] = result.get('sender', '')
+                    self.activity['sender_email'] = result.get('sender_email', '')
+                    self.activity['roomId'] = result.get('roomId', '')
+                    self.activity['roomType'] = result.get('roomType', '')
+                    self.activity['id'] = result.get('id', '')
+                    self.activity['created'] = result.get('created', '')
+                    self.activity['dialogue_name'] = result.get('dialogue_name', '')
+                    self.activity['dialogue_step'] = result.get('dialogue_step', '')
+                    self.activity['dialogue_max_steps'] = result.get('dialogue_max_steps', '')
+                    self.activity['dialogue_data'] = result.get('dialogue_data', '')
+                    self.activity['card_dialogue_index'] = result.get('card_dialogue_index', '')
+                    self.activity['card_feature_index'] = result.get('card_feature_index', '')
+                    self.activity['virl_password'] = result.get('virl_password', '')
+
+        logging.info('This is the fully populated activity')
+        logging.info(self.activity)
+
+        if self.activity['description'] == 'bot_added':
+            await self.bot_added()
+# Start Add elif for new Feature ---->
+        elif self.activity['description'] == 'card_details':
+            if self.activity['inputs']['card_feature_index'] == 'virl':
+                result = await virl_chat(self.activity)
+
+        elif self.activity['description'] == 'message_details':
+            # This will remove bot name from text if message was "at mention" to the bot
+            if self.activity.get('roomType', '') == 'group':
+                self.activity['text'] = self.activity.get('text').replace(self.activity.get('bot_name') + ' ', '')
+
+            # Main Message Activities
+            if self.activity.get('text').lower() == 'help':
+                await self.display_help_menu()
+
+            elif self.activity.get('text')[:4] == 'VIRL':  # Add searches for virl dialogue here
+                result = await virl_chat(self.activity)
+# End Add elif for new Feature ---->
+            else:
+                await self.catch_all()
+        return {'status_code': 200}
 
     async def display_help_menu(self):
         message = dict(text=self.generate_help_menu_markdown(help_menu_list),

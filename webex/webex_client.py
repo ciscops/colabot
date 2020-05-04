@@ -3,6 +3,7 @@
 
 import json
 import aiohttp
+import logging
 
 
 class WebExClient:
@@ -41,7 +42,7 @@ class WebExClient:
                 await session.close()
                 return response_content
         except Exception as e:
-            print(e)
+            logging.warning(e)
             try:
                 await session.close()
             except:
@@ -62,7 +63,7 @@ class WebExClient:
                 await session.close()
                 return response_content
         except Exception as e:
-            print(e)
+            logging.warning(e)
             try:
                 await session.close()
             except:
@@ -83,7 +84,7 @@ class WebExClient:
                 await session.close()
                 return response_content
         except Exception as e:
-            print(e)
+            logging.warning(e)
             try:
                 await session.close()
             except:
@@ -104,7 +105,28 @@ class WebExClient:
                 await session.close()
                 return response_content
         except Exception as e:
-            print(e)
+            logging.warning(e)
+            try:
+                await session.close()
+            except:
+                pass
+            return response_content
+
+    async def get_room_memberships(self, room_id):
+        api_url = 'https://api.ciscospark.com/v1/memberships?roomId=' + room_id + '&max=1000'
+        headers = {
+            'Content-Type': 'application/json',
+            "Authorization": "Bearer " + self.webex_bot_token
+        }
+        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30), )
+        response_content = {}
+        try:
+            async with session.request(method="GET", url=api_url, headers=headers) as res:
+                response_content = await res.json()
+                await session.close()
+                return response_content
+        except Exception as e:
+            logging.warning(e)
             try:
                 await session.close()
             except:
@@ -128,3 +150,7 @@ class WebExClient:
                 if value is not None:
                     result[key] = value
         return result
+
+    @staticmethod
+    async def create_user_id_list_from_room_membership_content(content):
+        return [i.get('personId') for i in content.get('items')]

@@ -23,3 +23,4 @@ class DefaultConfig:
     APPROVED_ORG_DOMAINS = os.environ.get('APPROVED_ORG_DOMAINS', 'example.com')
     MONGO_DB = os.environ.get('MONGO_DB', 'bot_db')
     MONGO_COLLECTIONS = os.environ.get('MONGO_COLLECTIONS', 'bot_collections')
+    AUTHORIZED_ROOMS = os.environ.get('AUTHORIZED_ROOMS', '')

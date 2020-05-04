@@ -24,7 +24,7 @@ async def virl_chat(activity):
             # Get bearer token
             if not await virl.get_token():  # {'description': 'User already exists: stmosher.', 'code': 422}
                 message = dict(text='Error accessing server ' + virl_server + ': ' + str(
-                    virl.status_code) + ' ' + virl.bearer_token,
+                    virl.status_code) + ' ' + str(virl.bearer_token),
                                roomId=activity['roomId'],
                                attachments=[])
                 await webex.post_message_to_webex(message)
@@ -61,7 +61,7 @@ async def virl_chat(activity):
             # Get bearer token
             if not await virl.get_token():  # {'description': 'User already exists: stmosher.', 'code': 422}
                 message = dict(text='Error accessing server ' + virl_server + ': ' + str(
-                    virl.status_code) + ' ' + virl.bearer_token,
+                    virl.status_code) + ' ' + str(virl.bearer_token),
                                roomId=activity['roomId'],
                                attachments=[])
                 await webex.post_message_to_webex(message)
@@ -98,7 +98,7 @@ async def virl_chat(activity):
             # Get bearer token
             if not await virl.get_token():  # {'description': 'User already exists: stmosher.', 'code': 422}
                 message = dict(text='Error accessing server ' + virl_server + ': ' + str(
-                    virl.status_code) + ' ' + virl.bearer_token,
+                    virl.status_code) + ' ' + str(virl.bearer_token),
                                roomId=activity['roomId'],
                                attachments=[])
                 await webex.post_message_to_webex(message)
@@ -145,7 +145,7 @@ async def virl_chat(activity):
             # Get bearer token
             if not await virl.get_token():  # {'description': 'User already exists: stmosher.', 'code': 422}
                 message = dict(text='Error accessing server ' + virl_server + ': ' + str(
-                    virl.status_code) + ' ' + virl.bearer_token,
+                    virl.status_code) + ' ' + str(virl.bearer_token),
                                roomId=activity['roomId'],
                                attachments=[])
                 await webex.post_message_to_webex(message)
@@ -179,7 +179,7 @@ async def virl_chat(activity):
             # Get bearer token
             if not await virl.get_token():  # {'description': 'User already exists: stmosher.', 'code': 422}
                 message = dict(text='Error accessing server ' + virl_server + ': ' + str(
-                    virl.status_code) + ' ' + virl.bearer_token,
+                    virl.status_code) + ' ' + str(virl.bearer_token),
                                roomId=activity['roomId'],
                                attachments=[])
                 await webex.post_message_to_webex(message)
@@ -226,7 +226,7 @@ async def virl_chat(activity):
             # Get bearer token
             if not await virl.get_token():  # {'description': 'User already exists: stmosher.', 'code': 422}
                 message = dict(text='Error accessing server ' + virl_server + ': ' + str(
-                    virl.status_code) + ' ' + virl.bearer_token,
+                    virl.status_code) + ' ' + str(virl.bearer_token),
                                roomId=activity['roomId'],
                                attachments=[])
                 await webex.post_message_to_webex(message)
