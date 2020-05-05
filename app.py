@@ -10,20 +10,7 @@ import json
 import logging
 
 FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-# logging.basicConfig(filename='colabot_dev.log', format=FORMAT, level=logging.INFO)
 logging.basicConfig(format=FORMAT, level=logging.INFO)
-# logger = logging.getLogger(__name__)
-# c_handler = logging.StreamHandler()
-# f_handler = logging.FileHandler('colabot.log')
-# c_handler.setLevel(logging.INFO)
-# f_handler.setLevel(logging.INFO)
-# c_format = logging.Formatter(FORMAT)
-# f_format = logging.Formatter(FORMAT)
-# c_handler.setFormatter(c_format)
-# f_handler.setFormatter(f_format)
-#
-# logger.addHandler(c_handler)
-# logger.addHandler(f_handler)
 
 
 BOT = COLABot(webex_bot_token=CONFIG.ACCESS_TOKEN, webex_client_signing_secret=CONFIG.SECRET)
@@ -61,14 +48,14 @@ if __name__ == "__main__":
                          for db in client.list_database_names())
                 print(json.dumps(d))
             except Exception as e:
-                logger.error('Failed to connect to DB')
-                logger.error(e)
+                logging.error('Failed to connect to DB')
+                logging.error(e)
     except:
-        logger.error('Could not reach DB')
+        logging.error('Could not reach DB')
 
     # Second Run Web Server
     try:
         web.run_app(APP, host="0.0.0.0", port=CONFIG.WEB_PORT)
     except Exception as error:
-        logger.warning('Failed to start web server')
+        logging.warning('Failed to start web server')
         raise error
