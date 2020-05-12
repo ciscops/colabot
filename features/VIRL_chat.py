@@ -14,7 +14,7 @@ async def virl_chat(activity):
     virl_servers = CONFIG.SERVER_LIST.split(',')
 
     """START VIRL CREATE ACCOUNT"""
-    if activity.get('text') == 'VIRL create account':
+    if activity.get('text') == 'virl create account':
         results_message = ''
         pwd = VIRL.password_generator()
         check_flag = False
@@ -51,7 +51,7 @@ async def virl_chat(activity):
     """END  VIRL CREATE ACCOUNT"""
 
     """START VIRL RESET PASSWORD"""
-    if activity.get('text') == 'VIRL reset password':
+    if activity.get('text') == 'virl reset password':
         results_message = ''
         pwd = VIRL.password_generator()
         check_flag = False
@@ -88,7 +88,7 @@ async def virl_chat(activity):
     """END VIRL RESET PASSWORD"""
 
     """START VIRL LIST ALL LABS"""
-    if activity.get('text') == 'VIRL list all labs':
+    if activity.get('text') == 'virl list all labs':
         results_message = ''
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
         for virl_server in virl_servers:
@@ -135,7 +135,7 @@ async def virl_chat(activity):
     """END VIRL LIST ALL LABS"""
 
     """START VIRL LIST USERS"""
-    if activity.get('text') == 'VIRL list users':
+    if activity.get('text') == 'virl list users':
         results_message = ''
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
         for virl_server in virl_servers:
@@ -167,7 +167,7 @@ async def virl_chat(activity):
     """END VIRL LIST USERS"""
 
     """START VIRL LIST MY LABS"""
-    if activity.get('text') == 'VIRL list my labs':
+    if activity.get('text') == 'virl list my labs':
         results_message = ''
         user_and_domain = activity['sender_email'].split('@')
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
@@ -217,7 +217,7 @@ async def virl_chat(activity):
     """END VIRL LIST MY LABS"""
 
     """START VIRL SHOW SERVER UTILIZATION"""
-    if activity.get('text') == 'VIRL show server utilization':
+    if activity.get('text') == 'virl show server utilization':
         results_message = ''
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
         for virl_server in virl_servers:
@@ -282,7 +282,7 @@ async def virl_chat(activity):
     """END VIRL EXTEND LAB"""
 
     """START VIRL DELETE ACCOUNT DIALOGUE"""
-    if activity.get('text') == 'VIRL delete account':
+    if activity.get('text') == 'virl delete account':
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
         card_file = './cards/delete_account_get_password.json'
         with open(f'{card_file}') as fp:
@@ -413,7 +413,7 @@ async def virl_chat(activity):
     """END VIRL DELETE ACCOUNT DIALOGUE"""
 
     """START VIRL STOP LAB DIALOGUE"""
-    if activity.get('text') == 'VIRL stop lab':
+    if activity.get('text') == 'virl stop lab':
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
         card_file = './cards/virl_stop_lab_get_password.json'
         with open(f'{card_file}') as fp:
@@ -603,7 +603,7 @@ async def virl_chat(activity):
     """ END VIRL STOP LAB DIALOGUE """
 
     """START VIRL DELETE LAB DIALOGUE"""
-    if activity.get('text') == 'VIRL delete lab':
+    if activity.get('text') == 'virl delete lab':
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
         card_file = './cards/virl_delete_lab_get_password.json'
         with open(f'{card_file}') as fp:
@@ -798,7 +798,7 @@ async def virl_chat(activity):
     """ END VIRL DELETE LAB DIALOGUE """
 
     """START VIRL LIST MY LAB DETAILS DIALOGUE"""
-    if activity.get('text') == 'VIRL list my lab details':
+    if activity.get('text') == 'virl list my lab details':
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
         card_file = './cards/list_my_lab_details_get_password.json'
         with open(f'{card_file}') as fp:
@@ -919,7 +919,7 @@ async def virl_chat(activity):
     if activity.get('text'):
         if activity.get('roomType') == 'group':
             message = dict(
-                text='"' + activity.get('text') + '?"' + " I'm sorry. I don't understand. Please reply " + "**@" +
+                text='"' + activity.get('original_text') + '?"' + " I'm sorry. I don't understand. Please reply " + "**@" +
                      activity['bot_name'] + " help** to see my available commands",
                 roomId=activity['roomId'],
                 attachments=[])
@@ -927,7 +927,7 @@ async def virl_chat(activity):
             await webex.post_message_to_webex(message)
             return {'status_code': 200}
         else:
-            message = dict(text='"' + activity.get('text') + '?"' +
+            message = dict(text='"' + activity.get('original_text') + '?"' +
                                 " I'm sorry. I don't understand. Please reply 'help' to see my available commands",
                            roomId=activity['roomId'],
                            attachments=[])

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import aiohttp
+import string
 from aiohttp.web_request import Request
 from aiohttp.web_response import Response
 from features.VIRL_chat import virl_chat
@@ -82,6 +83,7 @@ class COLABot:
 
         # Create activity from webhook
         self.activity = await self.translate_request_to_activity(request_dict)
+        logging.info('This is pre-db and NLP activity')
         logging.info(self.activity)
         if not self.activity:
             logging.error('Error - no activity')
@@ -108,6 +110,15 @@ class COLABot:
                 if denied:
                     logging.warning('Denied Access - user: ' + self.activity['sender'])
                     return {'status_code': 403}
+
+        # Preprocess text
+        if self.activity['description'] == 'message_details':
+            # This will remove bot name from text if message was "at mention" to the bot
+            if self.activity.get('roomType', '') == 'group':
+                self.activity['text'] = self.activity.get('text').replace(self.activity.get('bot_name') + ' ', '')
+        if self.activity.get('text'):
+            self.activity['original_text'] = self.activity.get('text')
+            self.activity['text'] = await self.preprocess(self.activity.get('text'))
 
         # Check activity for active dialogue. If active, apply saved dialogue data to activity
         with pymongo.MongoClient(mongo_url) as client:
@@ -157,16 +168,23 @@ class COLABot:
                     self.activity['card_dialogue_index'] = result.get('card_dialogue_index', '')
                     self.activity['card_feature_index'] = result.get('card_feature_index', '')
                     self.activity['virl_password'] = result.get('virl_password', '')
+            # else:
+            #     pass
+                ## This will process the beginning command
+                ## Should include a verify for important commands (delete account for instance)
 
         logging.info('This is the fully populated activity')
         logging.info(self.activity)
 
         if self.activity['description'] == 'bot_added':
             await self.bot_added()
+
+
 # Start Add elif for new Feature ---->
         elif self.activity['description'] == 'card_details':
             if self.activity['inputs']['card_feature_index'] == 'virl':
                 result = await virl_chat(self.activity)
+            # Add new card activities here
 
         elif self.activity['description'] == 'message_details':
             # This will remove bot name from text if message was "at mention" to the bot
@@ -174,12 +192,14 @@ class COLABot:
                 self.activity['text'] = self.activity.get('text').replace(self.activity.get('bot_name') + ' ', '')
 
             # Main Message Activities
-            if self.activity.get('text').lower() == 'help':
+            if self.activity.get('text') == 'help':
                 await self.display_help_menu()
 
-            elif self.activity.get('text')[:4] == 'VIRL':  # Add searches for virl dialogue here
+            elif self.activity.get('text')[:4] == 'virl':  # Add searches for virl dialogue here
                 result = await virl_chat(self.activity)
+            # Add new text message activities here
 # End Add elif for new Feature ---->
+
             else:
                 await self.catch_all()
         return {'status_code': 200}
@@ -200,13 +220,13 @@ class COLABot:
             response = await self.webex_client.post_message_to_webex(message)
             return response
         elif self.activity.get('roomType') == 'group':
-            message = dict(text='"' + self.activity['text'] + '?"' + " I'm sorry. I don't understand. Please reply " + "**@" + self.activity['bot_name'] + " help** to see my available commands",
+            message = dict(text='"' + self.activity['original_text'] + '?"' + " I'm sorry. I don't understand. Please reply " + "**@" + self.activity['bot_name'] + " help** to see my available commands",
                            roomId=self.activity['roomId'],
                            attachments=[])
             response = await self.webex_client.post_message_to_webex(message)
             return response
         else:
-            message = dict(text='"' + self.activity['text'] + '?"' + " I'm sorry. I don't understand. Please reply 'help' to see my available commands",
+            message = dict(text='"' + self.activity['original_text'] + '?"' + " I'm sorry. I don't understand. Please reply 'help' to see my available commands",
                            roomId=self.activity['roomId'],
                            attachments=[])
             response = await self.webex_client.post_message_to_webex(message)
@@ -280,3 +300,48 @@ class COLABot:
             for i in help_menu:
                 markdown += ' - ' + i
             return markdown
+
+    async def preprocess(self, text):
+        text = [word.lower().strip() for word in text.split()]
+        text = [''.join(c for c in s if c not in string.punctuation) for s in text]
+        return [' '.join(x for x in text if x)][0]
+
+    # Future - Connection to NLP server
+    # async def process_text(message):
+    #     api_path = '/api/v1/nlp'
+    #     headers = {
+    #         'Content-Type': 'application/json',
+    #         'Accept': 'application/json',
+    #         'cache-control': "no-cache"
+    #     }
+    #     u = CONFIG.NLP_SERVER + api_path
+    #     session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
+    #     try:
+    #         async with session.request(method="POST", url=u,
+    #                                    headers=headers, ssl=False) as res:
+    #             response_content = {}
+    #             response_content = await res.json()
+    #             if res.status != 200:
+    #                 print(response_content)
+    #                 print(type(response_content))
+    #                 await session.close()
+    #                 return False
+    #             else:
+    #                 print(response_content)
+    #                 print(type(response_content))
+    #                 await session.close()
+    #                 return True
+    #     except aiohttp.ContentTypeError as e:
+    #         print(e)
+    #         try:
+    #             await session.close()
+    #         except:
+    #             pass
+    #         return False
+    #     except Exception as e:
+    #         print(e)
+    #         try:
+    #             await session.close()
+    #         except:
+    #             pass
+    #         return False
