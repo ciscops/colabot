@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import aiohttp
 import string
 from aiohttp.web_request import Request
-from aiohttp.web_response import Response
 from features.VIRL_chat import virl_chat
+import features.awx as awx
 import hashlib
 import hmac
 import json
@@ -18,14 +17,14 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 mongo_url = 'mongodb://' + CONFIG.MONGO_INITDB_ROOT_USERNAME + ':' + CONFIG.MONGO_INITDB_ROOT_PASSWORD + '@' + CONFIG.MONGO_SERVER + ':' + CONFIG.MONGO_PORT
 
-help_menu_list = ['**VIRL create account** > create account\n',
-                  '**VIRL delete account** > delete account\n',
+help_menu_list = ['**Create accounts** > create COLAB accounts\n',
+                  '**Delete accounts** > delete COLAB accounts\n',
+                  '**Reset passwords** > resets COLAB passwords\n',
                   '**VIRL delete lab** > delete lab\n',
                   '**VIRL list all labs** > list all labs\n',
                   '**VIRL list my lab details** > list your labs with details\n',
                   '**VIRL list my labs** > list only your labs\n',
                   '**VIRL list users** > list users\n',
-                  '**VIRL reset password** > reset password\n',
                   '**VIRL show server utilization** > show current CPU and Memory usage\n',
                   '**VIRL stop lab** > stop labs of your choice\n',
                   '**help** > display available commands\n']
@@ -184,6 +183,8 @@ class COLABot:
         elif self.activity['description'] == 'card_details':
             if self.activity['inputs']['card_feature_index'] == 'virl':
                 result = await virl_chat(self.activity)
+            if self.activity['inputs']['card_feature_index'] == 'colab':
+                result = await awx.delete_accounts(self.activity)
             # Add new card activities here
 
         elif self.activity['description'] == 'message_details':
@@ -194,6 +195,12 @@ class COLABot:
             # Main Message Activities
             if self.activity.get('text') == 'help':
                 await self.display_help_menu()
+
+            elif self.activity.get('text') == 'create accounts' or self.activity.get('text') == 'reset passwords':
+                result = await awx.create_accounts(self.activity)
+
+            elif self.activity.get('text') == 'delete accounts':
+                result = await awx.delete_accounts(self.activity)
 
             elif self.activity.get('text')[:4] == 'virl':  # Add searches for virl dialogue here
                 result = await virl_chat(self.activity)

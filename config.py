@@ -24,3 +24,6 @@ class DefaultConfig:
     MONGO_DB = os.environ.get('MONGO_DB', 'bot_db')
     MONGO_COLLECTIONS = os.environ.get('MONGO_COLLECTIONS', 'bot_collections')
     AUTHORIZED_ROOMS = os.environ.get('AUTHORIZED_ROOMS', '')
+    AWX_USERNAME = os.environ.get('AWX_USERNAME', '')
+    AWX_PASSWORD = os.environ.get('AWX_PASSWORD', '')
+    # NLP_SERVER = os.environ.get('NLP_SERVER', 'nlp-server.example.com')

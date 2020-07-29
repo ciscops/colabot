@@ -7,85 +7,12 @@ from jinja2 import Template
 import time
 import re
 
+
 mongo_url = 'mongodb://' + CONFIG.MONGO_INITDB_ROOT_USERNAME + ':' + CONFIG.MONGO_INITDB_ROOT_PASSWORD + '@' + CONFIG.MONGO_SERVER + ':' + CONFIG.MONGO_PORT
 
 
 async def virl_chat(activity):
     virl_servers = CONFIG.SERVER_LIST.split(',')
-
-    """START VIRL CREATE ACCOUNT"""
-    if activity.get('text') == 'virl create account':
-        results_message = ''
-        pwd = VIRL.password_generator()
-        check_flag = False
-        webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
-        for virl_server in virl_servers:
-            virl = VIRL(CONFIG.VIRL_USERNAME, CONFIG.VIRL_PASSWORD, virl_server)
-            # Get bearer token
-            if not await virl.get_token():  # {'description': 'User already exists: stmosher.', 'code': 422}
-                message = dict(text='Error accessing server ' + virl_server + ': ' + str(
-                    virl.status_code) + ' ' + str(virl.bearer_token),
-                               roomId=activity['roomId'],
-                               attachments=[])
-                await webex.post_message_to_webex(message)
-                continue
-            user_and_domain = activity['sender_email'].split('@')
-            if not await virl.add_user(username_webex=user_and_domain[0],
-                                       user_email=activity['sender_email'],
-                                       new_password=pwd):
-                results_message += ' - ' + virl_server + ' Failed: ' + virl.result.get('description', '') + '\n'
-            else:
-                check_flag = True
-                results_message += ' - ' + virl_server + ' Success! \n'
-
-        message = dict(text=results_message,
-                       roomId=activity['roomId'],
-                       attachments=[])
-        await webex.post_message_to_webex(message)
-        if check_flag:
-            message = dict(text='VIRL password: ' + pwd,
-                           toPersonId=activity['sender'],
-                           attachments=[])
-            await webex.post_message_to_webex(message)
-        return {'status_code': 200}
-    """END  VIRL CREATE ACCOUNT"""
-
-    """START VIRL RESET PASSWORD"""
-    if activity.get('text') == 'virl reset password':
-        results_message = ''
-        pwd = VIRL.password_generator()
-        check_flag = False
-        webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
-        for virl_server in virl_servers:
-            virl = VIRL(CONFIG.VIRL_USERNAME, CONFIG.VIRL_PASSWORD, virl_server)
-            # Get bearer token
-            if not await virl.get_token():  # {'description': 'User already exists: stmosher.', 'code': 422}
-                message = dict(text='Error accessing server ' + virl_server + ': ' + str(
-                    virl.status_code) + ' ' + str(virl.bearer_token),
-                               roomId=activity['roomId'],
-                               attachments=[])
-                await webex.post_message_to_webex(message)
-                continue
-            user_and_domain = activity['sender_email'].split('@')
-            if not await virl.change_password(username_webex=user_and_domain[0],
-                                              new_password=pwd):
-                results_message += ' - ' + virl_server + ' Fail: ' + str(virl.status_code) + ' ' + virl.result.get(
-                    'description', '') + '\n'
-            else:
-                check_flag = True
-                results_message += ' - ' + virl_server + ' Success: ' + str(virl.status_code) + '\n'
-
-        message = dict(text=results_message,
-                       roomId=activity['roomId'],
-                       attachments=[])
-        await webex.post_message_to_webex(message)
-        if check_flag:
-            message = dict(text='VIRL password: ' + pwd,
-                           toPersonId=activity['sender'],
-                           attachments=[])
-            await webex.post_message_to_webex(message)
-        return {'status_code': 200}
-    """END VIRL RESET PASSWORD"""
 
     """START VIRL LIST ALL LABS"""
     if activity.get('text') == 'virl list all labs':
@@ -278,139 +205,7 @@ async def virl_chat(activity):
                        attachments=[])
         await webex.post_message_to_webex(message)
         return {'status_code': 200}
-
     """END VIRL EXTEND LAB"""
-
-    """START VIRL DELETE ACCOUNT DIALOGUE"""
-    if activity.get('text') == 'virl delete account':
-        webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
-        card_file = './cards/delete_account_get_password.json'
-        with open(f'{card_file}') as fp:
-            text = fp.read()
-        card = json.loads(text)
-
-        # If group then send a DM with a card
-        if activity.get('roomType', '') == 'group':
-            message = dict(text='Delete VIRL Account',
-                           toPersonId=activity['sender'],
-                           attachments=[{'contentType': 'application/vnd.microsoft.card.adaptive', 'content': card}])
-            result = await webex.post_message_to_webex(message)
-            message = dict(text="I've direct messaged you. Let's continue this request in private.",
-                           roomId=activity['roomId'],
-                           attachments=[])
-            await webex.post_message_to_webex(message)
-            activity['roomId'] = result.get('roomId', '')
-        # if direct, send a card to the same room
-        else:
-            message = dict(text='Delete VIRL Account',
-                           roomId=activity['roomId'],
-                           attachments=[{'contentType': 'application/vnd.microsoft.card.adaptive', 'content': card}])
-            await webex.post_message_to_webex(message)
-        # Post dialogue information to DB
-        with pymongo.MongoClient(mongo_url) as client:
-            db = client[CONFIG.MONGO_DB_ACTIVITY]
-            posts = db[CONFIG.MONGO_COLLECTIONS_ACTIVITY]
-            dialogue_record = {'sender': activity['sender'],
-                               'sender_email': activity['sender_email'],
-                               'roomId': activity['roomId'],
-                               'roomType': activity['roomType'],
-                               'id': activity['id'],
-                               'created': activity['created'],
-                               'dialogue_name': 'virl_delete_account',
-                               'dialogue_step': 1,
-                               'dialogue_max_steps': 2,
-                               'dialogue_data': [],
-                               'card_dialogue_index': 'virl_delete_account',
-                               'card_feature_index': 'virl'}
-            try:
-                post_id = posts.insert_one(dialogue_record).inserted_id
-            except Exception as e:
-                print('Failed to connect to DB')
-        return {'status_code': 200}
-    if activity.get('dialogue_name') == 'virl_delete_account' and activity.get('dialogue_step') == 1:
-        results_message = ''
-        user_and_domain = activity['sender_email'].split('@')
-        webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
-        for virl_server in virl_servers:
-            # In case a new dialogue has been entered, send msg, and cancel old dialogue
-            try:
-                virl_user = VIRL(user_and_domain[0], activity['inputs']['virl_password'], virl_server)
-            except:
-                message = dict(text='I thought we were talking about account deletion. Please send a new command',
-                               roomId=activity['roomId'],
-                               attachments=[])
-                await webex.post_message_to_webex(message)
-                # Remove dialogue from DB
-                with pymongo.MongoClient(mongo_url) as client:
-                    db = client[CONFIG.MONGO_DB_ACTIVITY]
-                    posts = db[CONFIG.MONGO_COLLECTIONS_ACTIVITY]
-                    query_lab_filter = {'sender': activity['sender'],
-                                        'roomId': activity['roomId'],
-                                        'dialogue_name': 'virl_delete_account'}
-                    try:
-                        r = posts.delete_one(query_lab_filter)
-                    except Exception as e:
-                        print('Failed to connect to DB')
-
-                return {'status_code': 200}
-            # Get bearer token
-            virl_admin = VIRL(CONFIG.VIRL_USERNAME, CONFIG.VIRL_PASSWORD, virl_server)
-            if not await virl_admin.get_token():
-                message = dict(text='Error accessing server ' + virl_server + ': ' + str(
-                    virl_admin.status_code) + ' ' + virl_admin.bearer_token,
-                               roomId=activity['roomId'],
-                               attachments=[])
-                await webex.post_message_to_webex(message)
-                return {'status_code': 500}
-            # If the user is not there, the below won't work
-            if not await virl_user.get_token():
-                message = dict(text='Error accessing server ' + virl_server + ': ' + str(
-                    virl_user.status_code) + ' ' + virl_user.bearer_token,
-                               roomId=activity['roomId'],
-                               attachments=[])
-                await webex.post_message_to_webex(message)
-                continue
-
-            await virl_admin.list_user_lab_ids(user_and_domain[0])
-            for lab in virl_admin.user_lab_ids:
-                if not await virl_user.stop_lab(lab):
-                    print('stop lab')
-                    print(str(virl_user.status_code))
-                    print(virl_user.result.get('description', ''))
-                if not await virl_user.wipe_lab(lab):
-                    print('wipe lab')
-                    print(str(virl_user.status_code))
-                    print(virl_user.result.get('description', ''))
-                if not await virl_user.delete_lab(lab):
-                    print('delete lab')
-                    print(str(virl_user.status_code))
-                    print(virl_user.result.get('description', ''))
-
-            if not await virl_admin.delete_user(username_webex=user_and_domain[0]):
-                results_message += ' - ' + virl_server + ' Fail: ' + str(
-                    virl_admin.status_code) + ' ' + virl_admin.result.get('description', '') + '\n'
-            else:
-                results_message += ' - ' + virl_server + ' Success! \n'
-
-        message = dict(text=results_message,
-                       roomId=activity['roomId'],
-                       attachments=[])
-        await webex.post_message_to_webex(message)
-
-        # Remove dialogue from DB
-        with pymongo.MongoClient(mongo_url) as client:
-            db = client[CONFIG.MONGO_DB_ACTIVITY]
-            posts = db[CONFIG.MONGO_COLLECTIONS_ACTIVITY]
-            query_lab_filter = {'sender': activity['sender'],
-                                'roomId': activity['roomId'],
-                                'dialogue_name': 'virl_delete_account'}
-            try:
-                r = posts.delete_one(query_lab_filter)
-            except Exception as e:
-                print('Failed to connect to DB')
-
-        return {'status_code': 200}
-    """END VIRL DELETE ACCOUNT DIALOGUE"""
 
     """START VIRL STOP LAB DIALOGUE"""
     if activity.get('text') == 'virl stop lab':
@@ -919,7 +714,8 @@ async def virl_chat(activity):
     if activity.get('text'):
         if activity.get('roomType') == 'group':
             message = dict(
-                text='"' + activity.get('original_text') + '?"' + " I'm sorry. I don't understand. Please reply " + "**@" +
+                text='"' + activity.get(
+                    'original_text') + '?"' + " I'm sorry. I don't understand. Please reply " + "**@" +
                      activity['bot_name'] + " help** to see my available commands",
                 roomId=activity['roomId'],
                 attachments=[])
