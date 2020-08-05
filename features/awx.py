@@ -14,13 +14,13 @@ mongo_url = 'mongodb://' + CONFIG.MONGO_INITDB_ROOT_USERNAME + ':' + CONFIG.MONG
 
 
 async def create_accounts(activity):
-    virl_servers = CONFIG.SERVER_LIST.split(',')
+    cml_servers = CONFIG.SERVER_LIST.split(',')
     webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
     message = dict(text='Working... This may take a minute or two...',
                    roomId=activity['roomId'],
                    attachments=[])
     await webex.post_message_to_webex(message)
-    urls_virl_servers = ['https://' + s for s in virl_servers]
+    urls_cml_servers = ['https://' + s for s in cml_servers]
     if re.search(r'1MDFmYzc$', CONFIG.BOT_ID):
         id_template = '23'
     else:
@@ -28,7 +28,7 @@ async def create_accounts(activity):
     url = f'https://cpn-rtp-awx1.colab.ciscops.net/api/v2/job_templates/{id_template}/launch/'
     headers = {'Content-Type': 'application/json'}
     user_and_domain = activity['sender_email'].split('@')
-    body = {"extra_vars": {"cml_server_list": urls_virl_servers,
+    body = {"extra_vars": {"cml_server_list": urls_cml_servers,
                            "colab_user_email": activity['sender_email'],
                            "colab_user_username": user_and_domain[0],
                            }}
@@ -56,7 +56,7 @@ async def create_accounts(activity):
 
 
 async def delete_accounts(activity):
-    virl_servers = CONFIG.SERVER_LIST.split(',')
+    cml_servers = CONFIG.SERVER_LIST.split(',')
     if activity.get('text') == 'delete accounts':
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
         card_file = './cards/delete_account_get_password.json'
@@ -138,7 +138,7 @@ async def delete_accounts(activity):
                        roomId=activity['roomId'],
                        attachments=[])
         await webex.post_message_to_webex(message)
-        urls_virl_servers = ['https://' + s for s in virl_servers]
+        urls_cml_servers = ['https://' + s for s in cml_servers]
         if re.search(r'1MDFmYzc$', CONFIG.BOT_ID):
             id_template = '24'
         else:
@@ -146,7 +146,7 @@ async def delete_accounts(activity):
         url = f'https://cpn-rtp-awx1.colab.ciscops.net/api/v2/job_templates/{id_template}/launch/'
         headers = {'Content-Type': 'application/json'}
         user_and_domain = activity['sender_email'].split('@')
-        body = {"extra_vars": {"cml_server_list": urls_virl_servers,
+        body = {"extra_vars": {"cml_server_list": urls_cml_servers,
                                "colab_user_email": activity['sender_email'],
                                "colab_user_username": user_and_domain[0],
                                "colab_user_password": activity['inputs']['colab_password'],

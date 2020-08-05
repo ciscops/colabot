@@ -1,4 +1,4 @@
-from .VIRL import VIRL
+from .CML import CML
 from config import DefaultConfig as CONFIG
 from webex import WebExClient
 import json
@@ -11,36 +11,36 @@ import re
 mongo_url = 'mongodb://' + CONFIG.MONGO_INITDB_ROOT_USERNAME + ':' + CONFIG.MONGO_INITDB_ROOT_PASSWORD + '@' + CONFIG.MONGO_SERVER + ':' + CONFIG.MONGO_PORT
 
 
-async def virl_chat(activity):
-    virl_servers = CONFIG.SERVER_LIST.split(',')
+async def cml_chat(activity):
+    cml_servers = CONFIG.SERVER_LIST.split(',')
 
-    """START VIRL LIST ALL LABS"""
-    if activity.get('text') == 'virl list all labs':
+    """START CML LIST ALL LABS"""
+    if activity.get('text') == 'cml list all labs':
         results_message = ''
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
-        for virl_server in virl_servers:
+        for cml_server in cml_servers:
             on_server = False
-            server_name = '\n***' + virl_server + '***\n'
-            virl = VIRL(CONFIG.VIRL_USERNAME, CONFIG.VIRL_PASSWORD, virl_server)
+            server_name = '\n***' + cml_server + '***\n'
+            cml = CML(CONFIG.CML_USERNAME, CONFIG.CML_PASSWORD, cml_server)
             # Get bearer token
-            if not await virl.get_token():  # {'description': 'User already exists: stmosher.', 'code': 422}
-                message = dict(text='Error accessing server ' + virl_server + ': ' + str(
-                    virl.status_code) + ' ' + str(virl.bearer_token),
+            if not await cml.get_token():  # {'description': 'User already exists: stmosher.', 'code': 422}
+                message = dict(text='Error accessing server ' + cml_server + ': ' + str(
+                    cml.status_code) + ' ' + str(cml.bearer_token),
                                roomId=activity['roomId'],
                                attachments=[])
                 await webex.post_message_to_webex(message)
                 continue
 
-            await virl.get_diagnostics()
+            await cml.get_diagnostics()
             epoch_time_now = int(time.time())
 
-            for k, v in virl.diagnostics['user_roles']['labs_by_user'].items():
+            for k, v in cml.diagnostics['user_roles']['labs_by_user'].items():
                 labs_flag = False
                 lab_string = '\nLabs for account: ***' + k + '***\n\n'
                 # lab_string = ''
                 for i in v:
                     labs_flag = True
-                    created_seconds = virl.diagnostics['labs'][i]['created']
+                    created_seconds = cml.diagnostics['labs'][i]['created']
                     delta = epoch_time_now - created_seconds
                     days = int(delta // 86400)
                     hours = int(delta // 3600 % 24)
@@ -59,30 +59,30 @@ async def virl_chat(activity):
                        attachments=[])
         await webex.post_message_to_webex(message)
         return {'status_code': 200}
-    """END VIRL LIST ALL LABS"""
+    """END CML LIST ALL LABS"""
 
-    """START VIRL LIST USERS"""
-    if activity.get('text') == 'virl list users':
+    """START CML LIST USERS"""
+    if activity.get('text') == 'cml list users':
         results_message = ''
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
-        for virl_server in virl_servers:
+        for cml_server in cml_servers:
             on_server = False
-            server_name = '\n***' + virl_server + '***\n'
-            virl = VIRL(CONFIG.VIRL_USERNAME, CONFIG.VIRL_PASSWORD, virl_server)
+            server_name = '\n***' + cml_server + '***\n'
+            cml = CML(CONFIG.CML_USERNAME, CONFIG.CML_PASSWORD, cml_server)
             # Get bearer token
-            if not await virl.get_token():  # {'description': 'User already exists: stmosher.', 'code': 422}
-                message = dict(text='Error accessing server ' + virl_server + ': ' + str(
-                    virl.status_code) + ' ' + str(virl.bearer_token),
+            if not await cml.get_token():  # {'description': 'User already exists: stmosher.', 'code': 422}
+                message = dict(text='Error accessing server ' + cml_server + ': ' + str(
+                    cml.status_code) + ' ' + str(cml.bearer_token),
                                roomId=activity['roomId'],
                                attachments=[])
                 await webex.post_message_to_webex(message)
                 continue
 
-            if not await virl.get_users():
-                server_name += 'Error accessing server ' + virl_server + ': ' + str(
-                    virl.status_code) + ' ' + virl.users.get('description', '')
+            if not await cml.get_users():
+                server_name += 'Error accessing server ' + cml_server + ': ' + str(
+                    cml.status_code) + ' ' + cml.users.get('description', '')
             else:
-                for key in virl.users:
+                for key in cml.users:
                     server_name += ' - ' + key + '\n'
             results_message += server_name
 
@@ -91,34 +91,34 @@ async def virl_chat(activity):
                        attachments=[])
         await webex.post_message_to_webex(message)
         return {'status_code': 200}
-    """END VIRL LIST USERS"""
+    """END CML LIST USERS"""
 
-    """START VIRL LIST MY LABS"""
-    if activity.get('text') == 'virl list my labs':
+    """START CML LIST MY LABS"""
+    if activity.get('text') == 'cml list my labs':
         results_message = ''
         user_and_domain = activity['sender_email'].split('@')
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
         epoch_time_now = int(time.time())
-        for virl_server in virl_servers:
+        for cml_server in cml_servers:
             labs_flag = False
-            server_name = '\n***' + virl_server + '***\n'
-            virl = VIRL(CONFIG.VIRL_USERNAME, CONFIG.VIRL_PASSWORD, virl_server)
+            server_name = '\n***' + cml_server + '***\n'
+            cml = CML(CONFIG.CML_USERNAME, CONFIG.CML_PASSWORD, cml_server)
             # Get bearer token
-            if not await virl.get_token():  # {'description': 'User already exists: stmosher.', 'code': 422}
-                message = dict(text='Error accessing server ' + virl_server + ': ' + str(
-                    virl.status_code) + ' ' + str(virl.bearer_token),
+            if not await cml.get_token():  # {'description': 'User already exists: stmosher.', 'code': 422}
+                message = dict(text='Error accessing server ' + cml_server + ': ' + str(
+                    cml.status_code) + ' ' + str(cml.bearer_token),
                                roomId=activity['roomId'],
                                attachments=[])
                 await webex.post_message_to_webex(message)
                 continue
 
-            if not await virl.get_diagnostics():
-                server_name += 'Error accessing server ' + virl_server + ': ' + str(
-                    virl.status_code) + ' ' + virl.diagnostics.get('description', '')
+            if not await cml.get_diagnostics():
+                server_name += 'Error accessing server ' + cml_server + ': ' + str(
+                    cml.status_code) + ' ' + cml.diagnostics.get('description', '')
             else:
-                labs = virl.diagnostics['user_roles']['labs_by_user'].get(user_and_domain[0], [])
+                labs = cml.diagnostics['user_roles']['labs_by_user'].get(user_and_domain[0], [])
                 for lab in labs:
-                    created_seconds = virl.diagnostics['labs'][lab]['created']
+                    created_seconds = cml.diagnostics['labs'][lab]['created']
                     labs_flag = True
                     delta = epoch_time_now - created_seconds
                     days = int(delta // 86400)
@@ -141,33 +141,33 @@ async def virl_chat(activity):
                            attachments=[])
         await webex.post_message_to_webex(message)
         return {'status_code': 200}
-    """END VIRL LIST MY LABS"""
+    """END CML LIST MY LABS"""
 
-    """START VIRL SHOW SERVER UTILIZATION"""
-    if activity.get('text') == 'virl show server utilization':
+    """START CML SHOW SERVER UTILIZATION"""
+    if activity.get('text') == 'cml show server utilization':
         results_message = ''
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
-        for virl_server in virl_servers:
-            server_name = '\n***' + virl_server + '***\n'
-            virl = VIRL(CONFIG.VIRL_USERNAME, CONFIG.VIRL_PASSWORD, virl_server)
+        for cml_server in cml_servers:
+            server_name = '\n***' + cml_server + '***\n'
+            cml = CML(CONFIG.CML_USERNAME, CONFIG.CML_PASSWORD, cml_server)
             # Get bearer token
-            if not await virl.get_token():  # {'description': 'User already exists: stmosher.', 'code': 422}
-                message = dict(text='Error accessing server ' + virl_server + ': ' + str(
-                    virl.status_code) + ' ' + str(virl.bearer_token),
+            if not await cml.get_token():  # {'description': 'User already exists: stmosher.', 'code': 422}
+                message = dict(text='Error accessing server ' + cml_server + ': ' + str(
+                    cml.status_code) + ' ' + str(cml.bearer_token),
                                roomId=activity['roomId'],
                                attachments=[])
                 await webex.post_message_to_webex(message)
                 continue
 
-            if not await virl.get_system_status():
-                server_name += 'Error accessing server ' + virl_server + ': ' + str(
-                    virl.status_code) + ' ' + virl.system_status.get('description', '')
+            if not await cml.get_system_status():
+                server_name += 'Error accessing server ' + cml_server + ': ' + str(
+                    cml.status_code) + ' ' + cml.system_status.get('description', '')
             else:
                 cpu = round(
-                    virl.system_status['clusters']['cluster_1']['high_level_drivers']['compute_1']['cpu']['percent'])
+                    cml.system_status['clusters']['cluster_1']['high_level_drivers']['compute_1']['cpu']['percent'])
                 memory = round(
-                    virl.system_status['clusters']['cluster_1']['high_level_drivers']['compute_1']['memory']['used'] /
-                    virl.system_status['clusters']['cluster_1']['high_level_drivers']['compute_1']['memory'][
+                    cml.system_status['clusters']['cluster_1']['high_level_drivers']['compute_1']['memory']['used'] /
+                    cml.system_status['clusters']['cluster_1']['high_level_drivers']['compute_1']['memory'][
                         'total'] * 100)
 
                 server_name += ' -  CPU: ' + str(cpu) + '% Memory: ' + str(memory) + '%\n'
@@ -177,11 +177,11 @@ async def virl_chat(activity):
                        attachments=[])
         await webex.post_message_to_webex(message)
         return {'status_code': 200}
-    """END VIRL SHOW SERVER UTILIZATION"""
+    """END CML SHOW SERVER UTILIZATION"""
 
-    """START VIRL EXTEND LAB"""
+    """START CML EXTEND LAB"""
 
-    if re.search('^VIRL extend lab .*', activity.get('text', '')):
+    if re.search('^CML extend lab .*', activity.get('text', '')):
         temp = activity.get('text').split('lab')
         lab = temp[1].strip()
         with pymongo.MongoClient(mongo_url) as client:
@@ -205,19 +205,19 @@ async def virl_chat(activity):
                        attachments=[])
         await webex.post_message_to_webex(message)
         return {'status_code': 200}
-    """END VIRL EXTEND LAB"""
+    """END CML EXTEND LAB"""
 
-    """START VIRL STOP LAB DIALOGUE"""
-    if activity.get('text') == 'virl stop lab':
+    """START CML STOP LAB DIALOGUE"""
+    if activity.get('text') == 'cml stop lab':
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
-        card_file = './cards/virl_stop_lab_get_password.json'
+        card_file = './cards/cml_stop_lab_get_password.json'
         with open(f'{card_file}') as fp:
             text = fp.read()
         card = json.loads(text)
 
         # If group then send a DM with a card
         if activity.get('roomType', '') == 'group':
-            message = dict(text='Stop VIRL lab',
+            message = dict(text='Stop CML lab',
                            toPersonId=activity['sender'],
                            attachments=[{'contentType': 'application/vnd.microsoft.card.adaptive', 'content': card}])
             result = await webex.post_message_to_webex(message)
@@ -229,7 +229,7 @@ async def virl_chat(activity):
             activity['roomId'] = result.get('roomId', '')
         # if direct, send a card to the same room
         else:
-            message = dict(text='Stop VIRL lab',
+            message = dict(text='Stop CML lab',
                            roomId=activity['roomId'],
                            attachments=[{'contentType': 'application/vnd.microsoft.card.adaptive', 'content': card}])
             await webex.post_message_to_webex(message)
@@ -243,24 +243,24 @@ async def virl_chat(activity):
                                'roomType': activity['roomType'],
                                'id': activity['id'],
                                'created': activity['created'],
-                               'dialogue_name': 'virl_stop_lab',
+                               'dialogue_name': 'cml_stop_lab',
                                'dialogue_step': 1,
                                'dialogue_max_steps': 2,
                                'dialogue_data': [],
-                               'card_dialogue_index': 'virl_stop_lab',
-                               'card_feature_index': 'virl'}
+                               'card_dialogue_index': 'cml_stop_lab',
+                               'card_feature_index': 'cml'}
             try:
                 post_id = posts.insert_one(dialogue_record).inserted_id
             except Exception as e:
                 print('Failed to connect to DB')
         return {'status_code': 200}
-    if activity.get('dialogue_name') == 'virl_stop_lab' and activity.get('dialogue_step') == 1:
+    if activity.get('dialogue_name') == 'cml_stop_lab' and activity.get('dialogue_step') == 1:
         user_and_domain = activity['sender_email'].split('@')
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
         running_labs_for_card = ''
-        for virl_server in virl_servers:
+        for cml_server in cml_servers:
             try:
-                virl_user = VIRL(user_and_domain[0], activity['inputs']['virl_password'], virl_server)
+                cml_user = CML(user_and_domain[0], activity['inputs']['cml_password'], cml_server)
             except:
                 message = dict(text='I thought we were talking about stopping a lab. Please send a new command',
                                roomId=activity['roomId'],
@@ -272,32 +272,32 @@ async def virl_chat(activity):
                     posts = db[CONFIG.MONGO_COLLECTIONS_ACTIVITY]
                     query_lab_filter = {'sender': activity['sender'],
                                         'roomId': activity['roomId'],
-                                        'dialogue_name': 'virl_stop_lab'}
+                                        'dialogue_name': 'cml_stop_lab'}
                 return {'status_code': 200}
             # Get bearer token
-            if not await virl_user.get_token():  # {'description': 'User already exists: stmosher.', 'code': 422}
-                message = dict(text='Error accessing server ' + virl_server + ': ' + str(
-                    virl_user.status_code) + ' ' + virl_user.bearer_token,
+            if not await cml_user.get_token():  # {'description': 'User already exists: stmosher.', 'code': 422}
+                message = dict(text='Error accessing server ' + cml_server + ': ' + str(
+                    cml_user.status_code) + ' ' + cml_user.bearer_token,
                                roomId=activity['roomId'],
                                attachments=[])
                 await webex.post_message_to_webex(message)
                 continue
             # list the current users labs
-            if not await virl_user.get_user_labs():
-                message = dict(text='Error accessing server ' + virl_server + ': ' + str(
-                    virl_user.status_code) + ' ' + virl_user.user_labs.get('description', ''),
+            if not await cml_user.get_user_labs():
+                message = dict(text='Error accessing server ' + cml_server + ': ' + str(
+                    cml_user.status_code) + ' ' + cml_user.user_labs.get('description', ''),
                                roomId=activity['roomId'],
                                attachments=[])
                 await webex.post_message_to_webex(message)
                 continue
             lab_details = list()
-            for lab in virl_user.user_labs:
-                if await virl_user.get_user_lab_details(lab):
-                    lab_details.append(virl_user.user_lab_details)
+            for lab in cml_user.user_labs:
+                if await cml_user.get_user_lab_details(lab):
+                    lab_details.append(cml_user.user_lab_details)
             final = ''
             running_labs = False
             if lab_details:
-                lab_choices_string = '{"type": "TextBlock","text": "' + virl_server + '"},' + '{"type": "Input.ChoiceSet","id": "' + virl_server + '","style": "expanded","value": "1","choices": ['
+                lab_choices_string = '{"type": "TextBlock","text": "' + cml_server + '"},' + '{"type": "Input.ChoiceSet","id": "' + cml_server + '","style": "expanded","value": "1","choices": ['
                 for i in lab_details:
                     if i['state'] == 'STARTED':
                         running_labs = True
@@ -309,11 +309,11 @@ async def virl_chat(activity):
                 if running_labs:
                     running_labs_for_card += final
         if running_labs_for_card:
-            with open('cards/virl_stop_lab_choices.json') as file_:
+            with open('cards/cml_stop_lab_choices.json') as file_:
                 template = Template(file_.read())
             card = template.render(lab_choices=running_labs_for_card)
             card_json = json.loads(card)
-            message = dict(text='Stop VIRL lab',
+            message = dict(text='Stop CML lab',
                            roomId=activity['roomId'],
                            attachments=[
                                {'contentType': 'application/vnd.microsoft.card.adaptive', 'content': card_json}])
@@ -326,8 +326,8 @@ async def virl_chat(activity):
                     doc = posts.find_one_and_update(
                         {'id': activity['id']},
                         {'$set': {'dialogue_step': 2,
-                                  'card_dialogue_index': 'virl_stop_lab_choices',
-                                  'virl_password': activity['inputs']['virl_password']}
+                                  'card_dialogue_index': 'cml_stop_lab_choices',
+                                  'cml_password': activity['inputs']['cml_password']}
                          }
                     )
                 except Exception as e:
@@ -344,39 +344,39 @@ async def virl_chat(activity):
                 posts = db[CONFIG.MONGO_COLLECTIONS_ACTIVITY]
                 query_lab_filter = {'sender': activity['sender'],
                                     'roomId': activity['roomId'],
-                                    'dialogue_name': 'virl_stop_lab'}
+                                    'dialogue_name': 'cml_stop_lab'}
                 try:
                     r = posts.delete_one(query_lab_filter)
                 except Exception as e:
                     print('Failed to connect to DB')
 
             return {'status_code': 200}
-    if activity.get('card_dialogue_index') == 'virl_stop_lab_choices' and activity.get('dialogue_step') == 2:
+    if activity.get('card_dialogue_index') == 'cml_stop_lab_choices' and activity.get('dialogue_step') == 2:
         results_message = ''
         user_and_domain = activity['sender_email'].split('@')
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
-        for virl_server in virl_servers:
-            if activity['inputs'].get(virl_server):
-                virl_user = VIRL(user_and_domain[0], activity['virl_password'], virl_server)
+        for cml_server in cml_servers:
+            if activity['inputs'].get(cml_server):
+                cml_user = CML(user_and_domain[0], activity['cml_password'], cml_server)
                 # If the user is not there, the below won't work
-                if not await virl_user.get_token():
+                if not await cml_user.get_token():
                     message = dict(
-                        text='Error accessing server ' + virl_server + ': ' + str(
-                            virl_user.status_code) + ' ' + virl_user.bearer_token,
+                        text='Error accessing server ' + cml_server + ': ' + str(
+                            cml_user.status_code) + ' ' + cml_user.bearer_token,
                         roomId=activity['roomId'],
                         attachments=[])
                     await webex.post_message_to_webex(message)
                     continue
-                labs_list = activity['inputs'].get(virl_server).split(',')
+                labs_list = activity['inputs'].get(cml_server).split(',')
                 for lab in labs_list:
-                    if not await virl_user.stop_lab(lab):
+                    if not await cml_user.stop_lab(lab):
                         print('stop lab')
-                        print(str(virl_user.status_code))
-                        print(virl_user.result.get('description', ''))
-                        results_message += ' - ' + virl_server + ' Fail: ' + str(
-                            virl_user.status_code) + ' ' + virl_user.result.get('description', '') + '\n'
+                        print(str(cml_user.status_code))
+                        print(cml_user.result.get('description', ''))
+                        results_message += ' - ' + cml_server + ' Fail: ' + str(
+                            cml_user.status_code) + ' ' + cml_user.result.get('description', '') + '\n'
                     else:
-                        results_message += ' - ' + virl_server + ' Lab Id: ' + lab + ' Stopped!' + '\n'
+                        results_message += ' - ' + cml_server + ' Lab Id: ' + lab + ' Stopped!' + '\n'
 
         message = dict(text=results_message,
                        roomId=activity['roomId'],
@@ -388,26 +388,26 @@ async def virl_chat(activity):
             posts = db[CONFIG.MONGO_COLLECTIONS_ACTIVITY]
             query_lab_filter = {'sender': activity['sender'],
                                 'roomId': activity['roomId'],
-                                'dialogue_name': 'virl_stop_lab'}
+                                'dialogue_name': 'cml_stop_lab'}
             try:
                 r = posts.delete_one(query_lab_filter)
             except Exception as e:
                 print('Failed to connect to DB')
 
         return {'status_code': 200}
-    """ END VIRL STOP LAB DIALOGUE """
+    """ END CML STOP LAB DIALOGUE """
 
-    """START VIRL DELETE LAB DIALOGUE"""
-    if activity.get('text') == 'virl delete lab':
+    """START CML DELETE LAB DIALOGUE"""
+    if activity.get('text') == 'cml delete lab':
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
-        card_file = './cards/virl_delete_lab_get_password.json'
+        card_file = './cards/cml_delete_lab_get_password.json'
         with open(f'{card_file}') as fp:
             text = fp.read()
         card = json.loads(text)
 
         # If group then send a DM with a card
         if activity.get('roomType', '') == 'group':
-            message = dict(text='Stop VIRL lab',
+            message = dict(text='Stop CML lab',
                            toPersonId=activity['sender'],
                            attachments=[{'contentType': 'application/vnd.microsoft.card.adaptive', 'content': card}])
             result = await webex.post_message_to_webex(message)
@@ -418,7 +418,7 @@ async def virl_chat(activity):
             activity['roomId'] = result.get('roomId', '')
         # if direct, send a card to the same room
         else:
-            message = dict(text='Delete VIRL lab',
+            message = dict(text='Delete CML lab',
                            roomId=activity['roomId'],
                            attachments=[{'contentType': 'application/vnd.microsoft.card.adaptive', 'content': card}])
             await webex.post_message_to_webex(message)
@@ -432,24 +432,24 @@ async def virl_chat(activity):
                                'roomType': activity['roomType'],
                                'id': activity['id'],
                                'created': activity['created'],
-                               'dialogue_name': 'virl_delete_lab',
+                               'dialogue_name': 'cml_delete_lab',
                                'dialogue_step': 1,
                                'dialogue_max_steps': 2,
                                'dialogue_data': [],
-                               'card_dialogue_index': 'virl_delete_lab',
-                               'card_feature_index': 'virl'}
+                               'card_dialogue_index': 'cml_delete_lab',
+                               'card_feature_index': 'cml'}
             try:
                 post_id = posts.insert_one(dialogue_record).inserted_id
             except Exception as e:
                 print('Failed to connect to DB')
         return {'status_code': 200}
-    if activity.get('dialogue_name') == 'virl_delete_lab' and activity.get('dialogue_step') == 1:
+    if activity.get('dialogue_name') == 'cml_delete_lab' and activity.get('dialogue_step') == 1:
         user_and_domain = activity['sender_email'].split('@')
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
         labs_for_card = ''
-        for virl_server in virl_servers:
+        for cml_server in cml_servers:
             try:
-                virl_user = VIRL(user_and_domain[0], activity['inputs']['virl_password'], virl_server)
+                cml_user = CML(user_and_domain[0], activity['inputs']['cml_password'], cml_server)
             except:
                 message = dict(text='I thought we were talking about deleting a lab. Please send a new command',
                                roomId=activity['roomId'],
@@ -461,32 +461,32 @@ async def virl_chat(activity):
                     posts = db[CONFIG.MONGO_COLLECTIONS_ACTIVITY]
                     query_lab_filter = {'sender': activity['sender'],
                                         'roomId': activity['roomId'],
-                                        'dialogue_name': 'virl_delete_lab'}
+                                        'dialogue_name': 'cml_delete_lab'}
                 return {'status_code': 200}
 
             # Get bearer token
-            if not await virl_user.get_token():  # {'description': 'User already exists: stmosher.', 'code': 422}
-                message = dict(text='Error accessing server ' + virl_server + ': ' + str(
-                    virl_user.status_code) + ' ' + virl_user.bearer_token,
+            if not await cml_user.get_token():  # {'description': 'User already exists: stmosher.', 'code': 422}
+                message = dict(text='Error accessing server ' + cml_server + ': ' + str(
+                    cml_user.status_code) + ' ' + cml_user.bearer_token,
                                roomId=activity['roomId'],
                                attachments=[])
                 await webex.post_message_to_webex(message)
                 continue
             # list the current users labs
-            if not await virl_user.get_user_labs():
-                message = dict(text='Error accessing server ' + virl_server + ': ' + str(
-                    virl_user.status_code) + ' ' + virl_user.user_labs.get('description', ''),
+            if not await cml_user.get_user_labs():
+                message = dict(text='Error accessing server ' + cml_server + ': ' + str(
+                    cml_user.status_code) + ' ' + cml_user.user_labs.get('description', ''),
                                roomId=activity['roomId'],
                                attachments=[])
                 await webex.post_message_to_webex(message)
                 continue
             lab_details = list()
-            for lab in virl_user.user_labs:
-                if await virl_user.get_user_lab_details(lab):
-                    lab_details.append(virl_user.user_lab_details)
+            for lab in cml_user.user_labs:
+                if await cml_user.get_user_lab_details(lab):
+                    lab_details.append(cml_user.user_lab_details)
             final = ''
             if lab_details:
-                lab_choices_string = '{"type": "TextBlock","text": "' + virl_server + '"},' + '{"type": "Input.ChoiceSet","id": "' + virl_server + '","style": "expanded","value": "1","choices": ['
+                lab_choices_string = '{"type": "TextBlock","text": "' + cml_server + '"},' + '{"type": "Input.ChoiceSet","id": "' + cml_server + '","style": "expanded","value": "1","choices": ['
                 for i in lab_details:
                     temp_string = i['lab_title'] + '   Created: ' + i['created']
                     temp_details = i['id']
@@ -496,11 +496,11 @@ async def virl_chat(activity):
 
                 labs_for_card += final
         if labs_for_card:
-            with open('cards/virl_delete_lab_choices.json') as file_:
+            with open('cards/cml_delete_lab_choices.json') as file_:
                 template = Template(file_.read())
             card = template.render(lab_choices=labs_for_card)
             card_json = json.loads(card)
-            message = dict(text='VIRL delete lab',
+            message = dict(text='CML delete lab',
                            roomId=activity['roomId'],
                            attachments=[
                                {'contentType': 'application/vnd.microsoft.card.adaptive', 'content': card_json}])
@@ -513,8 +513,8 @@ async def virl_chat(activity):
                     doc = posts.find_one_and_update(
                         {'id': activity['id']},
                         {'$set': {'dialogue_step': 2,
-                                  'card_dialogue_index': 'virl_delete_lab_choices',
-                                  'virl_password': activity['inputs']['virl_password']}
+                                  'card_dialogue_index': 'cml_delete_lab_choices',
+                                  'cml_password': activity['inputs']['cml_password']}
                          }
                     )
                 except Exception as e:
@@ -531,47 +531,47 @@ async def virl_chat(activity):
                 posts = db[CONFIG.MONGO_COLLECTIONS_ACTIVITY]
                 query_lab_filter = {'sender': activity['sender'],
                                     'roomId': activity['roomId'],
-                                    'dialogue_name': 'virl_delete_lab'}
+                                    'dialogue_name': 'cml_delete_lab'}
                 try:
                     r = posts.delete_one(query_lab_filter)
                 except Exception as e:
                     print('Failed to connect to DB')
 
             return {'status_code': 200}
-    if activity.get('card_dialogue_index') == 'virl_delete_lab_choices' and activity.get('dialogue_step') == 2:
+    if activity.get('card_dialogue_index') == 'cml_delete_lab_choices' and activity.get('dialogue_step') == 2:
         results_message = ''
         user_and_domain = activity['sender_email'].split('@')
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
-        for virl_server in virl_servers:
-            if activity['inputs'].get(virl_server):
-                virl_user = VIRL(user_and_domain[0], activity['virl_password'], virl_server)
+        for cml_server in cml_servers:
+            if activity['inputs'].get(cml_server):
+                cml_user = CML(user_and_domain[0], activity['cml_password'], cml_server)
                 # If the user is not there, the below won't work
-                if not await virl_user.get_token():  # {'description': 'User already exists: stmosher.', 'code': 422}
+                if not await cml_user.get_token():  # {'description': 'User already exists: stmosher.', 'code': 422}
                     message = dict(
-                        text='Error accessing server ' + virl_server + ': ' + str(
-                            virl_user.status_code) + ' ' + virl_user.bearer_token,
+                        text='Error accessing server ' + cml_server + ': ' + str(
+                            cml_user.status_code) + ' ' + cml_user.bearer_token,
                         roomId=activity['roomId'],
                         attachments=[])
                     await webex.post_message_to_webex(message)
                     continue
-                labs_list = activity['inputs'].get(virl_server).split(',')
+                labs_list = activity['inputs'].get(cml_server).split(',')
                 for lab in labs_list:
-                    if not await virl_user.stop_lab(lab):
+                    if not await cml_user.stop_lab(lab):
                         print('stop lab')
-                        print(str(virl_user.status_code))
-                        print(virl_user.result.get('description', ''))
-                    if not await virl_user.wipe_lab(lab):
+                        print(str(cml_user.status_code))
+                        print(cml_user.result.get('description', ''))
+                    if not await cml_user.wipe_lab(lab):
                         print('wipe lab')
-                        print(str(virl_user.status_code))
-                        print(virl_user.result.get('description', ''))
-                    if not await virl_user.delete_lab(lab):
+                        print(str(cml_user.status_code))
+                        print(cml_user.result.get('description', ''))
+                    if not await cml_user.delete_lab(lab):
                         print('delete lab')
-                        print(str(virl_user.status_code))
-                        print(virl_user.result.get('description', ''))
-                        results_message += ' - ' + virl_server + ' Fail: ' + str(
-                            virl_user.status_code) + ' ' + virl_user.result.get('description', '') + '\n'
+                        print(str(cml_user.status_code))
+                        print(cml_user.result.get('description', ''))
+                        results_message += ' - ' + cml_server + ' Fail: ' + str(
+                            cml_user.status_code) + ' ' + cml_user.result.get('description', '') + '\n'
                     else:
-                        results_message += ' - ' + virl_server + ' Lab Id: ' + lab + ' Deleted!' + '\n'
+                        results_message += ' - ' + cml_server + ' Lab Id: ' + lab + ' Deleted!' + '\n'
 
         message = dict(text=results_message,
                        roomId=activity['roomId'],
@@ -583,17 +583,17 @@ async def virl_chat(activity):
             posts = db[CONFIG.MONGO_COLLECTIONS_ACTIVITY]
             query_lab_filter = {'sender': activity['sender'],
                                 'roomId': activity['roomId'],
-                                'dialogue_name': 'virl_delete_lab'}
+                                'dialogue_name': 'cml_delete_lab'}
             try:
                 r = posts.delete_one(query_lab_filter)
             except Exception as e:
                 print('Failed to connect to DB')
 
         return {'status_code': 200}
-    """ END VIRL DELETE LAB DIALOGUE """
+    """ END CML DELETE LAB DIALOGUE """
 
-    """START VIRL LIST MY LAB DETAILS DIALOGUE"""
-    if activity.get('text') == 'virl list my lab details':
+    """START CML LIST MY LAB DETAILS DIALOGUE"""
+    if activity.get('text') == 'cml list my lab details':
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
         card_file = './cards/list_my_lab_details_get_password.json'
         with open(f'{card_file}') as fp:
@@ -627,24 +627,24 @@ async def virl_chat(activity):
                                'roomType': activity['roomType'],
                                'id': activity['id'],
                                'created': activity['created'],
-                               'dialogue_name': 'virl_list_lab_details',
+                               'dialogue_name': 'cml_list_lab_details',
                                'dialogue_step': 1,
                                'dialogue_max_steps': 2,
                                'dialogue_data': [],
-                               'card_dialogue_index': 'virl_list_lab_details',
-                               'card_feature_index': 'virl'}
+                               'card_dialogue_index': 'cml_list_lab_details',
+                               'card_feature_index': 'cml'}
             try:
                 post_id = posts.insert_one(dialogue_record).inserted_id
             except Exception as e:
                 print('Failed to connect to DB')
         return {'status_code': 200}
-    if activity.get('dialogue_name') == 'virl_list_lab_details' and activity.get('dialogue_step') == 1:
+    if activity.get('dialogue_name') == 'cml_list_lab_details' and activity.get('dialogue_step') == 1:
         results_message = ''
         user_and_domain = activity['sender_email'].split('@')
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
-        for virl_server in virl_servers:
+        for cml_server in cml_servers:
             try:
-                virl_user = VIRL(user_and_domain[0], activity['inputs']['virl_password'], virl_server)
+                cml_user = CML(user_and_domain[0], activity['inputs']['cml_password'], cml_server)
             except:
                 message = dict(text='I thought we were talking about lab details. Please send a new command',
                                roomId=activity['roomId'],
@@ -656,32 +656,32 @@ async def virl_chat(activity):
                     posts = db[CONFIG.MONGO_COLLECTIONS_ACTIVITY]
                     query_lab_filter = {'sender': activity['sender'],
                                         'roomId': activity['roomId'],
-                                        'dialogue_name': 'virl_list_lab_details'}
+                                        'dialogue_name': 'cml_list_lab_details'}
                 return {'status_code': 200}
             # Get bearer token
             # If the user is not there, the below won't work
-            if not await virl_user.get_token():  # {'description': 'User already exists: stmosher.', 'code': 422}
-                message = dict(text='Error accessing server ' + virl_server + ': ' + str(
-                    virl_user.status_code) + ' ' + virl_user.bearer_token,
+            if not await cml_user.get_token():  # {'description': 'User already exists: stmosher.', 'code': 422}
+                message = dict(text='Error accessing server ' + cml_server + ': ' + str(
+                    cml_user.status_code) + ' ' + cml_user.bearer_token,
                                roomId=activity['roomId'],
                                attachments=[])
                 await webex.post_message_to_webex(message)
                 continue
             # list the current users labs
-            if not await virl_user.get_user_labs():
-                message = dict(text='Error accessing server ' + virl_server + ': ' + str(
-                    virl_user.status_code) + ' ' + virl_user.user_labs.get('description', ''),
+            if not await cml_user.get_user_labs():
+                message = dict(text='Error accessing server ' + cml_server + ': ' + str(
+                    cml_user.status_code) + ' ' + cml_user.user_labs.get('description', ''),
                                roomId=activity['roomId'],
                                attachments=[])
                 await webex.post_message_to_webex(message)
                 continue
             lab_details = list()
-            for lab in virl_user.user_labs:
-                if await virl_user.get_user_lab_details(lab):
-                    lab_details.append(virl_user.user_lab_details)
+            for lab in cml_user.user_labs:
+                if await cml_user.get_user_lab_details(lab):
+                    lab_details.append(cml_user.user_lab_details)
 
             if lab_details:
-                results_message += '\n' + virl_server + ' labs are: \n'
+                results_message += '\n' + cml_server + ' labs are: \n'
                 for lab in lab_details:
                     results_message += ' - Lab Title: ' + lab['lab_title'] + ' Lab Id:: ' + lab['id'] + ' Created: ' + \
                                        lab['created'] + ' State: ' + lab['state'] + '\n'
@@ -701,14 +701,14 @@ async def virl_chat(activity):
             posts = db[CONFIG.MONGO_COLLECTIONS_ACTIVITY]
             query_lab_filter = {'sender': activity['sender'],
                                 'roomId': activity['roomId'],
-                                'dialogue_name': 'virl_list_lab_details'}
+                                'dialogue_name': 'cml_list_lab_details'}
             try:
                 r = posts.delete_one(query_lab_filter)
             except Exception as e:
                 print('Failed to connect to DB')
 
         return {'status_code': 200}
-    """END VIRL LIST MY LAB DETAILS DIALOGUE"""
+    """END CML LIST MY LAB DETAILS DIALOGUE"""
 
     """START CATCH ALL"""
     if activity.get('text'):

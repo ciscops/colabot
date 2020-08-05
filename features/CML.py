@@ -8,11 +8,11 @@ import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
-class VIRL:
-    def __init__(self, virl_username, virl_password, virl_server):
-        self.virl_username = virl_username
-        self.virl_password = virl_password
-        self.url = 'https://' + virl_server
+class CML:
+    def __init__(self, cml_username, cml_password, cml_server):
+        self.cml_username = cml_username
+        self.cml_password = cml_password
+        self.url = 'https://' + cml_server
         self.bearer_token = ''
         self.diagnostics = dict()
         self.old_labs_results_list = list()
@@ -28,7 +28,7 @@ class VIRL:
             'Content-Type': 'application/json'
         }
         u = self.url + api_path
-        body = {'username': self.virl_username, 'password': self.virl_password}
+        body = {'username': self.cml_username, 'password': self.cml_password}
         session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
         try:
             async with session.request(method="POST", url=u,
@@ -602,22 +602,22 @@ if __name__ == '__main__':
 
     async def check_get_token():
         print('\ncpn-rtp-cml4.ciscops.net')
-        virl = VIRL('stmosher', 'xx', 'cpn-rtp-cml4.ciscops.net')
-        print(await virl.get_token())
+        cml = CML('stmosher', 'xx', 'cpn-rtp-cml4.ciscops.net')
+        print(await cml.get_token())
         print('Error accessing server ' + 'cpn-rtp-cml4.ciscops.net' + ': ' + str(
-                    virl.status_code) + ' ' + virl.bearer_token)
-        print(virl.bearer_token)
-        print(type(virl.bearer_token))
+                    cml.status_code) + ' ' + cml.bearer_token)
+        print(cml.bearer_token)
+        print(type(cml.bearer_token))
         print('\ncpn-rtp-virl5.ciscops.net')
-        virl = VIRL('stmosher', 'xx', 'cpn-rtp-virl5.ciscops.net')
-        print(await virl.get_token())
+        cml = CML('stmosher', 'xx', 'cpn-rtp-virl5.ciscops.net')
+        print(await cml.get_token())
         print('Error accessing server ' + 'cpn-rtp-virl5.ciscops.net' + ': ' + str(
-                    virl.status_code) + ' ' + virl.bearer_token)
+                    cml.status_code) + ' ' + cml.bearer_token)
         print('\ncpn-rtp-virl6.ciscops.net')
-        virl = VIRL('stmosher', 'xx', 'cpn-rtp-virl6.ciscops.net')
-        print(await virl.get_token())
+        cml = CML('stmosher', 'xx', 'cpn-rtp-virl6.ciscops.net')
+        print(await cml.get_token())
         print('Error accessing server ' + 'cpn-rtp-virl6.ciscops.net' + ': ' + str(
-                    virl.status_code) + ' ' + virl.bearer_token)
+                    cml.status_code) + ' ' + cml.bearer_token)
 
     s = time.perf_counter()
     asyncio.run(check_get_token())

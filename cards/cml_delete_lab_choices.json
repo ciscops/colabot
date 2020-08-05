@@ -17,7 +17,7 @@
             "choices": [
                 {
                     "title": "This hidden choice ensures that card_feature_index is returned with every Action.Submit attachmentAction",
-                    "value": "virl"
+                    "value": "cml"
                 }
             ]
         },
@@ -29,7 +29,7 @@
             "choices": [
                 {
                     "title": "This hidden choice ensures that card_dialogue_index is returned with every Action.Submit attachmentAction",
-                    "value": "virl_delete_lab_choices"
+                    "value": "cml_delete_lab_choices"
                 }
             ]
         }

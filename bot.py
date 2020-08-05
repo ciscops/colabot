@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import string
+import aiohttp
 from aiohttp.web_request import Request
-from features.VIRL_chat import virl_chat
+from features.CML_chat import cml_chat
+from features.small_talk import small_talk
 import features.awx as awx
 import hashlib
 import hmac
@@ -20,13 +22,13 @@ mongo_url = 'mongodb://' + CONFIG.MONGO_INITDB_ROOT_USERNAME + ':' + CONFIG.MONG
 help_menu_list = ['**Create accounts** > create COLAB accounts\n',
                   '**Delete accounts** > delete COLAB accounts\n',
                   '**Reset passwords** > resets COLAB passwords\n',
-                  '**VIRL delete lab** > delete lab\n',
-                  '**VIRL list all labs** > list all labs\n',
-                  '**VIRL list my lab details** > list your labs with details\n',
-                  '**VIRL list my labs** > list only your labs\n',
-                  '**VIRL list users** > list users\n',
-                  '**VIRL show server utilization** > show current CPU and Memory usage\n',
-                  '**VIRL stop lab** > stop labs of your choice\n',
+                  '**CML delete lab** > delete lab\n',
+                  '**CML list all labs** > list all labs\n',
+                  '**CML list my lab details** > list your labs with details\n',
+                  '**CML list my labs** > list only your labs\n',
+                  '**CML list users** > list users\n',
+                  '**CML show server utilization** > show current CPU and Memory usage\n',
+                  '**CML stop lab** > stop labs of your choice\n',
                   '**help** > display available commands\n']
 
 
@@ -166,11 +168,7 @@ class COLABot:
                     self.activity['dialogue_data'] = result.get('dialogue_data', '')
                     self.activity['card_dialogue_index'] = result.get('card_dialogue_index', '')
                     self.activity['card_feature_index'] = result.get('card_feature_index', '')
-                    self.activity['virl_password'] = result.get('virl_password', '')
-            # else:
-            #     pass
-                ## This will process the beginning command
-                ## Should include a verify for important commands (delete account for instance)
+                    self.activity['cml_password'] = result.get('cml_password', '')
 
         logging.info('This is the fully populated activity')
         logging.info(self.activity)
@@ -181,8 +179,8 @@ class COLABot:
 
 # Start Add elif for new Feature ---->
         elif self.activity['description'] == 'card_details':
-            if self.activity['inputs']['card_feature_index'] == 'virl':
-                result = await virl_chat(self.activity)
+            if self.activity['inputs']['card_feature_index'] == 'cml':
+                result = await cml_chat(self.activity)
             if self.activity['inputs']['card_feature_index'] == 'colab':
                 result = await awx.delete_accounts(self.activity)
             # Add new card activities here
@@ -191,6 +189,19 @@ class COLABot:
             # This will remove bot name from text if message was "at mention" to the bot
             if self.activity.get('roomType', '') == 'group':
                 self.activity['text'] = self.activity.get('text').replace(self.activity.get('bot_name') + ' ', '')
+
+            # Webhook to NLP microservice
+            try:
+                result = await process_text(self.activity.get('text'))
+                logging.info('NLP results')
+                logging.info(result)
+                if result[0][1] > 0.50 and result[1][1] < 0.25:
+                    self.activity['text'] = result[0][0]
+                # else:
+                #     logging.info(result)
+                # # Future - Can Add the an dialogue to ask user if highest confidence score was what they wanted
+            except Exception as e:
+                logging.warning('Unable to receive message from NLP server')
 
             # Main Message Activities
             if self.activity.get('text') == 'help':
@@ -202,8 +213,21 @@ class COLABot:
             elif self.activity.get('text') == 'delete accounts':
                 result = await awx.delete_accounts(self.activity)
 
-            elif self.activity.get('text')[:4] == 'virl':  # Add searches for virl dialogue here
-                result = await virl_chat(self.activity)
+            elif self.activity.get('text')[:3] == 'cml':  # Add searches for cml dialogue here
+                result = await cml_chat(self.activity)
+
+            elif self.activity.get('text')[:3] == 'bye':
+                result = await small_talk(self.activity)
+
+            elif self.activity.get('text')[:6] == 'thanks':
+                result = await small_talk(self.activity)
+
+            elif self.activity.get('text')[:12] == 'troubleshoot':
+                result = await small_talk(self.activity)
+
+            elif self.activity.get('text')[:5] == 'upset':
+                result = await small_talk(self.activity)
+
             # Add new text message activities here
 # End Add elif for new Feature ---->
 
@@ -227,13 +251,13 @@ class COLABot:
             response = await self.webex_client.post_message_to_webex(message)
             return response
         elif self.activity.get('roomType') == 'group':
-            message = dict(text='"' + self.activity['original_text'] + '?"' + " I'm sorry. I don't understand. Please reply " + "**@" + self.activity['bot_name'] + " help** to see my available commands",
+            message = dict(text='"' + self.activity['original_text'] + '?"' + " \n I don't understand. Please reply " + "**@" + self.activity['bot_name'] + " help** to see my available commands",
                            roomId=self.activity['roomId'],
                            attachments=[])
             response = await self.webex_client.post_message_to_webex(message)
             return response
         else:
-            message = dict(text='"' + self.activity['original_text'] + '?"' + " I'm sorry. I don't understand. Please reply 'help' to see my available commands",
+            message = dict(text='"' + self.activity['original_text'] + '?"' + " \n I don't understand. Please reply 'help' to see my available commands",
                            roomId=self.activity['roomId'],
                            attachments=[])
             response = await self.webex_client.post_message_to_webex(message)
@@ -313,42 +337,27 @@ class COLABot:
         text = [''.join(c for c in s if c not in string.punctuation) for s in text]
         return [' '.join(x for x in text if x)][0]
 
-    # Future - Connection to NLP server
-    # async def process_text(message):
-    #     api_path = '/api/v1/nlp'
-    #     headers = {
-    #         'Content-Type': 'application/json',
-    #         'Accept': 'application/json',
-    #         'cache-control': "no-cache"
-    #     }
-    #     u = CONFIG.NLP_SERVER + api_path
-    #     session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
-    #     try:
-    #         async with session.request(method="POST", url=u,
-    #                                    headers=headers, ssl=False) as res:
-    #             response_content = {}
-    #             response_content = await res.json()
-    #             if res.status != 200:
-    #                 print(response_content)
-    #                 print(type(response_content))
-    #                 await session.close()
-    #                 return False
-    #             else:
-    #                 print(response_content)
-    #                 print(type(response_content))
-    #                 await session.close()
-    #                 return True
-    #     except aiohttp.ContentTypeError as e:
-    #         print(e)
-    #         try:
-    #             await session.close()
-    #         except:
-    #             pass
-    #         return False
-    #     except Exception as e:
-    #         print(e)
-    #         try:
-    #             await session.close()
-    #         except:
-    #             pass
-    #         return False
+
+# Future NLP interaction
+async def process_text(message):
+    api_path = '/api/v1/nlp'
+    headers = {
+        'Content-Type': 'application/json'
+    }
+    body = {'text': message, 'secret': CONFIG.NLP_SECRET}
+    u = 'http://' + CONFIG.NLP_SERVER + api_path
+    session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
+    try:
+        async with session.request(method="POST", url=u, headers=headers, data=json.dumps(body), ssl=False) as res:
+            response_content = {}
+            response_content = await res.json()
+            await session.close()
+            return response_content.get('scores')
+    except Exception as e:
+        logging.warning('warning from process_text')
+        logging.warning(e)
+        try:
+            await session.close()
+        except:
+            pass
+        return response_content

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from .VIRL import VIRL
+from .CML import CML
 
 __all__ = [
-    "VIRL"
+    "CML"
 ]
