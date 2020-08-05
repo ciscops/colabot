@@ -192,16 +192,19 @@ class COLABot:
 
             # Webhook to NLP microservice
             try:
-                result = await process_text(self.activity.get('text'))
+                result_nlp = await process_text(self.activity.get('text'))
                 logging.info('NLP results')
                 logging.info(result)
-                if result[0][1] > 0.50 and result[1][1] < 0.25:
-                    self.activity['text'] = result[0][0]
+                if result_nlp[0][1] > 0.50 and result_nlp[1][1] < 0.25:
+                    self.activity['text'] = result_nlp[0][0]
                 # else:
-                #     logging.info(result)
+                #     logging.info(result_nlp)
                 # # Future - Can Add the an dialogue to ask user if highest confidence score was what they wanted
             except Exception as e:
                 logging.warning('Unable to receive message from NLP server')
+
+            logging.info('Below is the post NLP activity')
+            logging.info(self.activity)
 
             # Main Message Activities
             if self.activity.get('text') == 'help':
