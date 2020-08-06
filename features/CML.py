@@ -158,6 +158,94 @@ class CML:
                 pass
             return False
 
+    async def get_lab_nodes(self, lab_id):
+        api_path = f'/api/v0/labs/{lab_id}/nodes'
+        headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'cache-control': "no-cache",
+            "Authorization": "Bearer " + self.bearer_token
+        }
+        u = self.url + api_path
+        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
+        try:
+            async with session.request(method="GET", url=u,
+                                       headers=headers, ssl=False) as res:
+                response_content = []
+                response_content = await res.json()
+                if res.status != 200:
+                    self.status_code = res.status
+                    self.lab_nodes = response_content
+                    await session.close()
+                    return False
+                else:
+                    self.status_code = res.status
+                    self.lab_nodes = response_content
+                    await session.close()
+                    return True
+        except aiohttp.ContentTypeError as e:
+            print(e)
+            self.status_code = 500
+            self.lab_nodes = response_content
+            try:
+                await session.close()
+            except:
+                pass
+            return False
+        except Exception as e:
+            print(e)
+            self.status_code = 500
+            self.lab_nodes = []
+            try:
+                await session.close()
+            except:
+                pass
+            return False
+
+    async def layer3_addresses(self, lab_id, node_id):
+        api_path = f'/api/v0/labs/{lab_id}/nodes/{node_id}/layer3_addresses'
+        headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'cache-control': "no-cache",
+            "Authorization": "Bearer " + self.bearer_token
+        }
+        u = self.url + api_path
+        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
+        try:
+            async with session.request(method="GET", url=u,
+                                       headers=headers, ssl=False) as res:
+                response_content = {}
+                response_content = await res.json()
+                if res.status != 200:
+                    self.status_code = res.status
+                    self.lab_int_addresses = response_content
+                    await session.close()
+                    return False
+                else:
+                    self.status_code = res.status
+                    self.lab_int_addresses = response_content
+                    await session.close()
+                    return True
+        except aiohttp.ContentTypeError as e:
+            print(e)
+            self.status_code = 500
+            self.lab_int_addresses = response_content
+            try:
+                await session.close()
+            except:
+                pass
+            return False
+        except Exception as e:
+            print(e)
+            self.status_code = 500
+            self.lab_int_addresses = {}
+            try:
+                await session.close()
+            except:
+                pass
+            return False
+
     async def get_user_labs(self):
         api_path = '/api/v0/labs'
         headers = {
@@ -171,7 +259,7 @@ class CML:
         try:
             async with session.request(method="GET", url=u,
                                        headers=headers, ssl=False) as res:
-                response_content = {}
+                response_content = []
                 response_content = await res.json()
                 if res.status != 200:
                     self.status_code = res.status
@@ -195,7 +283,7 @@ class CML:
         except Exception as e:
             print(e)
             self.status_code = 500
-            self.user_labs = {}
+            self.user_labs = []
             try:
                 await session.close()
             except:

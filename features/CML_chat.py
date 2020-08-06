@@ -6,6 +6,7 @@ import pymongo
 from jinja2 import Template
 import time
 import re
+import copy
 
 
 mongo_url = 'mongodb://' + CONFIG.MONGO_INITDB_ROOT_USERNAME + ':' + CONFIG.MONGO_INITDB_ROOT_PASSWORD + '@' + CONFIG.MONGO_SERVER + ':' + CONFIG.MONGO_PORT
@@ -709,6 +710,138 @@ async def cml_chat(activity):
 
         return {'status_code': 200}
     """END CML LIST MY LAB DETAILS DIALOGUE"""
+
+    """START CML SHOW IPS DIALOGUE"""
+    if activity.get('text') == 'cml show ip addresses':
+        webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
+        card_file = './cards/cml_ips_get_password.json'
+        with open(f'{card_file}') as fp:
+            text = fp.read()
+        card = json.loads(text)
+
+        # If group then send a DM with a card
+        if activity.get('roomType', '') == 'group':
+            message = dict(text='Get IP addresses',
+                           toPersonId=activity['sender'],
+                           attachments=[{'contentType': 'application/vnd.microsoft.card.adaptive', 'content': card}])
+            result = await webex.post_message_to_webex(message)
+            message = dict(text="I've direct messaged you. Let's continue this request in private.",
+                           roomId=activity['roomId'],
+                           attachments=[])
+            await webex.post_message_to_webex(message)
+            activity['roomId'] = result.get('roomId', '')
+        # if direct, send a card to the same room
+        else:
+            message = dict(text='Get IP addresses',
+                           roomId=activity['roomId'],
+                           attachments=[{'contentType': 'application/vnd.microsoft.card.adaptive', 'content': card}])
+            await webex.post_message_to_webex(message)
+        # Post dialogue information to DB
+        with pymongo.MongoClient(mongo_url) as client:
+            db = client[CONFIG.MONGO_DB_ACTIVITY]
+            posts = db[CONFIG.MONGO_COLLECTIONS_ACTIVITY]
+            dialogue_record = {'sender': activity['sender'],
+                               'sender_email': activity['sender_email'],
+                               'roomId': activity['roomId'],
+                               'roomType': activity['roomType'],
+                               'id': activity['id'],
+                               'created': activity['created'],
+                               'dialogue_name': 'cml_ips_lab',
+                               'dialogue_step': 1,
+                               'dialogue_max_steps': 2,
+                               'dialogue_data': [],
+                               'card_dialogue_index': 'cml_ips_lab',
+                               'card_feature_index': 'cml'}
+            try:
+                post_id = posts.insert_one(dialogue_record).inserted_id
+            except Exception as e:
+                print('Failed to connect to DB')
+        return {'status_code': 200}
+    if activity.get('dialogue_name') == 'cml_ips_lab' and activity.get('dialogue_step') == 1:
+        user_and_domain = activity['sender_email'].split('@')
+        webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
+        message_text = ''
+        for cml_server in cml_servers:
+            message_text += f'{cml_server}\n'
+            try:
+                cml_user = CML(user_and_domain[0], activity['inputs']['cml_password'], cml_server)
+            except:
+                message = dict(text='I thought we were talking about getting your lab IP addresses. Please send a new command',
+                               roomId=activity['roomId'],
+                               attachments=[])
+                await webex.post_message_to_webex(message)
+                # Remove dialogue from DB
+                with pymongo.MongoClient(mongo_url) as client:
+                    db = client[CONFIG.MONGO_DB_ACTIVITY]
+                    posts = db[CONFIG.MONGO_COLLECTIONS_ACTIVITY]
+                    query_lab_filter = {'sender': activity['sender'],
+                                        'roomId': activity['roomId'],
+                                        'dialogue_name': 'cml_ips_lab'}
+                return {'status_code': 200}
+
+            # Get bearer token
+            if not await cml_user.get_token():  # {'description': 'User already exists: stmosher.', 'code': 422}
+                message_text += f" * Error accessing server {cml_server} : {str(cml_user.status_code)} {cml_user.bearer_token}\n"
+                continue
+            # list the current users labs
+            if not await cml_user.get_user_labs():
+                message_text += f" * Error accessing server {cml_server} : {str(cml_user.status_code)} {cml_user.user_labs.get('description', '')}\n"
+                continue
+            lab_address_results = list()  # [{'lab_id': '9eecab', 'nodes': [{'node_id': 'n0', 'node_name': 'csr1000v-0', 'interfaces': [{'interface_name': 'GigabitEthernet1', 'ip4': ['192.133.186.51']]}]}]
+            for lab in cml_user.user_labs:
+                temp_lab_dict = {'lab_id': lab, 'nodes': []}
+                if await cml_user.get_lab_nodes(lab):
+                    for node in cml_user.lab_nodes:
+                        temp_node_dict = {'node_id': node, 'interfaces': []}
+                        if await cml_user.layer3_addresses(lab, node):
+                            temp_node_dict['node_name'] = cml_user.lab_int_addresses.get('name')
+                            if cml_user.lab_int_addresses.get('interfaces'):
+                                for k in cml_user.lab_int_addresses['interfaces'].keys():
+                                    if cml_user.lab_int_addresses['interfaces'][k]['ip4']:
+                                        temp_interface_dict = {'interface_name': cml_user.lab_int_addresses['interfaces'][k]['label']}
+                                        temp_interface_dict['ip4'] = copy.deepcopy(cml_user.lab_int_addresses['interfaces'][k]['ip4'])
+                                        temp_node_dict['interfaces'].append(temp_interface_dict)
+                        if temp_node_dict['interfaces']:
+                            temp_lab_dict['nodes'].append(temp_node_dict)
+                if temp_lab_dict['nodes']:
+                    lab_address_results.append(temp_lab_dict)
+            if lab_address_results:
+                for lab in lab_address_results:
+                    if await cml_user.get_user_lab_details(lab['lab_id']):
+                        lab['lab_title'] = cml_user.user_lab_details.get('lab_title')
+                    else:
+                        lab['lab_title'] = ''
+                    message_text += f" * Lab title: {lab['lab_title']} Lab id: {lab['lab_id']} \n"
+                    for node in lab['nodes']:
+                        message_text += f"     - Node: {node['node_name']}\n"
+                        for interface in node['interfaces']:
+                            ips = ''
+                            for ip in interface['ip4']:
+                                ips += ip + '    '
+                            message_text += f"         - {interface.get('interface_name')}: {ips}\n"
+
+            else:
+                message_text += f" * None \n"
+
+        message = dict(text=message_text,
+                       roomId=activity['roomId'],
+                       attachments=[])
+        await webex.post_message_to_webex(message)
+
+        # Remove dialogue from DB
+        with pymongo.MongoClient(mongo_url) as client:
+            db = client[CONFIG.MONGO_DB_ACTIVITY]
+            posts = db[CONFIG.MONGO_COLLECTIONS_ACTIVITY]
+            query_lab_filter = {'sender': activity['sender'],
+                                'roomId': activity['roomId'],
+                                'dialogue_name': 'cml_ips_lab'}
+            try:
+                r = posts.delete_one(query_lab_filter)
+            except Exception as e:
+                print('Failed to connect to DB')
+
+        return {'status_code': 200}
+    """ END CML SHOW IPS DIALOGUE """
 
     """START CATCH ALL"""
     if activity.get('text'):

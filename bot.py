@@ -27,6 +27,7 @@ help_menu_list = ['**Create accounts** > create COLAB accounts\n',
                   '**CML list my lab details** > list your labs with details\n',
                   '**CML list my labs** > list only your labs\n',
                   '**CML list users** > list users\n',
+                  '**CML show IP addresses** > show IP addresses\n',
                   '**CML show server utilization** > show current CPU and Memory usage\n',
                   '**CML stop lab** > stop labs of your choice\n',
                   '**help** > display available commands\n']
