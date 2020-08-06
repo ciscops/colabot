@@ -760,9 +760,8 @@ async def cml_chat(activity):
     if activity.get('dialogue_name') == 'cml_ips_lab' and activity.get('dialogue_step') == 1:
         user_and_domain = activity['sender_email'].split('@')
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
-        message_text = ''
         for cml_server in cml_servers:
-            message_text += f'{cml_server}\n'
+            message_text = f'{cml_server}\n'
             try:
                 cml_user = CML(user_and_domain[0], activity['inputs']['cml_password'], cml_server)
             except:
@@ -811,22 +810,22 @@ async def cml_chat(activity):
                         lab['lab_title'] = cml_user.user_lab_details.get('lab_title')
                     else:
                         lab['lab_title'] = ''
-                    message_text += f" * Lab title: {lab['lab_title']} Lab id: {lab['lab_id']} \n"
+                    message_text += f" * Lab title: {lab['lab_title']} Lab id: {lab['lab_id']}\n"
                     for node in lab['nodes']:
                         message_text += f"     - Node: {node['node_name']}\n"
                         for interface in node['interfaces']:
                             ips = ''
                             for ip in interface['ip4']:
-                                ips += ip + '    '
-                            message_text += f"         - {interface.get('interface_name')}: {ips}\n"
+                                ips += ' ' + ip
+                            message_text += f"         - {interface.get('interface_name')}:{ips}\n"
 
             else:
-                message_text += f" * None \n"
+                message_text += f" * None\n"
 
-        message = dict(text=message_text,
-                       roomId=activity['roomId'],
-                       attachments=[])
-        await webex.post_message_to_webex(message)
+            message = dict(text=message_text,
+                           roomId=activity['roomId'],
+                           attachments=[])
+            await webex.post_message_to_webex(message)
 
         # Remove dialogue from DB
         with pymongo.MongoClient(mongo_url) as client:
