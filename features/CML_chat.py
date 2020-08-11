@@ -7,6 +7,7 @@ from jinja2 import Template
 import time
 import re
 import copy
+import logging
 
 
 mongo_url = 'mongodb://' + CONFIG.MONGO_INITDB_ROOT_USERNAME + ':' + CONFIG.MONGO_INITDB_ROOT_PASSWORD + '@' + CONFIG.MONGO_SERVER + ':' + CONFIG.MONGO_PORT
@@ -17,9 +18,11 @@ async def cml_chat(activity):
 
     """START CML LIST ALL LABS"""
     if activity.get('text') == 'cml list all labs':
-        results_message = ''
+        logging.debug('in cml list all labs')
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
         for cml_server in cml_servers:
+            results_message = ''
+            logging.debug(cml_server)
             on_server = False
             server_name = '\n***' + cml_server + '***\n'
             cml = CML(CONFIG.CML_USERNAME, CONFIG.CML_PASSWORD, cml_server)
@@ -36,10 +39,15 @@ async def cml_chat(activity):
             epoch_time_now = int(time.time())
 
             for k, v in cml.diagnostics['user_roles']['labs_by_user'].items():
+                logging.debug(k)
+                logging.debug(v)
                 labs_flag = False
                 lab_string = '\nLabs for account: ***' + k + '***\n\n'
+                logging.debug('begin: ' + lab_string)
                 # lab_string = ''
                 for i in v:
+                    logging.debug('This is i: ')
+                    logging.debug(i)
                     labs_flag = True
                     created_seconds = cml.diagnostics['labs'][i]['created']
                     delta = epoch_time_now - created_seconds
@@ -49,25 +57,29 @@ async def cml_chat(activity):
                     seconds = int(delta % 60)
                     uptime = str(days) + ' Days, ' + str(hours) + ' Hrs, ' + str(minutes) + ' Mins, ' + str(
                         seconds) + ' Secs'
+                    logging.debug(uptime)
                     lab_string += ' -  Lab Id: ' + i + ' Uptime: ' + uptime + '\n'
+                logging.debug('end: ' + lab_string)
                 if labs_flag:
                     on_server = True
                     server_name += lab_string
             if on_server:
                 results_message += server_name
-        message = dict(text=results_message,
-                       roomId=activity['roomId'],
-                       attachments=[])
-        await webex.post_message_to_webex(message)
+            logging.debug('This is the message: ')
+            logging.debug(results_message)
+            logging.debug(activity['roomId'])
+            message = dict(text=results_message,
+                           roomId=activity['roomId'],
+                           attachments=[])
+            await webex.post_message_to_webex(message)
         return {'status_code': 200}
     """END CML LIST ALL LABS"""
 
     """START CML LIST USERS"""
     if activity.get('text') == 'cml list users':
-        results_message = ''
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
         for cml_server in cml_servers:
-            on_server = False
+            results_message = ''
             server_name = '\n***' + cml_server + '***\n'
             cml = CML(CONFIG.CML_USERNAME, CONFIG.CML_PASSWORD, cml_server)
             # Get bearer token
@@ -87,10 +99,10 @@ async def cml_chat(activity):
                     server_name += ' - ' + key + '\n'
             results_message += server_name
 
-        message = dict(text=results_message,
-                       roomId=activity['roomId'],
-                       attachments=[])
-        await webex.post_message_to_webex(message)
+            message = dict(text=results_message,
+                           roomId=activity['roomId'],
+                           attachments=[])
+            await webex.post_message_to_webex(message)
         return {'status_code': 200}
     """END CML LIST USERS"""
 
