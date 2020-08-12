@@ -22,15 +22,16 @@ async def create_accounts(activity):
     await webex.post_message_to_webex(message)
     urls_cml_servers = ['https://' + s for s in cml_servers]
     if re.search(r'1MDFmYzc$', CONFIG.BOT_ID):
-        id_template = '23'
+        id_template = '29'  # prod
     else:
-        id_template = '20'
+        id_template = '27'  # for dev
     url = f'https://cpn-rtp-awx1.colab.ciscops.net/api/v2/job_templates/{id_template}/launch/'
     headers = {'Content-Type': 'application/json'}
     user_and_domain = activity['sender_email'].split('@')
     body = {"extra_vars": {"cml_server_list": urls_cml_servers,
                            "colab_user_email": activity['sender_email'],
                            "colab_user_username": user_and_domain[0],
+                           "vcenter_address": CONFIG.VCENTER_SERVER
                            }}
     auth = aiohttp.BasicAuth(login=CONFIG.AWX_USERNAME, password=CONFIG.AWX_PASSWORD, encoding='utf-8')
     session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30), auth=auth)
@@ -140,9 +141,9 @@ async def delete_accounts(activity):
         await webex.post_message_to_webex(message)
         urls_cml_servers = ['https://' + s for s in cml_servers]
         if re.search(r'1MDFmYzc$', CONFIG.BOT_ID):
-            id_template = '24'
+            id_template = '30'  # prod
         else:
-            id_template = '21'
+            id_template = '28'  # dev
         url = f'https://cpn-rtp-awx1.colab.ciscops.net/api/v2/job_templates/{id_template}/launch/'
         headers = {'Content-Type': 'application/json'}
         user_and_domain = activity['sender_email'].split('@')
@@ -150,6 +151,7 @@ async def delete_accounts(activity):
                                "colab_user_email": activity['sender_email'],
                                "colab_user_username": user_and_domain[0],
                                "colab_user_password": activity['inputs']['colab_password'],
+                               "vcenter_address": CONFIG.VCENTER_SERVER
                                }}
         auth = aiohttp.BasicAuth(login=CONFIG.AWX_USERNAME, password=CONFIG.AWX_PASSWORD, encoding='utf-8')
         session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30), auth=auth)
