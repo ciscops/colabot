@@ -11,6 +11,7 @@ import hmac
 import json
 from webex import WebExClient
 from config import DefaultConfig as CONFIG
+from features.catch_all import catch_all
 import pymongo
 import time
 import urllib3
@@ -242,7 +243,10 @@ class COLABot:
 # End Add elif for new Feature ---->
 
             else:
-                await self.catch_all()
+                if self.activity.get('description') == 'card_details':
+                    await self.card_catch_all()
+                else:
+                    await catch_all(self.activity)
         return {'status_code': 200}
 
     async def display_help_menu(self):
@@ -252,26 +256,13 @@ class COLABot:
         response = await self.webex_client.post_message_to_webex(message)
         return response
 
-    async def catch_all(self):
-        # Below is the catch all for unrecognized commands
+    async def card_catch_all(self):
         if self.activity.get('description') == 'card_details':
             message = dict(text='The card is inactive. Please generate a new one.',
                            roomId=self.activity['roomId'],
                            attachments=[])
             response = await self.webex_client.post_message_to_webex(message)
-            return response
-        elif self.activity.get('roomType') == 'group':
-            message = dict(text='"' + self.activity['original_text'] + '?"' + " \n I don't understand. Please reply " + "**@" + self.activity['bot_name'] + " help** to see my available commands",
-                           roomId=self.activity['roomId'],
-                           attachments=[])
-            response = await self.webex_client.post_message_to_webex(message)
-            return response
-        else:
-            message = dict(text='"' + self.activity['original_text'] + '?"' + " \n I don't understand. Please reply 'help' to see my available commands",
-                           roomId=self.activity['roomId'],
-                           attachments=[])
-            response = await self.webex_client.post_message_to_webex(message)
-            return response
+            return
 
     async def translate_request_to_activity(self, request_dict):
         activity = None
