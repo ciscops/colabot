@@ -196,7 +196,7 @@ class COLABot:
                 result_nlp = await process_text(self.activity.get('text'))
                 logging.info('NLP results')
                 logging.info(result)
-                if result_nlp[0][1] > 0.50 and result_nlp[1][1] < 0.25:
+                if result_nlp[0][1] - result_nlp[1][1] > 0.12:
                     self.activity['text'] = result_nlp[0][0]
                 # else:
                 #     logging.info(result_nlp)
@@ -229,7 +229,13 @@ class COLABot:
             elif self.activity.get('text')[:12] == 'troubleshoot':
                 result = await small_talk(self.activity)
 
-            elif self.activity.get('text')[:5] == 'upset':
+            elif self.activity.get('text') == 'upset':
+                result = await small_talk(self.activity)
+
+            elif self.activity.get('text') == 'accept_apology':
+                result = await small_talk(self.activity)
+
+            elif self.activity.get('text') == 'affirmation':
                 result = await small_talk(self.activity)
 
             # Add new text message activities here

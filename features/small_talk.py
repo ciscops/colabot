@@ -104,3 +104,98 @@ async def small_talk(activity):
                        attachments=[])
         await webex.post_message_to_webex(message)
         return {'status_code': 200}
+
+    if activity.get('text') == 'affirmation':
+        responses = ['You are naturally funny', 'You always have something funny to say',
+                     'You have a great sense of humor', 'You see the funny side of every situation',
+                     'You are always making others laugh and brightening their day',
+                     'You are sharp witted and full of funny ideas',
+                     'Others hang on your every word because you’re always making everyone laugh',
+                     'You laugh at yourself and this makes your life so much easier',
+                     'You make others calm with your ability to find funniness in stressful situations',
+                     'You are naturally charismatic', 'You become funnier with each passing day',
+                     'You are turning into someone who always has something funny to say',
+                     'Others are starting to see that you are a really funny person',
+                     'You see the funny side of life more and more',
+                     'You are transforming into someone who is outgoing and makes others laugh',
+                     'Being funny seems to be taking less effort',
+                     'You are noticing that others are more drawn to you because you are funny',
+                     'You are feeling wittier and more naturally funny', 'Life is becoming easier and less serious',
+                     'My mind is becoming much sharper', 'Seeing the funny side of life comes naturally to you\t',
+                     'Others see you as outgoing and full of laughter',
+                     'You love cracking a good joke at the perfect moment', 'You make people laugh wherever y go',
+                     'Coming up with funny things to say is easy for you',
+                     'You can calm any situation by having a good laugh',
+                     'You just naturally see the funny side to life', 'Making others laugh is easy for you',
+                     'My mind is just naturally sharp and witty all the time',
+                     'You find it easy to laugh at yourself and make light of any situation',
+                     'You are a wonderful person', 'The more you like yourself, the more others will like you',
+                     'You are becoming better with each day', 'You are happy to be here',
+                     'You have people who care about you and will help you if you need it',
+                     'You will ask for help if you need it',
+                     'You are always learning more about who you are and what matters to you',
+                     'You understand that your actions become habits so you will try to do the right thing',
+                     'You love and respect your family for all they do for you',
+                     'You are an intelligent being, but you don’t know everything',
+                     'You are proud to represent the values that matter to you and your community', 'You love yourself',
+                     'You feel lucky to have the opportunities that you do', 'Your dreams are achievable',
+                     'The only people who may be judging you, are the people who are most afraid of being judged',
+                     'In 5 years it is not going to matter what you wore today',
+                     'In 15 years the only thing that will remain is what you have learned',
+                     'People can be mean, but it only reflects the kind of person they are',
+                     'You are happy. Who else are you trying to please?',
+                     'You accept and love the way you look without comparing yourself to others',
+                     'You are completely unique and therefore, there are no rules to what you are and are not',
+                     'You give yourself permission to do what is best for you',
+                     'You admit that you may not always know what is best for you, so you are open to advice from people who you respect',
+                     'You do not need drugs or alcohol to have fun',
+                     'You do not need to share every personal detail with your entire social network',
+                     'You are responsible with your technology', 'Your opinion matters',
+                     'You acknowledge that sometimes it is not appropriate to voice your opinion',
+                     'You care about what is going on in the world', 'You can say no, and no will mean no',
+                     'You stand up for yourself because you matter', 'You love yourself unconditionally',
+                     'You see the beauty in stopping to appreciate your blessings',
+                     'You are not in a race, there is plenty of time',
+                     'Reputation is important, but it is not defining', 'Your friends are not always right',
+                     "You are not lost, your're still creating yourself",
+                     'When there is a bump in the road, you keep going',
+                     'If someone is trying to bring you down, it means you are above them',
+                     'You have all the tools to be successful',
+                     'Though times may be difficult, they will eventually get better',
+                     'You do not regret yesterday and you are excited for tomorrow', 'This is only the beginning',
+                     'You will do better next time', 'You haven’t even seen what you are capable of yet',
+                     'You will savor your youth', 'You do not wish for age but instead experiences and knowledge',
+                     'You will do today what you will appreciate tomorrow',
+                     'You begin your day by affirming the positive and end your day with gratitude',
+                     'You am doing work that you enjoy and find fulfilling',
+                     'You play a big role in your own career success',
+                     'You ask for and do meaningful, wonderful and rewarding work',
+                     'You engage in work that impacts this world positively',
+                     'You believe in your ability to change the world with the work that you do', 'You are enough',
+                     'You are worthy', "You're proud of yourself", 'Nobody else is like you',
+                     'You deserve to treat yourself', "You're strong", 'You deserve a beautiful life',
+                     'Not everyone has to like you', 'You are here for a reason',
+                     "You're releasing self-judgement and embracing self-love",
+                     'Your friends and family love you for who you are', 'You love your body',
+                     "You're not perfect, but nobody is", 'You love you life', 'You deserve love', '']
+        reply = responses[random.randint(0, (len(responses) - 1))]
+        webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
+        message = dict(text=reply,
+                       roomId=activity['roomId'],
+                       attachments=[])
+        await webex.post_message_to_webex(message)
+        return {'status_code': 200}
+
+    if activity.get('text') == 'accept_apology':
+        responses = ["It's ok &#x1F60A;",
+                     "About what? &#x1F609;",
+                     "Apology accepted! &#x1F60A;",
+                     "Sorry fixed everything &#x1F60A;",
+                     "Thanks you being wonderful &#x1F60D;"]
+        reply = responses[random.randint(0, (len(responses) - 1))]
+        webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
+        message = dict(text=reply,
+                       roomId=activity['roomId'],
+                       attachments=[])
+        await webex.post_message_to_webex(message)
+        return {'status_code': 200}
