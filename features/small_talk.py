@@ -1,5 +1,6 @@
 from webex import WebExClient
 import random
+from features.catch_all import catch_all
 
 
 async def small_talk(activity):
@@ -201,3 +202,6 @@ async def small_talk(activity):
                        attachments=[])
         await webex.post_message_to_webex(message)
         return {'status_code': 200}
+
+    await catch_all(activity)
+    return {'status_code': 200}

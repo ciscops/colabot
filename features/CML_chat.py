@@ -1,5 +1,6 @@
 from .CML import CML
 from config import DefaultConfig as CONFIG
+from features.catch_all import catch_all
 from webex import WebExClient
 import json
 import pymongo
@@ -855,40 +856,6 @@ async def cml_chat(activity):
     """ END CML SHOW IPS DIALOGUE """
 
     """START CATCH ALL"""
-    if activity.get('text'):
-        if activity.get('roomType') == 'group':
-            message = dict(
-                text='"' + activity.get(
-                    'original_text') + '?"' + " I'm sorry. I don't understand. Please reply " + "**@" +
-                     activity['bot_name'] + " help** to see my available commands",
-                roomId=activity['roomId'],
-                attachments=[])
-            webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
-            await webex.post_message_to_webex(message)
-            return {'status_code': 200}
-        else:
-            message = dict(text='"' + activity.get('original_text') + '?"' +
-                                " I'm sorry. I don't understand. Please reply 'help' to see my available commands",
-                           roomId=activity['roomId'],
-                           attachments=[])
-            webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
-            await webex.post_message_to_webex(message)
-            return {'status_code': 200}
-    else:
-        if activity.get('roomType') == 'group':
-            message = dict(
-                text=" I'm sorry. I don't understand. Please reply " + "**@" +
-                     activity['bot_name'] + " help** to see my available commands",
-                roomId=activity['roomId'],
-                attachments=[])
-            webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
-            await webex.post_message_to_webex(message)
-            return {'status_code': 200}
-        else:
-            message = dict(text=" I'm sorry. I don't understand. Please reply 'help' to see my available commands",
-                           roomId=activity['roomId'],
-                           attachments=[])
-            webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
-            await webex.post_message_to_webex(message)
-            return {'status_code': 200}
+    await catch_all(activity)
+    return {'status_code': 200}
     """END CATCH ALL"""
