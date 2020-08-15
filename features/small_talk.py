@@ -167,7 +167,7 @@ async def small_talk(activity):
                      'You will savor your youth', 'You do not wish for age but instead experiences and knowledge',
                      'You will do today what you will appreciate tomorrow',
                      'You begin your day by affirming the positive and end your day with gratitude',
-                     'You am doing work that you enjoy and find fulfilling',
+                     'You are doing work that you enjoy and find fulfilling',
                      'You play a big role in your own career success',
                      'You ask for and do meaningful, wonderful and rewarding work',
                      'You engage in work that impacts this world positively',
@@ -177,7 +177,9 @@ async def small_talk(activity):
                      'Not everyone has to like you', 'You are here for a reason',
                      "You're releasing self-judgement and embracing self-love",
                      'Your friends and family love you for who you are', 'You love your body',
-                     "You're not perfect, but nobody is", 'You love you life', 'You deserve love', '']
+                     "You're not perfect, but nobody is", 'You love you life', 'You deserve love',
+                     "You're good enough, smart enough, and, doggone it, people like you",
+                     "You're kind of a big deal"]
         reply = responses[random.randint(0, (len(responses) - 1))]
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
         message = dict(text=reply,
@@ -191,7 +193,7 @@ async def small_talk(activity):
                      "About what? &#x1F609;",
                      "Apology accepted! &#x1F60A;",
                      "Sorry fixed everything &#x1F60A;",
-                     "Thanks you being wonderful &#x1F60D;"]
+                     "Thank you for being wonderful &#x1F60D;"]
         reply = responses[random.randint(0, (len(responses) - 1))]
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
         message = dict(text=reply,
