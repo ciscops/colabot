@@ -18,6 +18,7 @@ async def create_accounts(activity):
     webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
     message = dict(text='Working... This may take a minute or two...',
                    roomId=activity['roomId'],
+                   parentId=activity['parentId'],
                    attachments=[])
     await webex.post_message_to_webex(message)
     urls_cml_servers = ['https://' + s for s in cml_servers]
@@ -41,12 +42,14 @@ async def create_accounts(activity):
             if res.status != 201:
                 message = dict(text='Error contacting AWX server. ' + str(res.status),
                                roomId=activity['roomId'],
+                               parentId=activity['parentId'],
                                attachments=[])
                 await webex.post_message_to_webex(message)
                 await session.close()
     except Exception as e:
         message = dict(text='Error contacting AWX server. ' + str(res.status),
                        roomId=activity['roomId'],
+                       parentId=activity['parentId'],
                        attachments=[])
         await webex.post_message_to_webex(message)
         try:
@@ -73,6 +76,7 @@ async def delete_accounts(activity):
             result = await webex.post_message_to_webex(message)
             message = dict(text="I've direct messaged you.",
                            roomId=activity['roomId'],
+                           parentId=activity['parentId'],
                            attachments=[])
             await webex.post_message_to_webex(message)
             activity['roomId'] = result.get('roomId', '')

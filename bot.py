@@ -302,6 +302,7 @@ class COLABot:
                         'sender': message_body.get('personId', ''),
                         'sender_email': message_body.get('personEmail', ''),
                         'mentionedPeople': message_body.get('mentionedPeople', ''),
+                        'parentId': message_body.get('parentId', ''),
                         'resource': request_dict.get('resource', ''),
                         'event': request_dict.get('event', ''),
                         'created': message_body.get('created', ''),

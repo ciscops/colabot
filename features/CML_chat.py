@@ -32,6 +32,7 @@ async def cml_chat(activity):
                 message = dict(text='Error accessing server ' + cml_server + ': ' + str(
                     cml.status_code) + ' ' + str(cml.bearer_token),
                                roomId=activity['roomId'],
+                               parentId=activity['parentId'],
                                attachments=[])
                 await webex.post_message_to_webex(message)
                 continue
@@ -88,6 +89,7 @@ async def cml_chat(activity):
                 message = dict(text='Error accessing server ' + cml_server + ': ' + str(
                     cml.status_code) + ' ' + str(cml.bearer_token),
                                roomId=activity['roomId'],
+                               parentId=activity['parentId'],
                                attachments=[])
                 await webex.post_message_to_webex(message)
                 continue
@@ -169,6 +171,7 @@ async def cml_chat(activity):
                 message = dict(text='Error accessing server ' + cml_server + ': ' + str(
                     cml.status_code) + ' ' + str(cml.bearer_token),
                                roomId=activity['roomId'],
+                               parentId=activity['parentId'],
                                attachments=[])
                 await webex.post_message_to_webex(message)
                 continue

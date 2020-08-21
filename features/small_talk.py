@@ -10,6 +10,7 @@ async def small_talk(activity):
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
         message = dict(text=reply,
                        roomId=activity['roomId'],
+                       parentId=activity['parentId'],
                        attachments=[])
         await webex.post_message_to_webex(message)
         return {'status_code': 200}
@@ -20,6 +21,7 @@ async def small_talk(activity):
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
         message = dict(text=reply,
                        roomId=activity['roomId'],
+                       parentId=activity['parentId'],
                        attachments=[])
         await webex.post_message_to_webex(message)
         return {'status_code': 200}
@@ -85,6 +87,7 @@ async def small_talk(activity):
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
         message = dict(text=reply,
                        roomId=activity['roomId'],
+                       parentId=activity['parentId'],
                        attachments=[])
         await webex.post_message_to_webex(message)
         return {'status_code': 200}
@@ -102,6 +105,7 @@ async def small_talk(activity):
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
         message = dict(text=full_response,
                        roomId=activity['roomId'],
+                       parentId=activity['parentId'],
                        attachments=[])
         await webex.post_message_to_webex(message)
         return {'status_code': 200}
@@ -185,6 +189,7 @@ async def small_talk(activity):
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
         message = dict(text=reply,
                        roomId=activity['roomId'],
+                       parentId=activity['parentId'],
                        attachments=[])
         await webex.post_message_to_webex(message)
         return {'status_code': 200}
@@ -199,6 +204,7 @@ async def small_talk(activity):
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
         message = dict(text=reply,
                        roomId=activity['roomId'],
+                       parentId=activity['parentId'],
                        attachments=[])
         await webex.post_message_to_webex(message)
         return {'status_code': 200}

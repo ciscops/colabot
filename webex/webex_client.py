@@ -28,8 +28,7 @@ class WebExClient:
             markdown=message.get('text'),
             attachments=message.get('attachments'),
             toPersonId=message.get('toPersonId'),
-            # toPersonEmail=message.toPersonEmail,
-            # text=message.text,
+            parentId=message.get('parentId'),
             files=message.get('files'),
         )
         session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30), )

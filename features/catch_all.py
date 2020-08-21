@@ -9,6 +9,7 @@ async def catch_all(activity):
                     'original_text') + '"   &#x1F914;  Please reply ' + "**@" +
                      activity['bot_name'] + " help** to see my available commands",
                 roomId=activity['roomId'],
+                parentId=activity['parentId'],
                 attachments=[])
             webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
             await webex.post_message_to_webex(message)
@@ -27,6 +28,7 @@ async def catch_all(activity):
                 text="   &#x1F914;  Please reply " + "**@" +
                      activity['bot_name'] + " help** to see my available commands",
                 roomId=activity['roomId'],
+                parentId=activity['parentId'],
                 attachments=[])
             webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
             await webex.post_message_to_webex(message)
