@@ -311,12 +311,12 @@ class COLABot:
             markdown = 'Hi, See my available commands below: \n'
             for i in help_menu:
                 markdown += ' - ' + '**' + '@' + self.activity['bot_name'] + '** ' + i
-            return markdown
         else:
             markdown = 'Hi, See my available commands below: \n'
             for i in help_menu:
                 markdown += ' - ' + i
-            return markdown
+        markdown += '\nor visit https://confluence-eng-rtp1.cisco.com/conf/display/CIDR/CoLaboratory for more information.\n'
+        return markdown
 
     async def preprocess(self, text):
         text = [word.lower().strip() for word in text.split()]
