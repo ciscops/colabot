@@ -31,13 +31,11 @@ help_menu_list = ['**Create accounts** > create COLAB accounts\n',
                   '**CML show IP addresses** > show IP addresses\n',
                   '**CML show server utilization** > show current CPU and Memory usage\n',
                   '**CML stop lab** > stop labs of your choice\n',
-                  '**help** > display available commands\n']
+                  '**help** > display available commands\n',]
 
 
 class COLABot:
-    """
-    WebEx
-    """
+
     def __init__(self, webex_bot_token=None, webex_client_signing_secret=None):
         self.webex_client = WebExClient(webex_bot_token=webex_bot_token)
         self.webex_client_signing_secret = webex_client_signing_secret
@@ -57,16 +55,14 @@ class COLABot:
                 "* Initialize your adapter and your WebEx Webhook with a SECRET for payload signature     *\n"
                 "******************************************************************************************\n"
             )
-            raise Exception(warning + "Required: include a clientSigningSecret to verify incoming Events API webhooks")
+            logging.warning(warning + "Required: include a clientSigningSecret to verify incoming Events API webhooks")
+            return {'status_code': 403}
         else:
             body = await req.read()
-            logging.info('TEST LOGGING')
             logging.info('This is the initial message')
             key_bytes = self.webex_client_signing_secret.encode()
             hashed = hmac.new(key_bytes, body, hashlib.sha1)
             body_signature = hashed.hexdigest()
-            # print('This is from digest sent in the webhook header: ' + req.headers['X-Spark-Signature'])
-            # print('This is the resulting digest from hashing the webhook body with the local secret: ' + body_signature)
             if req.headers['X-Spark-Signature'] != body_signature:
                 return {'status_code': 403}
 
@@ -93,14 +89,8 @@ class COLABot:
             return {'status_code': 400}
 
         # Apply any security checks, i.e., domain name, room name, etc...
-        # if (self.activity.get('sender_email')) and (self.activity.get('sender') != CONFIG.BOT_ID) \
-        #         and (self.activity.get('resource') == 'messages') and (self.activity.get('event') == 'created'):
         if (self.activity.get('sender')) and (self.activity.get('sender') != CONFIG.BOT_ID) \
                 and (self.activity.get('resource') == 'messages') and (self.activity.get('event') == 'created'):
-            # domain = self.activity.get('sender_email').split('@')
-            # approved_domains = CONFIG.APPROVED_ORG_DOMAINS.split(',')
-            # if domain[1] not in approved_domains:
-            #     return {'status_code': 403}
             if CONFIG.AUTHORIZED_ROOMS:
                 room_list = CONFIG.AUTHORIZED_ROOMS.split(',')
                 denied = True
@@ -112,12 +102,11 @@ class COLABot:
                         break
                 if denied:
                     logging.warning('Denied Access - user: ' + self.activity['sender'])
-                    return {'status_code': 403}
+                    return {'status_code': 401}
 
         # Preprocess text
         if self.activity['description'] == 'message_details':
-            # This will remove bot name from text if message was "at mention" to the bot
-            if self.activity.get('roomType', '') == 'group':
+            if self.activity.get('roomType', '') == 'group':  # This will remove bot name from text if message was "at mention" to the bot
                 self.activity['text'] = self.activity.get('text').replace(self.activity.get('bot_name') + ' ', '')
         if self.activity.get('text'):
             self.activity['original_text'] = self.activity.get('text')
@@ -148,7 +137,7 @@ class COLABot:
                         logging.error('Could not remove stale dialogue record from DB')
                         logging.error(e)
                         return {'status_code': 500}
-            # If somehow the dialogue_max_step is maxed out
+                # If somehow the dialogue_max_step is maxed out
                 elif result['dialogue_step'] > result['dialogue_max_steps']:
                     try:
                         r = posts.delete_many(query_lab_filter)
@@ -156,7 +145,7 @@ class COLABot:
                         logging.error('Could not remove stale dialogue record from DB')
                         logging.error(e)
                         return {'status_code': 500}
-            # Update the activity record with the dialogue fields
+                # Update the activity record with the dialogue fields
                 else:
                     self.activity['sender'] = result.get('sender', '')
                     self.activity['sender_email'] = result.get('sender_email', '')
@@ -182,26 +171,21 @@ class COLABot:
 # Start Add elif for new Feature ---->
         elif self.activity['description'] == 'card_details':
             if self.activity['inputs']['card_feature_index'] == 'cml':
-                result = await cml_chat(self.activity)
+                await cml_chat(self.activity)
             if self.activity['inputs']['card_feature_index'] == 'colab':
-                result = await awx.delete_accounts(self.activity)
+                await awx.delete_accounts(self.activity)
             # Add new card activities here
 
         elif self.activity['description'] == 'message_details':
-            # This will remove bot name from text if message was "at mention" to the bot
-            if self.activity.get('roomType', '') == 'group':
-                self.activity['text'] = self.activity.get('text').replace(self.activity.get('bot_name') + ' ', '')
 
             # Webhook to NLP microservice
             try:
                 result_nlp = await process_text(self.activity.get('text'))
                 logging.info('NLP results')
                 logging.info(result)
-                if result_nlp[0][1] - result_nlp[1][1] > 0.12:
+                if result_nlp[0][1] - result_nlp[1][1] > 0.12:  # TODO - need better solution here
                     self.activity['text'] = result_nlp[0][0]
-                # else:
-                #     logging.info(result_nlp)
-                # # Future - Can Add the an dialogue to ask user if highest confidence score was what they wanted
+                # Future - Can add a dialogue to ask user if highest confidence score was what they wanted
             except Exception as e:
                 logging.warning('Unable to receive message from NLP server')
 
@@ -213,31 +197,31 @@ class COLABot:
                 await self.display_help_menu()
 
             elif self.activity.get('text') == 'create accounts' or self.activity.get('text') == 'reset passwords':
-                result = await awx.create_accounts(self.activity)
+                await awx.create_accounts(self.activity)
 
             elif self.activity.get('text') == 'delete accounts':
-                result = await awx.delete_accounts(self.activity)
+                await awx.delete_accounts(self.activity)
 
             elif self.activity.get('text')[:3] == 'cml':  # Add searches for cml dialogue here
-                result = await cml_chat(self.activity)
+                await cml_chat(self.activity)
 
             elif self.activity.get('text')[:3] == 'bye':
-                result = await small_talk(self.activity)
+                await small_talk(self.activity)
 
             elif self.activity.get('text')[:6] == 'thanks':
-                result = await small_talk(self.activity)
+                await small_talk(self.activity)
 
             elif self.activity.get('text')[:12] == 'troubleshoot':
-                result = await small_talk(self.activity)
+                await small_talk(self.activity)
 
             elif self.activity.get('text') == 'upset':
-                result = await small_talk(self.activity)
+                await small_talk(self.activity)
 
             elif self.activity.get('text') == 'accept_apology':
-                result = await small_talk(self.activity)
+                await small_talk(self.activity)
 
             elif self.activity.get('text') == 'affirmation':
-                result = await small_talk(self.activity)
+                await small_talk(self.activity)
 
             # Add new text message activities here
 # End Add elif for new Feature ---->

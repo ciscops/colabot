@@ -56,7 +56,7 @@ async def create_accounts(activity):
             await session.close()
         except:
             pass
-    return {'status_code': 200}
+    return
 
 
 async def delete_accounts(activity):
@@ -106,7 +106,7 @@ async def delete_accounts(activity):
                 post_id = posts.insert_one(dialogue_record).inserted_id
             except Exception as e:
                 print('Failed to connect to DB')
-        return {'status_code': 200}
+        return
     if activity.get('dialogue_name') == 'colab_delete_accounts' and activity.get('dialogue_step') == 1:
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
         # In case a new dialogue has been entered, send msg, and cancel old dialogue
@@ -123,7 +123,7 @@ async def delete_accounts(activity):
                     query_lab_filter = {'sender': activity['sender'],
                                         'roomId': activity['roomId'],
                                         'dialogue_name': 'colab_delete_accounts'}
-                return {'status_code': 200}
+                return
         except Exception:
             message = dict(text='I thought we were talking about deleting your accounts. Please send a new command',
                            roomId=activity['roomId'],
@@ -136,7 +136,7 @@ async def delete_accounts(activity):
                 query_lab_filter = {'sender': activity['sender'],
                                     'roomId': activity['roomId'],
                                     'dialogue_name': 'colab_delete_accounts'}
-            return {'status_code': 200}
+            return
 
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
         message = dict(text='Working, this may take a minute or two...',
@@ -188,4 +188,4 @@ async def delete_accounts(activity):
             except Exception as e:
                 print('Failed to connect to DB')
 
-    return {'status_code': 200}
+    return

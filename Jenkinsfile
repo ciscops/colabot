@@ -52,17 +52,13 @@ spec:
         }
         container("kubectl") {
             stage('Clone k8s manifest') {
-                if ( "${branch}" == "dev" ) {
-                    sh "apk update"
-                    sh "apk upgrade"
-                    sh "apk add git"
-                    sh 'git config --global credential.helper cache'
-                    withCredentials([usernamePassword(credentialsId: 'github', passwordVariable: 'pass', usernameVariable: 'user')]) {
-                        sh 'git clone https://"$user":"$pass"@github.com/ciscops/colabot-private.git'
-                        }
-				} else if ( "${branch}" == "master" ) {
-        			sh 'echo skipping clone k8s manifest'
-			    }
+                sh "apk update"
+                sh "apk upgrade"
+                sh "apk add git"
+                sh 'git config --global credential.helper cache'
+                withCredentials([usernamePassword(credentialsId: 'github', passwordVariable: 'pass', usernameVariable: 'user')]) {
+                    sh 'git clone https://"$user":"$pass"@github.com/ciscops/colabot-private.git'
+                    }
 		    }
             stage('Apply new COLABot-dev to K8s cluster') {
                 if ( "${branch}" == "dev" ) {
@@ -74,7 +70,12 @@ spec:
                     sh "kubectl create -f colabot-private/colabot_dev/colabot-dev.yaml"
                     sh 'echo Finished'
                 } else if ( "${branch}" == "master" ) {
-        			sh 'echo skipping Apply new COLABot-dev to K8s cluster'
+                    try {
+                        sh "kubectl delete -f colabot-private/colabot_prod/colabot-prod.yaml"
+                    } catch(Exception ex) {
+                        sh "echo No need to delete"
+                    }
+                    sh "kubectl create -f colabot-private/colabot_prod/colabot-prod.yaml"
                     sh 'echo Finished'
                 }
             }

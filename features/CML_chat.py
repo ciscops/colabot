@@ -74,7 +74,7 @@ async def cml_chat(activity):
                            roomId=activity['roomId'],
                            attachments=[])
             await webex.post_message_to_webex(message)
-        return {'status_code': 200}
+        return
     """END CML LIST ALL LABS"""
 
     """START CML LIST USERS"""
@@ -106,7 +106,7 @@ async def cml_chat(activity):
                            roomId=activity['roomId'],
                            attachments=[])
             await webex.post_message_to_webex(message)
-        return {'status_code': 200}
+        return
     """END CML LIST USERS"""
 
     """START CML LIST MY LABS"""
@@ -156,7 +156,7 @@ async def cml_chat(activity):
                            roomId=activity['roomId'],
                            attachments=[])
         await webex.post_message_to_webex(message)
-        return {'status_code': 200}
+        return
     """END CML LIST MY LABS"""
 
     """START CML SHOW SERVER UTILIZATION"""
@@ -193,7 +193,7 @@ async def cml_chat(activity):
                        roomId=activity['roomId'],
                        attachments=[])
         await webex.post_message_to_webex(message)
-        return {'status_code': 200}
+        return
     """END CML SHOW SERVER UTILIZATION"""
 
     """START CML EXTEND LAB"""
@@ -221,7 +221,7 @@ async def cml_chat(activity):
                        roomId=activity['roomId'],
                        attachments=[])
         await webex.post_message_to_webex(message)
-        return {'status_code': 200}
+        return
     """END CML EXTEND LAB"""
 
     """START CML STOP LAB DIALOGUE"""
@@ -270,7 +270,7 @@ async def cml_chat(activity):
                 post_id = posts.insert_one(dialogue_record).inserted_id
             except Exception as e:
                 print('Failed to connect to DB')
-        return {'status_code': 200}
+        return
     if activity.get('dialogue_name') == 'cml_stop_lab' and activity.get('dialogue_step') == 1:
         user_and_domain = activity['sender_email'].split('@')
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
@@ -290,7 +290,7 @@ async def cml_chat(activity):
                     query_lab_filter = {'sender': activity['sender'],
                                         'roomId': activity['roomId'],
                                         'dialogue_name': 'cml_stop_lab'}
-                return {'status_code': 200}
+                return
             # Get bearer token
             if not await cml_user.get_token():  # {'description': 'User already exists: stmosher.', 'code': 422}
                 message = dict(text='Error accessing server ' + cml_server + ': ' + str(
@@ -349,7 +349,7 @@ async def cml_chat(activity):
                     )
                 except Exception as e:
                     print('Failed to connect to DB')
-            return {'status_code': 200}
+            return
         else:
             message = dict(text="You don't have running labs",
                            roomId=activity['roomId'],
@@ -367,7 +367,7 @@ async def cml_chat(activity):
                 except Exception as e:
                     print('Failed to connect to DB')
 
-            return {'status_code': 200}
+            return
     if activity.get('card_dialogue_index') == 'cml_stop_lab_choices' and activity.get('dialogue_step') == 2:
         results_message = ''
         user_and_domain = activity['sender_email'].split('@')
@@ -411,7 +411,7 @@ async def cml_chat(activity):
             except Exception as e:
                 print('Failed to connect to DB')
 
-        return {'status_code': 200}
+        return
     """ END CML STOP LAB DIALOGUE """
 
     """START CML DELETE LAB DIALOGUE"""
@@ -459,7 +459,7 @@ async def cml_chat(activity):
                 post_id = posts.insert_one(dialogue_record).inserted_id
             except Exception as e:
                 print('Failed to connect to DB')
-        return {'status_code': 200}
+        return
     if activity.get('dialogue_name') == 'cml_delete_lab' and activity.get('dialogue_step') == 1:
         user_and_domain = activity['sender_email'].split('@')
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
@@ -479,7 +479,7 @@ async def cml_chat(activity):
                     query_lab_filter = {'sender': activity['sender'],
                                         'roomId': activity['roomId'],
                                         'dialogue_name': 'cml_delete_lab'}
-                return {'status_code': 200}
+                return
 
             # Get bearer token
             if not await cml_user.get_token():  # {'description': 'User already exists: stmosher.', 'code': 422}
@@ -536,7 +536,7 @@ async def cml_chat(activity):
                     )
                 except Exception as e:
                     print('Failed to connect to DB')
-            return {'status_code': 200}
+            return
         else:
             message = dict(text="You don't have labs",
                            roomId=activity['roomId'],
@@ -554,7 +554,7 @@ async def cml_chat(activity):
                 except Exception as e:
                     print('Failed to connect to DB')
 
-            return {'status_code': 200}
+            return
     if activity.get('card_dialogue_index') == 'cml_delete_lab_choices' and activity.get('dialogue_step') == 2:
         results_message = ''
         user_and_domain = activity['sender_email'].split('@')
@@ -606,7 +606,7 @@ async def cml_chat(activity):
             except Exception as e:
                 print('Failed to connect to DB')
 
-        return {'status_code': 200}
+        return
     """ END CML DELETE LAB DIALOGUE """
 
     """START CML LIST MY LAB DETAILS DIALOGUE"""
@@ -654,7 +654,7 @@ async def cml_chat(activity):
                 post_id = posts.insert_one(dialogue_record).inserted_id
             except Exception as e:
                 print('Failed to connect to DB')
-        return {'status_code': 200}
+        return
     if activity.get('dialogue_name') == 'cml_list_lab_details' and activity.get('dialogue_step') == 1:
         results_message = ''
         user_and_domain = activity['sender_email'].split('@')
@@ -674,7 +674,7 @@ async def cml_chat(activity):
                     query_lab_filter = {'sender': activity['sender'],
                                         'roomId': activity['roomId'],
                                         'dialogue_name': 'cml_list_lab_details'}
-                return {'status_code': 200}
+                return
             # Get bearer token
             # If the user is not there, the below won't work
             if not await cml_user.get_token():  # {'description': 'User already exists: stmosher.', 'code': 422}
@@ -724,7 +724,7 @@ async def cml_chat(activity):
             except Exception as e:
                 print('Failed to connect to DB')
 
-        return {'status_code': 200}
+        return
     """END CML LIST MY LAB DETAILS DIALOGUE"""
 
     """START CML SHOW IPS DIALOGUE"""
@@ -772,7 +772,7 @@ async def cml_chat(activity):
                 post_id = posts.insert_one(dialogue_record).inserted_id
             except Exception as e:
                 print('Failed to connect to DB')
-        return {'status_code': 200}
+        return
     if activity.get('dialogue_name') == 'cml_ips_lab' and activity.get('dialogue_step') == 1:
         user_and_domain = activity['sender_email'].split('@')
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
@@ -792,7 +792,7 @@ async def cml_chat(activity):
                     query_lab_filter = {'sender': activity['sender'],
                                         'roomId': activity['roomId'],
                                         'dialogue_name': 'cml_ips_lab'}
-                return {'status_code': 200}
+                return
 
             # Get bearer token
             if not await cml_user.get_token():  # {'description': 'User already exists: stmosher.', 'code': 422}
@@ -855,10 +855,10 @@ async def cml_chat(activity):
             except Exception as e:
                 print('Failed to connect to DB')
 
-        return {'status_code': 200}
+        return
     """ END CML SHOW IPS DIALOGUE """
 
     """START CATCH ALL"""
     await catch_all(activity)
-    return {'status_code': 200}
+    return
     """END CATCH ALL"""

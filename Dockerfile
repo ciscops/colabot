@@ -1,6 +1,6 @@
 FROM python:3.8-alpine
 
-RUN apk update && apk upgrade && apk add bash && apk add bash && apk --no-cache add curl && pip install -U pip
+RUN apk update && apk upgrade && apk add bash && apk --no-cache add curl && pip install -U pip
 RUN apk add gcc
 RUN apk add musl-dev
 

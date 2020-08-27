@@ -13,7 +13,7 @@ async def small_talk(activity):
                        parentId=activity['parentId'],
                        attachments=[])
         await webex.post_message_to_webex(message)
-        return {'status_code': 200}
+        return
 
     if activity.get('text') == 'thanks':
         responses = ["You're welcome! &#x1F60A;", 'Anytime &#x1F603;', 'No problem &#x1F603;', '$#x1F970;']
@@ -24,7 +24,7 @@ async def small_talk(activity):
                        parentId=activity['parentId'],
                        attachments=[])
         await webex.post_message_to_webex(message)
-        return {'status_code': 200}
+        return
 
     if activity.get('text') == 'troubleshoot':
         excuses = ['clock speed',
@@ -90,7 +90,7 @@ async def small_talk(activity):
                        parentId=activity['parentId'],
                        attachments=[])
         await webex.post_message_to_webex(message)
-        return {'status_code': 200}
+        return
 
     if activity.get('text') == 'upset':
         emojis = ['&#x1F308;', '&#x1F92A;', '&#x1F921;', '&#x1F63D;', '&#x1F48B;', '&#x2764;', '&#x1F486;', '&#x1F483;',
@@ -108,7 +108,7 @@ async def small_talk(activity):
                        parentId=activity['parentId'],
                        attachments=[])
         await webex.post_message_to_webex(message)
-        return {'status_code': 200}
+        return
 
     if activity.get('text') == 'affirmation':
         responses = ['You are naturally funny', 'You always have something funny to say',
@@ -192,7 +192,7 @@ async def small_talk(activity):
                        parentId=activity['parentId'],
                        attachments=[])
         await webex.post_message_to_webex(message)
-        return {'status_code': 200}
+        return
 
     if activity.get('text') == 'accept_apology':
         responses = ["It's ok &#x1F60A;",
@@ -207,7 +207,7 @@ async def small_talk(activity):
                        parentId=activity['parentId'],
                        attachments=[])
         await webex.post_message_to_webex(message)
-        return {'status_code': 200}
+        return
 
     await catch_all(activity)
-    return {'status_code': 200}
+    return
