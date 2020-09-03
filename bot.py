@@ -21,8 +21,9 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 mongo_url = 'mongodb://' + CONFIG.MONGO_INITDB_ROOT_USERNAME + ':' + CONFIG.MONGO_INITDB_ROOT_PASSWORD + '@' + CONFIG.MONGO_SERVER + ':' + CONFIG.MONGO_PORT
 
 help_menu_list = ['**Create accounts** > create COLAB accounts\n',
+                  '**Create AWS account** > create AWS COLAB account\n',
                   '**Delete accounts** > delete COLAB accounts\n',
-                  '**Reset passwords** > resets COLAB passwords\n',
+                  '**Reset passwords** > resets all COLAB associated passwords\n',
                   '**CML delete lab** > delete lab\n',
                   '**CML list all labs** > list all labs\n',
                   '**CML list my lab details** > list your labs with details\n',
@@ -31,7 +32,7 @@ help_menu_list = ['**Create accounts** > create COLAB accounts\n',
                   '**CML show IP addresses** > show IP addresses\n',
                   '**CML show server utilization** > show current CPU and Memory usage\n',
                   '**CML stop lab** > stop labs of your choice\n',
-                  '**help** > display available commands\n',]
+                  '**help** > display available commands\n']
 
 
 class COLABot:
@@ -198,6 +199,9 @@ class COLABot:
 
             elif self.activity.get('text') == 'create accounts' or self.activity.get('text') == 'reset passwords':
                 await awx.create_accounts(self.activity)
+
+            elif self.activity.get('text') == 'create aws account':
+                await awx.create_aws_account(self.activity)
 
             elif self.activity.get('text') == 'delete accounts':
                 await awx.delete_accounts(self.activity)
