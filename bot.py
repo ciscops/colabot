@@ -32,7 +32,8 @@ help_menu_list = ['**Create accounts** > create COLAB accounts\n',
                   '**CML show IP addresses** > show IP addresses\n',
                   '**CML show server utilization** > show current CPU and Memory usage\n',
                   '**CML stop lab** > stop labs of your choice\n',
-                  '**help** > display available commands\n']
+                  '**help** > display available commands\n',
+                  'This is a test']
 
 
 class COLABot:
