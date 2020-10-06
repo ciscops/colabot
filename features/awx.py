@@ -115,9 +115,9 @@ async def create_vpn_account(activity):
     await webex.post_message_to_webex(message)
     urls_cml_servers = ['https://' + s for s in cml_servers]
     if re.search(r'1MDFmYzc$', CONFIG.BOT_ID):
-        id_template = '32'  # prod
+        id_template = '34'  # prod
     else:
-        id_template = '34'  # for dev
+        id_template = '33'  # for dev
     url = f'https://cpn-rtp-awx1.colab.ciscops.net/api/v2/job_templates/{id_template}/launch/'
     headers = {'Content-Type': 'application/json'}
     user_and_domain = activity['sender_email'].split('@')
