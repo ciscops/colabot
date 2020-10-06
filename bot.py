@@ -22,6 +22,7 @@ mongo_url = 'mongodb://' + CONFIG.MONGO_INITDB_ROOT_USERNAME + ':' + CONFIG.MONG
 
 help_menu_list = ['**Create accounts** > create COLAB accounts\n',
                   '**Create AWS account** > create AWS COLAB account\n',
+                  '**Create VPN account** > create Meraki VPN COLAB account\n',
                   '**Delete accounts** > delete COLAB accounts\n',
                   '**Reset passwords** > resets all COLAB associated passwords\n',
                   '**CML delete lab** > delete lab\n',
@@ -32,8 +33,7 @@ help_menu_list = ['**Create accounts** > create COLAB accounts\n',
                   '**CML show IP addresses** > show IP addresses\n',
                   '**CML show server utilization** > show current CPU and Memory usage\n',
                   '**CML stop lab** > stop labs of your choice\n',
-                  '**help** > display available commands\n',
-                  'This is a test']
+                  '**help** > display available commands\n']
 
 
 class COLABot:
@@ -203,6 +203,9 @@ class COLABot:
 
             elif self.activity.get('text') == 'create aws account':
                 await awx.create_aws_account(self.activity)
+
+            elif self.activity.get('text') == 'create vpn account':
+                await awx.create_vpn_account(self.activity)
 
             elif self.activity.get('text') == 'delete accounts':
                 await awx.delete_accounts(self.activity)
