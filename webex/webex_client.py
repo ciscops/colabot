@@ -111,26 +111,24 @@ class WebExClient:
                 pass
             return response_content
 
-    async def get_room_memberships(self, room_id):
-        api_url = 'https://api.ciscospark.com/v1/memberships?roomId=' + room_id + '&max=1000'
+    async def get_room_memberships(self, room_id, person_id):
+        api_url = 'https://api.ciscospark.com/v1/memberships?roomId=' + room_id + '&personId=' + person_id
         headers = {
             'Content-Type': 'application/json',
             "Authorization": "Bearer " + self.webex_bot_token
         }
         session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30), )
-        response_content = {}
         try:
             async with session.request(method="GET", url=api_url, headers=headers) as res:
-                response_content = await res.json()
                 await session.close()
-                return response_content
+                return res.status
         except Exception as e:
             logging.warning(e)
             try:
                 await session.close()
             except:
                 pass
-            return response_content
+            return 500
 
     @staticmethod
     def dict_from_items_with_values(*dictionaries, **items):
