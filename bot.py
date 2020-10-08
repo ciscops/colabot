@@ -97,9 +97,8 @@ class COLABot:
                 room_list = CONFIG.AUTHORIZED_ROOMS.split(',')
                 denied = True
                 for r in room_list:
-                    membership = await self.webex_client.get_room_memberships(r)
-                    member_list = await self.webex_client.create_user_id_list_from_room_membership_content(membership)
-                    if self.activity['sender'] in member_list:
+                    response_code = await self.webex_client.get_room_memberships(r, self.activity['sender'])
+                    if response_code != 200:
                         denied = False
                         break
                 if denied:
