@@ -7,7 +7,7 @@ kind: Pod
 spec:
   containers:
   - name: docker
-    image: docker:19.03.8
+    image: docker:19.03.13
     command:
     - sleep
     args:
@@ -16,7 +16,7 @@ spec:
       - name: DOCKER_HOST
         value: tcp://localhost:2375
   - name: docker-daemon
-    image: docker:19.03.8-dind
+    image: docker:19.03.13-dind
     securityContext:
       privileged: true
     env:
