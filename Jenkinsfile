@@ -11,7 +11,7 @@ spec:
     command:
     - sleep
     args:
-    - 99d
+    - 200d
     env:
       - name: DOCKER_HOST
         value: tcp://localhost:2375
@@ -25,7 +25,7 @@ spec:
   - name: kubectl
     image: stmosher/kubectl
     command: ["sleep"]
-    args: ["100000"]
+    args: ["1000000000"]
 ''') {
     node(POD_LABEL) {
         container('docker') {
