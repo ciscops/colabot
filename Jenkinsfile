@@ -7,16 +7,16 @@ kind: Pod
 spec:
   containers:
   - name: docker
-    image: docker:19.03.13
+    image: docker:19.03.8
     command:
     - sleep
     args:
-    - 200d
+    - 99d
     env:
       - name: DOCKER_HOST
         value: tcp://localhost:2375
   - name: docker-daemon
-    image: docker:19.03.13-dind
+    image: docker:19.03.8-dind
     securityContext:
       privileged: true
     env:
@@ -25,7 +25,7 @@ spec:
   - name: kubectl
     image: stmosher/kubectl
     command: ["sleep"]
-    args: ["1000000000"]
+    args: ["100000"]
 ''') {
     node(POD_LABEL) {
         container('docker') {
