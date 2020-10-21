@@ -38,7 +38,7 @@ async def cml_chat(activity):
                 continue
 
             if not await cml.get_diagnostics():
-                message = dict(text=cml.diagnostics,
+                message = dict(text='Error accessing server ' + cml_server + ': ' + str(cml.diagnostics),
                                roomId=activity['roomId'],
                                attachments=[])
                 await webex.post_message_to_webex(message)
