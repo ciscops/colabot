@@ -37,7 +37,12 @@ async def cml_chat(activity):
                 await webex.post_message_to_webex(message)
                 continue
 
-            await cml.get_diagnostics()
+            if not await cml.get_diagnostics():
+                message = dict(text=cml.diagnostics,
+                               roomId=activity['roomId'],
+                               attachments=[])
+                await webex.post_message_to_webex(message)
+                continue
             epoch_time_now = int(time.time())
 
             for k, v in cml.diagnostics['user_roles']['labs_by_user'].items():
