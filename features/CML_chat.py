@@ -29,7 +29,7 @@ async def cml_chat(activity):
             cml = CML(CONFIG.CML_USERNAME, CONFIG.CML_PASSWORD, cml_server)
             # Get bearer token
             if not await cml.get_token():  # {'description': 'User already exists: stmosher.', 'code': 422}
-                message = dict(text='Error accessing server ' + cml_server + ': ' + str(
+                message = dict(text='***' + cml_server + '*** Error accessing server: ' + str(
                     cml.status_code) + ' ' + str(cml.bearer_token),
                                roomId=activity['roomId'],
                                parentId=activity['parentId'],
@@ -38,7 +38,7 @@ async def cml_chat(activity):
                 continue
 
             if not await cml.get_diagnostics():
-                message = dict(text=cml.diagnostics,
+                message = dict(text='***' + cml_server + '*** Error retrieving diagnostics: ' + str(cml.diagnostics),
                                roomId=activity['roomId'],
                                attachments=[])
                 await webex.post_message_to_webex(message)
