@@ -10,7 +10,7 @@ import json
 import logging
 
 FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-logging.basicConfig(format=FORMAT, level=logging.INFO)
+logging.basicConfig(format=FORMAT, level=logging.DEBUG)
 
 
 BOT = COLABot(webex_bot_token=CONFIG.ACCESS_TOKEN, webex_client_signing_secret=CONFIG.SECRET)
