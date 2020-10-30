@@ -33,6 +33,7 @@ class CML:
         logging.debug('Time to create an asyncio session')
         session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
         logging.debug('Asyncio session created')
+        return_status = False
         try:
             async with session.request(method="POST", url=u,
                                        headers=headers,
@@ -46,12 +47,11 @@ class CML:
                     self.status_code = res.status
                     self.bearer_token = response_content
                     # await session.close()
-                    return False
                 else:
                     self.status_code = res.status
                     self.bearer_token = response_content
                     # await session.close()
-                    return True
+                    return_status = True
         except aiohttp.ContentTypeError as e:
             logging.warning('Now in aiohttp.ContentTypeError')
             logging.warning(e)
@@ -61,7 +61,7 @@ class CML:
             #     await session.close()
             # except:
             #     pass
-            return False
+            # return False
         except Exception as e:
             logging.warning('Now in General Exception')
             logging.warning(e)
@@ -71,7 +71,8 @@ class CML:
             #     await session.close()
             # except:
             #     pass
-            return False
+            # return False
+        return return_status
 
     async def get_users(self):
         api_path = '/api/v0/users'
