@@ -4,6 +4,7 @@
 import aiohttp
 import json
 import random
+import logging
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -29,7 +30,7 @@ class CML:
         }
         u = self.url + api_path
         body = {'username': self.cml_username, 'password': self.cml_password}
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
+        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5))
         try:
             async with session.request(method="POST", url=u,
                                        headers=headers,
@@ -37,10 +38,10 @@ class CML:
                 response_content = {}
 
                 response_content = await res.json()
-                print('BELOW IS THE RESPONSE')
-                print(response_content)
-                print('BELOW IS THE STATUS CODE')
-                print(res.status)
+                logging.debug('BELOW IS THE RESPONSE')
+                logging.debug(response_content)
+                logging.debug('BELOW IS THE STATUS CODE')
+                logging.debug(res.status)
                 if res.status != 200:
                     self.status_code = res.status
                     self.bearer_token = response_content
@@ -52,7 +53,7 @@ class CML:
                     await session.close()
                     return True
         except aiohttp.ContentTypeError as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.bearer_token = response_content
             try:
@@ -61,7 +62,7 @@ class CML:
                 pass
             return False
         except Exception as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.bearer_token = ''
             try:
@@ -79,7 +80,7 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token
         }
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
+        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5))
         try:
             async with session.request(method="GET", url=u,
                                        headers=headers, ssl=False) as res:
@@ -96,7 +97,7 @@ class CML:
                     await session.close()
                     return True
         except aiohttp.ContentTypeError as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.users = response_content
             try:
@@ -105,7 +106,7 @@ class CML:
                 pass
             return False
         except Exception as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.users = {}
             try:
@@ -123,7 +124,7 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token
         }
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
+        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5))
         try:
             async with session.request(method="GET", url=u,
                                        headers=headers, ssl=False) as res:
@@ -140,7 +141,7 @@ class CML:
                     await session.close()
                     return True
         except aiohttp.ContentTypeError as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.diagnostics = response_content
             try:
@@ -149,7 +150,7 @@ class CML:
                 pass
             return False
         except Exception as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.diagnostics = {}
             try:
@@ -167,7 +168,7 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token
         }
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
+        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5))
         try:
             async with session.request(method="GET", url=u,
                                        headers=headers, ssl=False) as res:
@@ -184,7 +185,7 @@ class CML:
                     await session.close()
                     return True
         except aiohttp.ContentTypeError as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.lab_nodes = response_content
             try:
@@ -193,7 +194,7 @@ class CML:
                 pass
             return False
         except Exception as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.lab_nodes = []
             try:
@@ -211,7 +212,7 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token
         }
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
+        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5))
         try:
             async with session.request(method="GET", url=u,
                                        headers=headers, ssl=False) as res:
@@ -228,7 +229,7 @@ class CML:
                     await session.close()
                     return True
         except aiohttp.ContentTypeError as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.lab_int_addresses = response_content
             try:
@@ -237,7 +238,7 @@ class CML:
                 pass
             return False
         except Exception as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.lab_int_addresses = {}
             try:
@@ -255,7 +256,7 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token
         }
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
+        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5))
         try:
             async with session.request(method="GET", url=u,
                                        headers=headers, ssl=False) as res:
@@ -272,7 +273,7 @@ class CML:
                     await session.close()
                     return True
         except aiohttp.ContentTypeError as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.user_labs = response_content
             try:
@@ -281,7 +282,7 @@ class CML:
                 pass
             return False
         except Exception as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.user_labs = []
             try:
@@ -299,7 +300,7 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token
         }
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
+        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5))
         try:
             async with session.request(method="GET", url=u,
                                        headers=headers, ssl=False) as res:
@@ -316,7 +317,7 @@ class CML:
                     await session.close()
                     return True
         except aiohttp.ContentTypeError as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.user_lab_details = response_content
             try:
@@ -325,7 +326,7 @@ class CML:
                 pass
             return False
         except Exception as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.user_lab_details = {}
             try:
@@ -343,7 +344,7 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token
         }
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
+        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5))
         try:
             async with session.request(method="GET", url=u,
                                        headers=headers, ssl=False) as res:
@@ -360,7 +361,7 @@ class CML:
                     await session.close()
                     return True
         except aiohttp.ContentTypeError as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.system_status = response_content
             try:
@@ -369,7 +370,7 @@ class CML:
                 pass
             return False
         except Exception as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.system_status = {}
             try:
@@ -387,7 +388,7 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token
         }
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
+        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5))
         try:
             async with session.request(method="PUT", url=u,
                                        headers=headers, ssl=False) as res:
@@ -404,7 +405,7 @@ class CML:
                     await session.close()
                     return True
         except aiohttp.ContentTypeError as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.result = response_content
             try:
@@ -413,7 +414,7 @@ class CML:
                 pass
             return False
         except Exception as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.result = {}
             try:
@@ -431,7 +432,7 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token
         }
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
+        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5))
         try:
             async with session.request(method="PUT", url=u,
                                        headers=headers, ssl=False) as res:
@@ -448,7 +449,7 @@ class CML:
                     await session.close()
                     return True
         except aiohttp.ContentTypeError as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.result = response_content
             try:
@@ -457,7 +458,7 @@ class CML:
                 pass
             return False
         except Exception as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.result = {}
             try:
@@ -475,7 +476,7 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token
         }
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
+        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5))
         try:
             async with session.request(method="DELETE", url=u,
                                        headers=headers, ssl=False) as res:
@@ -492,7 +493,7 @@ class CML:
                     await session.close()
                     return True
         except aiohttp.ContentTypeError as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.result = response_content
             try:
@@ -501,7 +502,7 @@ class CML:
                 pass
             return False
         except Exception as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.result = {}
             try:
@@ -520,7 +521,7 @@ class CML:
         }
         body = {'old_password': '', 'new_password': new_password}
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
+        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5))
         try:
             async with session.request(method="PUT", url=u,
                                        headers=headers, data=json.dumps(body),ssl=False) as res:
@@ -537,7 +538,7 @@ class CML:
                     await session.close()
                     return True
         except aiohttp.ContentTypeError as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.result = response_content
             try:
@@ -546,7 +547,7 @@ class CML:
                 pass
             return False
         except Exception as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.result = {}
             try:
@@ -572,7 +573,7 @@ class CML:
                 'context': {}
                 }
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
+        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5))
         try:
             async with session.request(method="POST", url=u,
                                        headers=headers, data=json.dumps(body),ssl=False) as res:
@@ -581,19 +582,19 @@ class CML:
                 if res.status != 200:
                     self.status_code = res.status
                     self.result = response_content
-                    print(response_content)
-                    print(type(response_content))
+                    logging.debug(response_content)
+                    logging.debug(type(response_content))
                     await session.close()
                     return False
                 else:
                     self.status_code = res.status
                     self.result = response_content
-                    print(response_content)
-                    print(type(response_content))
+                    logging.debug(response_content)
+                    logging.debug(type(response_content))
                     await session.close()
                     return True
         except aiohttp.ContentTypeError as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.result = response_content
             try:
@@ -602,7 +603,7 @@ class CML:
                 pass
             return False
         except Exception as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.result = {}
             try:
@@ -620,7 +621,7 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token
         }
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
+        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5))
         try:
             async with session.request(method="DELETE", url=u,
                                        headers=headers, ssl=False) as res:
@@ -629,19 +630,19 @@ class CML:
                 if res.status != 200:
                     self.status_code = res.status
                     self.result = response_content
-                    print(response_content)
-                    print(type(response_content))
+                    logging.debug(response_content)
+                    logging.debug(type(response_content))
                     await session.close()
                     return False
                 else:
                     self.status_code = res.status
                     self.result = response_content
-                    print(response_content)
-                    print(type(response_content))
+                    logging.debug(response_content)
+                    logging.debug(type(response_content))
                     await session.close()
                     return True
         except aiohttp.ContentTypeError as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.result = response_content
             try:
@@ -650,7 +651,7 @@ class CML:
                 pass
             return False
         except Exception as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.result = {}
             try:
@@ -683,31 +684,41 @@ class CML:
             pwd += pos[rand]
         return pwd
 
-
 if __name__ == '__main__':
     import asyncio
     import time
 
-    async def check_get_token():
-        print('\ncpn-rtp-cml4.ciscops.net')
-        cml = CML('stmosher', 'xx', 'cpn-rtp-cml4.ciscops.net')
-        print(await cml.get_token())
-        print('Error accessing server ' + 'cpn-rtp-cml4.ciscops.net' + ': ' + str(
+    FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    logging.basicConfig(format=FORMAT, level=logging.DEBUG)
+    my_username = ''
+    my_password = ''
+    async def check_get_token(my_username, my_password):
+        cml_servers = ['cpn-rtp-cml4.ciscops.net',
+                       'cpn-rtp-cml-stable3.ciscops.net',
+                       'cpn-rtp-cml-test1.ciscops.net',
+                       'cpn-rtp-cml-stable2.ciscops.net']
+        for cml_server in cml_servers:
+            print('\n\n\n' + cml_server)
+            cml = CML(my_username, my_password, cml_server)
+            print(await cml.get_token())
+            if cml.status_code == 200:
+                if not await cml.get_system_status():
+                    print('Error accessing server ' + cml_server + ': ' + str(
+                        cml.status_code) + ' ' + cml.system_status.get('description', ''))
+                else:
+                    cpu = round(
+                        cml.system_status['clusters']['cluster_1']['high_level_drivers']['compute_1']['cpu']['percent'])
+                    memory = round(
+                        cml.system_status['clusters']['cluster_1']['high_level_drivers']['compute_1']['memory']['used'] /
+                        cml.system_status['clusters']['cluster_1']['high_level_drivers']['compute_1']['memory'][
+                            'total'] * 100)
+                    print(' -  CPU: ' + str(cpu) + '% Memory: ' + str(memory) + '%\n')
+            else:
+                print('Error accessing server ' + cml_server + ': ' + str(
                     cml.status_code) + ' ' + cml.bearer_token)
-        print(cml.bearer_token)
-        print(type(cml.bearer_token))
-        print('\ncpn-rtp-virl5.ciscops.net')
-        cml = CML('stmosher', 'xx', 'cpn-rtp-virl5.ciscops.net')
-        print(await cml.get_token())
-        print('Error accessing server ' + 'cpn-rtp-virl5.ciscops.net' + ': ' + str(
-                    cml.status_code) + ' ' + cml.bearer_token)
-        print('\ncpn-rtp-virl6.ciscops.net')
-        cml = CML('stmosher', 'xx', 'cpn-rtp-virl6.ciscops.net')
-        print(await cml.get_token())
-        print('Error accessing server ' + 'cpn-rtp-virl6.ciscops.net' + ': ' + str(
-                    cml.status_code) + ' ' + cml.bearer_token)
+                print(cml.bearer_token)
 
     s = time.perf_counter()
-    asyncio.run(check_get_token())
+    asyncio.run(check_get_token(my_username, my_password))
     elapsed = time.perf_counter() - s
-    print(f"{__file__} executed in {elapsed:0.2f} seconds.")
+    print(f"executed in {elapsed:0.2f} seconds.")

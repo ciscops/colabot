@@ -210,6 +210,7 @@ class COLABot:
                 await awx.delete_accounts(self.activity)
 
             elif self.activity.get('text')[:3] == 'cml':  # Add searches for cml dialogue here
+                logging.debug('matched cml')
                 await cml_chat(self.activity)
 
             elif self.activity.get('text')[:3] == 'bye':
@@ -339,7 +340,7 @@ async def process_text(message):
     }
     body = {'text': message, 'secret': CONFIG.NLP_SECRET}
     u = 'http://' + CONFIG.NLP_SERVER + api_path
-    session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
+    session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5))
     try:
         async with session.request(method="POST", url=u, headers=headers, data=json.dumps(body), ssl=False) as res:
             response_content = {}

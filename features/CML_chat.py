@@ -166,12 +166,14 @@ async def cml_chat(activity):
 
     """START CML SHOW SERVER UTILIZATION"""
     if activity.get('text') == 'cml show server utilization':
+        logging.debug('Made it to cml show server utilization!')
         results_message = ''
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
         for cml_server in cml_servers:
             server_name = '\n***' + cml_server + '***\n'
             cml = CML(CONFIG.CML_USERNAME, CONFIG.CML_PASSWORD, cml_server)
             # Get bearer token
+            logging.debug('Lets get the token!')
             if not await cml.get_token():  # {'description': 'User already exists: stmosher.', 'code': 422}
                 message = dict(text='Error accessing server ' + cml_server + ': ' + str(
                     cml.status_code) + ' ' + str(cml.bearer_token),
@@ -180,11 +182,14 @@ async def cml_chat(activity):
                                attachments=[])
                 await webex.post_message_to_webex(message)
                 continue
-
+            logging.debug(f'Got the token for server{cml_server}')
+            logging.debug(f'Trying to get the system status for {cml_server}')
             if not await cml.get_system_status():
+                logging.debug(f'Got a get_system_status = False for {cml_server}')
                 server_name += 'Error accessing server ' + cml_server + ': ' + str(
                     cml.status_code) + ' ' + cml.system_status.get('description', '')
             else:
+                logging.debug(f'Got the system status for {cml_server}')
                 cpu = round(
                     cml.system_status['clusters']['cluster_1']['high_level_drivers']['compute_1']['cpu']['percent'])
                 memory = round(
@@ -274,7 +279,7 @@ async def cml_chat(activity):
             try:
                 post_id = posts.insert_one(dialogue_record).inserted_id
             except Exception as e:
-                print('Failed to connect to DB')
+                logging.warning('Failed to connect to DB')
         return
     if activity.get('dialogue_name') == 'cml_stop_lab' and activity.get('dialogue_step') == 1:
         user_and_domain = activity['sender_email'].split('@')
@@ -353,7 +358,7 @@ async def cml_chat(activity):
                          }
                     )
                 except Exception as e:
-                    print('Failed to connect to DB')
+                    logging.warning('Failed to connect to DB')
             return
         else:
             message = dict(text="You don't have running labs",
@@ -370,7 +375,7 @@ async def cml_chat(activity):
                 try:
                     r = posts.delete_one(query_lab_filter)
                 except Exception as e:
-                    print('Failed to connect to DB')
+                    logging.warning('Failed to connect to DB')
 
             return
     if activity.get('card_dialogue_index') == 'cml_stop_lab_choices' and activity.get('dialogue_step') == 2:
@@ -392,9 +397,9 @@ async def cml_chat(activity):
                 labs_list = activity['inputs'].get(cml_server).split(',')
                 for lab in labs_list:
                     if not await cml_user.stop_lab(lab):
-                        print('stop lab')
-                        print(str(cml_user.status_code))
-                        print(cml_user.result.get('description', ''))
+                        logging.debug('stop lab')
+                        logging.debug(str(cml_user.status_code))
+                        logging.debug(cml_user.result.get('description', ''))
                         results_message += ' - ' + cml_server + ' Fail: ' + str(
                             cml_user.status_code) + ' ' + cml_user.result.get('description', '') + '\n'
                     else:
@@ -414,7 +419,7 @@ async def cml_chat(activity):
             try:
                 r = posts.delete_one(query_lab_filter)
             except Exception as e:
-                print('Failed to connect to DB')
+                logging.warning('Failed to connect to DB')
 
         return
     """ END CML STOP LAB DIALOGUE """
@@ -463,7 +468,7 @@ async def cml_chat(activity):
             try:
                 post_id = posts.insert_one(dialogue_record).inserted_id
             except Exception as e:
-                print('Failed to connect to DB')
+                logging.warning('Failed to connect to DB')
         return
     if activity.get('dialogue_name') == 'cml_delete_lab' and activity.get('dialogue_step') == 1:
         user_and_domain = activity['sender_email'].split('@')
@@ -540,7 +545,7 @@ async def cml_chat(activity):
                          }
                     )
                 except Exception as e:
-                    print('Failed to connect to DB')
+                    logging.warning('Failed to connect to DB')
             return
         else:
             message = dict(text="You don't have labs",
@@ -557,7 +562,7 @@ async def cml_chat(activity):
                 try:
                     r = posts.delete_one(query_lab_filter)
                 except Exception as e:
-                    print('Failed to connect to DB')
+                    logging.warning('Failed to connect to DB')
 
             return
     if activity.get('card_dialogue_index') == 'cml_delete_lab_choices' and activity.get('dialogue_step') == 2:
@@ -579,17 +584,17 @@ async def cml_chat(activity):
                 labs_list = activity['inputs'].get(cml_server).split(',')
                 for lab in labs_list:
                     if not await cml_user.stop_lab(lab):
-                        print('stop lab')
-                        print(str(cml_user.status_code))
-                        print(cml_user.result.get('description', ''))
+                        logging.debug('stop lab')
+                        logging.debug(str(cml_user.status_code))
+                        logging.debug(cml_user.result.get('description', ''))
                     if not await cml_user.wipe_lab(lab):
-                        print('wipe lab')
-                        print(str(cml_user.status_code))
-                        print(cml_user.result.get('description', ''))
+                        logging.debug('wipe lab')
+                        logging.debug(str(cml_user.status_code))
+                        logging.debug(cml_user.result.get('description', ''))
                     if not await cml_user.delete_lab(lab):
-                        print('delete lab')
-                        print(str(cml_user.status_code))
-                        print(cml_user.result.get('description', ''))
+                        logging.debug('delete lab')
+                        logging.debug(str(cml_user.status_code))
+                        logging.debug(cml_user.result.get('description', ''))
                         results_message += ' - ' + cml_server + ' Fail: ' + str(
                             cml_user.status_code) + ' ' + cml_user.result.get('description', '') + '\n'
                     else:
@@ -609,7 +614,7 @@ async def cml_chat(activity):
             try:
                 r = posts.delete_one(query_lab_filter)
             except Exception as e:
-                print('Failed to connect to DB')
+                logging.warning('Failed to connect to DB')
 
         return
     """ END CML DELETE LAB DIALOGUE """
@@ -658,7 +663,7 @@ async def cml_chat(activity):
             try:
                 post_id = posts.insert_one(dialogue_record).inserted_id
             except Exception as e:
-                print('Failed to connect to DB')
+                logging.warning('Failed to connect to DB')
         return
     if activity.get('dialogue_name') == 'cml_list_lab_details' and activity.get('dialogue_step') == 1:
         results_message = ''
@@ -727,7 +732,7 @@ async def cml_chat(activity):
             try:
                 r = posts.delete_one(query_lab_filter)
             except Exception as e:
-                print('Failed to connect to DB')
+                logging.warning('Failed to connect to DB')
 
         return
     """END CML LIST MY LAB DETAILS DIALOGUE"""
@@ -776,7 +781,7 @@ async def cml_chat(activity):
             try:
                 post_id = posts.insert_one(dialogue_record).inserted_id
             except Exception as e:
-                print('Failed to connect to DB')
+                logging.warning('Failed to connect to DB')
         return
     if activity.get('dialogue_name') == 'cml_ips_lab' and activity.get('dialogue_step') == 1:
         user_and_domain = activity['sender_email'].split('@')
@@ -858,7 +863,7 @@ async def cml_chat(activity):
             try:
                 r = posts.delete_one(query_lab_filter)
             except Exception as e:
-                print('Failed to connect to DB')
+                logging.warning('Failed to connect to DB')
 
         return
     """ END CML SHOW IPS DIALOGUE """
