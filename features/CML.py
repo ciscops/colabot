@@ -30,33 +30,29 @@ class CML:
         }
         u = self.url + api_path
         body = {'username': self.cml_username, 'password': self.cml_password}
-        logging.debug('Time to create an asyncio session')
         session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
-        logging.debug('Asyncio session created')
-        return_status = False
         try:
-            res = await session.request(method="POST", url=u, headers=headers, data=json.dumps(body), ssl=False)
-            response_content = {}
-            logging.debug('Made a session POST request')
-            logging.debug('Below get the request reply in json')
-            logging.debug(dir(res))
-            try:
+            async with session.request(method="POST", url=u,
+                                       headers=headers,
+                                       data=json.dumps(body), ssl=False) as res:
+                response_content = {}
+
                 response_content = await res.json()
-            except:
-                logging.warning('Error res.json() method')
-            logging.debug('Made it pas getting the return json')
-            if res.status != 200:
-                self.status_code = res.status
-                self.bearer_token = response_content
-                await session.close()
-                return False
-            else:
-                self.status_code = res.status
-                self.bearer_token = response_content
-                await session.close()
-                return True
+                logging.debug('BELOW IS THE RESPONSE')
+                logging.debug(response_content)
+                logging.debug('BELOW IS THE STATUS CODE')
+                logging.debug(res.status)
+                if res.status != 200:
+                    self.status_code = res.status
+                    self.bearer_token = response_content
+                    await session.close()
+                    return False
+                else:
+                    self.status_code = res.status
+                    self.bearer_token = response_content
+                    await session.close()
+                    return True
         except aiohttp.ContentTypeError as e:
-            logging.warning('Now in aiohttp.ContentTypeError')
             logging.warning(e)
             self.status_code = 500
             self.bearer_token = response_content
@@ -66,7 +62,6 @@ class CML:
                 pass
             return False
         except Exception as e:
-            logging.warning('Now in General Exception')
             logging.warning(e)
             self.status_code = 500
             self.bearer_token = ''
@@ -75,7 +70,6 @@ class CML:
             except:
                 pass
             return False
-        # return return_status
 
     async def get_users(self):
         api_path = '/api/v0/users'
@@ -690,18 +684,15 @@ class CML:
             pwd += pos[rand]
         return pwd
 
-
 if __name__ == '__main__':
     import asyncio
     import time
 
     FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(format=FORMAT, level=logging.DEBUG)
-
-    async def check_get_token():
-        my_username = 'test_user'
-        my_password = 'xxx'
-
+    my_username = ''
+    my_password = ''
+    async def check_get_token(my_username, my_password):
         cml_servers = ['cpn-rtp-cml4.ciscops.net',
                        'cpn-rtp-cml-stable3.ciscops.net',
                        'cpn-rtp-cml-test1.ciscops.net',
@@ -721,7 +712,6 @@ if __name__ == '__main__':
                         cml.system_status['clusters']['cluster_1']['high_level_drivers']['compute_1']['memory']['used'] /
                         cml.system_status['clusters']['cluster_1']['high_level_drivers']['compute_1']['memory'][
                             'total'] * 100)
-
                     print(' -  CPU: ' + str(cpu) + '% Memory: ' + str(memory) + '%\n')
             else:
                 print('Error accessing server ' + cml_server + ': ' + str(
@@ -729,6 +719,6 @@ if __name__ == '__main__':
                 print(cml.bearer_token)
 
     s = time.perf_counter()
-    asyncio.run(check_get_token())
+    asyncio.run(check_get_token(my_username, my_password))
     elapsed = time.perf_counter() - s
-    print(f"{__file__} executed in {elapsed:0.2f} seconds.")
+    print(f"executed in {elapsed:0.2f} seconds.")
