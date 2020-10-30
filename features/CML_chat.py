@@ -166,13 +166,14 @@ async def cml_chat(activity):
 
     """START CML SHOW SERVER UTILIZATION"""
     if activity.get('text') == 'cml show server utilization':
+        logging.debug('Made it to cml show server utilization!')
         results_message = ''
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
         for cml_server in cml_servers:
             server_name = '\n***' + cml_server + '***\n'
             cml = CML(CONFIG.CML_USERNAME, CONFIG.CML_PASSWORD, cml_server)
             # Get bearer token
-            print('Lets get the token!')
+            logging.debug('Lets get the token!')
             if not await cml.get_token():  # {'description': 'User already exists: stmosher.', 'code': 422}
                 message = dict(text='Error accessing server ' + cml_server + ': ' + str(
                     cml.status_code) + ' ' + str(cml.bearer_token),

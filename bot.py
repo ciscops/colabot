@@ -210,6 +210,7 @@ class COLABot:
                 await awx.delete_accounts(self.activity)
 
             elif self.activity.get('text')[:3] == 'cml':  # Add searches for cml dialogue here
+                logging.debug('matched cml')
                 await cml_chat(self.activity)
 
             elif self.activity.get('text')[:3] == 'bye':
