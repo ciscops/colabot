@@ -41,7 +41,11 @@ class CML:
                 response_content = {}
                 logging.debug('Made a session POST request')
                 logging.debug('Below get the request reply in json')
-                response_content = await res.json()
+                logging.debug(dir(res))
+                try:
+                    response_content = await res.json()
+                except:
+                    logging.warning('Error res.json() method')
                 logging.debug('Made it pas getting the return json')
                 if res.status != 200:
                     self.status_code = res.status
