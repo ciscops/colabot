@@ -35,9 +35,7 @@ class CML:
         logging.debug('Asyncio session created')
         return_status = False
         try:
-            async with session.request(method="POST", url=u,
-                                       headers=headers,
-                                       data=json.dumps(body), ssl=False) as res:
+            async with session.request(method="POST", url=u, headers=headers, data=json.dumps(body), ssl=False) as res:
                 response_content = {}
                 logging.debug('Made a session POST request')
                 logging.debug('Below get the request reply in json')
