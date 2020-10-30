@@ -30,14 +30,18 @@ class CML:
         }
         u = self.url + api_path
         body = {'username': self.cml_username, 'password': self.cml_password}
+        logging.debug('Time to create an asyncio session')
         session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
+        logging.debug('Asyncio session created')
         try:
             async with session.request(method="POST", url=u,
                                        headers=headers,
                                        data=json.dumps(body), ssl=False) as res:
                 response_content = {}
-
+                logging.debug('Made a session POST request')
+                logging.debug('Below get the request reply in json')
                 response_content = await res.json()
+                logging.debug('Made it pas getting the return json')
                 if res.status != 200:
                     self.status_code = res.status
                     self.bearer_token = response_content
@@ -49,6 +53,7 @@ class CML:
                     await session.close()
                     return True
         except aiohttp.ContentTypeError as e:
+            logging.warning('Now in aiohttp.ContentTypeError')
             logging.warning(e)
             self.status_code = 500
             self.bearer_token = response_content
