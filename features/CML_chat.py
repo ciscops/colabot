@@ -172,6 +172,7 @@ async def cml_chat(activity):
             server_name = '\n***' + cml_server + '***\n'
             cml = CML(CONFIG.CML_USERNAME, CONFIG.CML_PASSWORD, cml_server)
             # Get bearer token
+            print('Lets get the token!')
             if not await cml.get_token():  # {'description': 'User already exists: stmosher.', 'code': 422}
                 message = dict(text='Error accessing server ' + cml_server + ': ' + str(
                     cml.status_code) + ' ' + str(cml.bearer_token),
@@ -180,11 +181,14 @@ async def cml_chat(activity):
                                attachments=[])
                 await webex.post_message_to_webex(message)
                 continue
-
+            print(f'Got the token for server{cml_server}')
+            print(f'Trying to get the system status for {cml_server}')
             if not await cml.get_system_status():
+                print(f'Got a get_system_status = False for {cml_server}')
                 server_name += 'Error accessing server ' + cml_server + ': ' + str(
                     cml.status_code) + ' ' + cml.system_status.get('description', '')
             else:
+                print(f'Got the system status for {cml_server}')
                 cpu = round(
                     cml.system_status['clusters']['cluster_1']['high_level_drivers']['compute_1']['cpu']['percent'])
                 memory = round(
