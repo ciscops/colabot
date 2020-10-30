@@ -4,6 +4,7 @@
 import aiohttp
 import json
 import random
+import logging
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -48,7 +49,7 @@ class CML:
                     await session.close()
                     return True
         except aiohttp.ContentTypeError as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.bearer_token = response_content
             try:
@@ -57,8 +58,8 @@ class CML:
                 pass
             return False
         except Exception as e:
-            print('Now in General Exception')
-            print(e)
+            logging.warning('Now in General Exception')
+            logging.warning(e)
             self.status_code = 500
             self.bearer_token = ''
             try:
@@ -93,7 +94,7 @@ class CML:
                     await session.close()
                     return True
         except aiohttp.ContentTypeError as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.users = response_content
             try:
@@ -102,7 +103,7 @@ class CML:
                 pass
             return False
         except Exception as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.users = {}
             try:
@@ -137,7 +138,7 @@ class CML:
                     await session.close()
                     return True
         except aiohttp.ContentTypeError as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.diagnostics = response_content
             try:
@@ -146,7 +147,7 @@ class CML:
                 pass
             return False
         except Exception as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.diagnostics = {}
             try:
@@ -181,7 +182,7 @@ class CML:
                     await session.close()
                     return True
         except aiohttp.ContentTypeError as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.lab_nodes = response_content
             try:
@@ -190,7 +191,7 @@ class CML:
                 pass
             return False
         except Exception as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.lab_nodes = []
             try:
@@ -225,7 +226,7 @@ class CML:
                     await session.close()
                     return True
         except aiohttp.ContentTypeError as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.lab_int_addresses = response_content
             try:
@@ -234,7 +235,7 @@ class CML:
                 pass
             return False
         except Exception as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.lab_int_addresses = {}
             try:
@@ -269,7 +270,7 @@ class CML:
                     await session.close()
                     return True
         except aiohttp.ContentTypeError as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.user_labs = response_content
             try:
@@ -278,7 +279,7 @@ class CML:
                 pass
             return False
         except Exception as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.user_labs = []
             try:
@@ -313,7 +314,7 @@ class CML:
                     await session.close()
                     return True
         except aiohttp.ContentTypeError as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.user_lab_details = response_content
             try:
@@ -322,7 +323,7 @@ class CML:
                 pass
             return False
         except Exception as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.user_lab_details = {}
             try:
@@ -357,7 +358,7 @@ class CML:
                     await session.close()
                     return True
         except aiohttp.ContentTypeError as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.system_status = response_content
             try:
@@ -366,7 +367,7 @@ class CML:
                 pass
             return False
         except Exception as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.system_status = {}
             try:
@@ -401,7 +402,7 @@ class CML:
                     await session.close()
                     return True
         except aiohttp.ContentTypeError as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.result = response_content
             try:
@@ -410,7 +411,7 @@ class CML:
                 pass
             return False
         except Exception as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.result = {}
             try:
@@ -445,7 +446,7 @@ class CML:
                     await session.close()
                     return True
         except aiohttp.ContentTypeError as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.result = response_content
             try:
@@ -454,7 +455,7 @@ class CML:
                 pass
             return False
         except Exception as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.result = {}
             try:
@@ -489,7 +490,7 @@ class CML:
                     await session.close()
                     return True
         except aiohttp.ContentTypeError as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.result = response_content
             try:
@@ -498,7 +499,7 @@ class CML:
                 pass
             return False
         except Exception as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.result = {}
             try:
@@ -534,7 +535,7 @@ class CML:
                     await session.close()
                     return True
         except aiohttp.ContentTypeError as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.result = response_content
             try:
@@ -543,7 +544,7 @@ class CML:
                 pass
             return False
         except Exception as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.result = {}
             try:
@@ -578,19 +579,19 @@ class CML:
                 if res.status != 200:
                     self.status_code = res.status
                     self.result = response_content
-                    print(response_content)
-                    print(type(response_content))
+                    logging.debug(response_content)
+                    logging.debug(type(response_content))
                     await session.close()
                     return False
                 else:
                     self.status_code = res.status
                     self.result = response_content
-                    print(response_content)
-                    print(type(response_content))
+                    logging.debug(response_content)
+                    logging.debug(type(response_content))
                     await session.close()
                     return True
         except aiohttp.ContentTypeError as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.result = response_content
             try:
@@ -599,7 +600,7 @@ class CML:
                 pass
             return False
         except Exception as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.result = {}
             try:
@@ -626,19 +627,19 @@ class CML:
                 if res.status != 200:
                     self.status_code = res.status
                     self.result = response_content
-                    print(response_content)
-                    print(type(response_content))
+                    logging.debug(response_content)
+                    logging.debug(type(response_content))
                     await session.close()
                     return False
                 else:
                     self.status_code = res.status
                     self.result = response_content
-                    print(response_content)
-                    print(type(response_content))
+                    logging.debug(response_content)
+                    logging.debug(type(response_content))
                     await session.close()
                     return True
         except aiohttp.ContentTypeError as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.result = response_content
             try:
@@ -647,7 +648,7 @@ class CML:
                 pass
             return False
         except Exception as e:
-            print(e)
+            logging.warning(e)
             self.status_code = 500
             self.result = {}
             try:
