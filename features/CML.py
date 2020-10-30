@@ -37,10 +37,6 @@ class CML:
                 response_content = {}
 
                 response_content = await res.json()
-                print('BELOW IS THE RESPONSE')
-                print(response_content)
-                print('BELOW IS THE STATUS CODE')
-                print(res.status)
                 if res.status != 200:
                     self.status_code = res.status
                     self.bearer_token = response_content
@@ -61,6 +57,7 @@ class CML:
                 pass
             return False
         except Exception as e:
+            print('Now in General Exception')
             print(e)
             self.status_code = 500
             self.bearer_token = ''
@@ -689,23 +686,34 @@ if __name__ == '__main__':
     import time
 
     async def check_get_token():
-        print('\ncpn-rtp-cml4.ciscops.net')
-        cml = CML('stmosher', 'xx', 'cpn-rtp-cml4.ciscops.net')
-        print(await cml.get_token())
-        print('Error accessing server ' + 'cpn-rtp-cml4.ciscops.net' + ': ' + str(
+        my_username = 'testname'
+        my_password = 'xxx'
+
+        cml_servers = ['cpn-rtp-cml4.ciscops.net',
+                       'cpn-rtp-cml-stable3.ciscops.net',
+                       'cpn-rtp-cml-test1.ciscops.net',
+                       'cpn-rtp-cml-stable2.ciscops.net']
+        for cml_server in cml_servers:
+            print('\n\n\n' + cml_server)
+            cml = CML(my_username, my_password, cml_server)
+            print(await cml.get_token())
+            if cml.status_code == 200:
+                if not await cml.get_system_status():
+                    print('Error accessing server ' + cml_server + ': ' + str(
+                        cml.status_code) + ' ' + cml.system_status.get('description', ''))
+                else:
+                    cpu = round(
+                        cml.system_status['clusters']['cluster_1']['high_level_drivers']['compute_1']['cpu']['percent'])
+                    memory = round(
+                        cml.system_status['clusters']['cluster_1']['high_level_drivers']['compute_1']['memory']['used'] /
+                        cml.system_status['clusters']['cluster_1']['high_level_drivers']['compute_1']['memory'][
+                            'total'] * 100)
+
+                    print(' -  CPU: ' + str(cpu) + '% Memory: ' + str(memory) + '%\n')
+            else:
+                print('Error accessing server ' + cml_server + ': ' + str(
                     cml.status_code) + ' ' + cml.bearer_token)
-        print(cml.bearer_token)
-        print(type(cml.bearer_token))
-        print('\ncpn-rtp-virl5.ciscops.net')
-        cml = CML('stmosher', 'xx', 'cpn-rtp-virl5.ciscops.net')
-        print(await cml.get_token())
-        print('Error accessing server ' + 'cpn-rtp-virl5.ciscops.net' + ': ' + str(
-                    cml.status_code) + ' ' + cml.bearer_token)
-        print('\ncpn-rtp-virl6.ciscops.net')
-        cml = CML('stmosher', 'xx', 'cpn-rtp-virl6.ciscops.net')
-        print(await cml.get_token())
-        print('Error accessing server ' + 'cpn-rtp-virl6.ciscops.net' + ': ' + str(
-                    cml.status_code) + ' ' + cml.bearer_token)
+                print(cml.bearer_token)
 
     s = time.perf_counter()
     asyncio.run(check_get_token())
