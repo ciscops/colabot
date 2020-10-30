@@ -45,32 +45,32 @@ class CML:
                 if res.status != 200:
                     self.status_code = res.status
                     self.bearer_token = response_content
-                    await session.close()
+                    # await session.close()
                     return False
                 else:
                     self.status_code = res.status
                     self.bearer_token = response_content
-                    await session.close()
+                    # await session.close()
                     return True
         except aiohttp.ContentTypeError as e:
             logging.warning('Now in aiohttp.ContentTypeError')
             logging.warning(e)
             self.status_code = 500
             self.bearer_token = response_content
-            try:
-                await session.close()
-            except:
-                pass
+            # try:
+            #     await session.close()
+            # except:
+            #     pass
             return False
         except Exception as e:
             logging.warning('Now in General Exception')
             logging.warning(e)
             self.status_code = 500
             self.bearer_token = ''
-            try:
-                await session.close()
-            except:
-                pass
+            # try:
+            #     await session.close()
+            # except:
+            #     pass
             return False
 
     async def get_users(self):
@@ -691,9 +691,12 @@ if __name__ == '__main__':
     import asyncio
     import time
 
+    FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    logging.basicConfig(format=FORMAT, level=logging.DEBUG)
+
     async def check_get_token():
-        my_username = 'testname'
-        my_password = 'xxx'
+        my_username = 'stmosher'
+        my_password = 'DrmGKr^0fE}Kwl1^T9jD'
 
         cml_servers = ['cpn-rtp-cml4.ciscops.net',
                        'cpn-rtp-cml-stable3.ciscops.net',
