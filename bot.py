@@ -340,7 +340,7 @@ async def process_text(message):
     }
     body = {'text': message, 'secret': CONFIG.NLP_SECRET}
     u = 'http://' + CONFIG.NLP_SERVER + api_path
-    session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5))
+    session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10))
     try:
         async with session.request(method="POST", url=u, headers=headers, data=json.dumps(body), ssl=False) as res:
             response_content = {}

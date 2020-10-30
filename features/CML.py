@@ -30,7 +30,7 @@ class CML:
         }
         u = self.url + api_path
         body = {'username': self.cml_username, 'password': self.cml_password}
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5))
+        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10))
         try:
             async with session.request(method="POST", url=u,
                                        headers=headers,
@@ -80,7 +80,7 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token
         }
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5))
+        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10))
         try:
             async with session.request(method="GET", url=u,
                                        headers=headers, ssl=False) as res:
@@ -124,7 +124,7 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token
         }
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5))
+        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10))
         try:
             async with session.request(method="GET", url=u,
                                        headers=headers, ssl=False) as res:
@@ -168,7 +168,7 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token
         }
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5))
+        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10))
         try:
             async with session.request(method="GET", url=u,
                                        headers=headers, ssl=False) as res:
@@ -212,7 +212,7 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token
         }
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5))
+        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10))
         try:
             async with session.request(method="GET", url=u,
                                        headers=headers, ssl=False) as res:
@@ -256,7 +256,7 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token
         }
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5))
+        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10))
         try:
             async with session.request(method="GET", url=u,
                                        headers=headers, ssl=False) as res:
@@ -300,7 +300,7 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token
         }
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5))
+        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10))
         try:
             async with session.request(method="GET", url=u,
                                        headers=headers, ssl=False) as res:
@@ -344,7 +344,7 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token
         }
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5))
+        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10))
         try:
             async with session.request(method="GET", url=u,
                                        headers=headers, ssl=False) as res:
@@ -388,7 +388,7 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token
         }
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5))
+        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10))
         try:
             async with session.request(method="PUT", url=u,
                                        headers=headers, ssl=False) as res:
@@ -432,7 +432,7 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token
         }
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5))
+        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10))
         try:
             async with session.request(method="PUT", url=u,
                                        headers=headers, ssl=False) as res:
@@ -476,7 +476,7 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token
         }
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5))
+        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10))
         try:
             async with session.request(method="DELETE", url=u,
                                        headers=headers, ssl=False) as res:
@@ -521,7 +521,7 @@ class CML:
         }
         body = {'old_password': '', 'new_password': new_password}
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5))
+        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10))
         try:
             async with session.request(method="PUT", url=u,
                                        headers=headers, data=json.dumps(body),ssl=False) as res:
@@ -573,7 +573,7 @@ class CML:
                 'context': {}
                 }
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5))
+        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10))
         try:
             async with session.request(method="POST", url=u,
                                        headers=headers, data=json.dumps(body),ssl=False) as res:
@@ -621,7 +621,7 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token
         }
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5))
+        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10))
         try:
             async with session.request(method="DELETE", url=u,
                                        headers=headers, ssl=False) as res:
