@@ -209,6 +209,12 @@ class COLABot:
             elif self.activity.get('text') == 'delete accounts':
                 await awx.delete_accounts(self.activity)
 
+            elif self.activity.get('text') == 'build gitlab':
+                await awx.create_gitlab(self.activity)
+
+            elif self.activity.get('text') == 'terminate gitlab':
+                await awx.remove_gitlab(self.activity)
+
             elif self.activity.get('text')[:3] == 'cml':  # Add searches for cml dialogue here
                 logging.debug('matched cml')
                 await cml_chat(self.activity)
