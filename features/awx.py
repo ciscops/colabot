@@ -281,3 +281,85 @@ async def delete_accounts(activity):
                 print('Failed to connect to DB')
 
     return
+
+
+async def create_gitlab(activity):
+    webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
+    message = dict(text='Working... This can take up to 10 minutes...',
+                   roomId=activity['roomId'],
+                   parentId=activity['parentId'],
+                   attachments=[])
+    await webex.post_message_to_webex(message)
+    if re.search(r'1MDFmYzc$', CONFIG.BOT_ID):
+        id_template = '36'  # prod
+    else:
+        id_template = '38'  # for dev
+    url = f'https://cpn-rtp-awx1.colab.ciscops.net/api/v2/job_templates/{id_template}/launch/'
+    headers = {'Content-Type': 'application/json'}
+    user_and_domain = activity['sender_email'].split('@')
+    body = {"extra_vars": {"colab_user_username": user_and_domain[0],
+                           "colab_user_email": activity['sender_email']}}
+    auth = aiohttp.BasicAuth(login=CONFIG.AWX_USERNAME, password=CONFIG.AWX_PASSWORD, encoding='utf-8')
+    session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30), auth=auth)
+    try:
+        async with session.request(method="POST", url=url,
+                                   headers=headers, data=json.dumps(body), ssl=False) as res:
+            if res.status != 201:
+                message = dict(text='Error contacting AWX server. ' + str(res.status),
+                               roomId=activity['roomId'],
+                               parentId=activity['parentId'],
+                               attachments=[])
+                await webex.post_message_to_webex(message)
+                await session.close()
+    except Exception as e:
+        message = dict(text='Error contacting AWX server. ' + str(res.status),
+                       roomId=activity['roomId'],
+                       parentId=activity['parentId'],
+                       attachments=[])
+        await webex.post_message_to_webex(message)
+        try:
+            await session.close()
+        except:
+            pass
+    return
+
+
+async def remove_gitlab(activity):
+    webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
+    message = dict(text='Working... This can take up to 5 minutes...',
+                   roomId=activity['roomId'],
+                   parentId=activity['parentId'],
+                   attachments=[])
+    await webex.post_message_to_webex(message)
+    if re.search(r'1MDFmYzc$', CONFIG.BOT_ID):
+        id_template = '37'  # prod
+    else:
+        id_template = '39'  # for dev
+    url = f'https://cpn-rtp-awx1.colab.ciscops.net/api/v2/job_templates/{id_template}/launch/'
+    headers = {'Content-Type': 'application/json'}
+    user_and_domain = activity['sender_email'].split('@')
+    body = {"extra_vars": {"colab_user_username": user_and_domain[0],
+                           "colab_user_email": activity['sender_email']}}
+    auth = aiohttp.BasicAuth(login=CONFIG.AWX_USERNAME, password=CONFIG.AWX_PASSWORD, encoding='utf-8')
+    session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30), auth=auth)
+    try:
+        async with session.request(method="POST", url=url,
+                                   headers=headers, data=json.dumps(body), ssl=False) as res:
+            if res.status != 201:
+                message = dict(text='Error contacting AWX server. ' + str(res.status),
+                               roomId=activity['roomId'],
+                               parentId=activity['parentId'],
+                               attachments=[])
+                await webex.post_message_to_webex(message)
+                await session.close()
+    except Exception as e:
+        message = dict(text='Error contacting AWX server. ' + str(res.status),
+                       roomId=activity['roomId'],
+                       parentId=activity['parentId'],
+                       attachments=[])
+        await webex.post_message_to_webex(message)
+        try:
+            await session.close()
+        except:
+            pass
+    return
