@@ -23,6 +23,8 @@ mongo_url = 'mongodb://' + CONFIG.MONGO_INITDB_ROOT_USERNAME + ':' + CONFIG.MONG
 help_menu_list = ['**Create accounts** > create COLAB accounts\n',
                   '**Create AWS account** > create AWS COLAB account\n',
                   '**Create VPN account** > create an AnyConnect to COLAB VPN account\n',
+                  '**Build GitLab** > create GitLab deployment\n',
+                  '**Terminate GitLab** > terminate GitLab deployment\n',
                   '**Delete accounts** > delete COLAB accounts\n',
                   '**Reset passwords** > resets all COLAB associated passwords\n',
                   '**CML delete lab** > delete lab\n',
