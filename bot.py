@@ -109,7 +109,7 @@ class COLABot:
 
         # Preprocess text
         if self.activity['description'] == 'message_details':
-            if self.activity.get('roomType', '') == 'group':  # This will remove bot name from text if message was "at mention" to the bot
+            if self.activity.get('roomType', '') == 'group':  # Remove bot name from text if message was "at mention"
                 self.activity['text'] = self.activity.get('text').replace(self.activity.get('bot_name') + ' ', '')
         if self.activity.get('text'):
             self.activity['original_text'] = self.activity.get('text')
@@ -133,9 +133,9 @@ class COLABot:
             if result:
                 epoch_time_now = time.time()
                 last_dialogue_epoch_time = int(time.mktime(time.strptime(result['created'], pattern)))
-                if epoch_time_now - last_dialogue_epoch_time >= int(CONFIG.DIALOGUE_TIMEOUT):  # Remove any conversations over X seconds
+                if epoch_time_now - last_dialogue_epoch_time >= int(CONFIG.DIALOGUE_TIMEOUT):  # Remove stale convos
                     try:
-                        r = posts.delete_many(query_lab_filter)
+                        posts.delete_many(query_lab_filter)
                     except Exception as e:
                         logging.error('Could not remove stale dialogue record from DB')
                         logging.error(e)
@@ -143,7 +143,7 @@ class COLABot:
                 # If somehow the dialogue_max_step is maxed out
                 elif result['dialogue_step'] > result['dialogue_max_steps']:
                     try:
-                        r = posts.delete_many(query_lab_filter)
+                        posts.delete_many(query_lab_filter)
                     except Exception as e:
                         logging.error('Could not remove stale dialogue record from DB')
                         logging.error(e)
@@ -191,6 +191,7 @@ class COLABot:
                 # Future - Can add a dialogue to ask user if highest confidence score was what they wanted
             except Exception as e:
                 logging.warning('Unable to receive message from NLP server')
+                logging.warning(e)
 
             logging.info('Below is the post NLP activity')
             logging.info(self.activity)
@@ -261,8 +262,7 @@ class COLABot:
             message = dict(text='The card is inactive. Please generate a new one.',
                            roomId=self.activity['roomId'],
                            attachments=[])
-            response = await self.webex_client.post_message_to_webex(message)
-            return
+            await self.webex_client.post_message_to_webex(message)
 
     async def translate_request_to_activity(self, request_dict):
         activity = None
@@ -334,13 +334,13 @@ class COLABot:
         markdown += '\nor visit https://confluence-eng-rtp1.cisco.com/conf/display/CIDR/CoLaboratory for more information.\n'
         return markdown
 
-    async def preprocess(self, text):
+    @staticmethod
+    async def preprocess(text):
         text = [word.lower().strip() for word in text.split()]
         text = [''.join(c for c in s if c not in string.punctuation) for s in text]
         return [' '.join(x for x in text if x)][0]
 
 
-# Future NLP interaction
 async def process_text(message):
     api_path = '/api/v1/nlp'
     headers = {
@@ -360,6 +360,6 @@ async def process_text(message):
         logging.warning(e)
         try:
             await session.close()
-        except:
-            pass
+        except Exception as e:
+            logging.warning(e)
         return response_content

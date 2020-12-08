@@ -5,8 +5,7 @@ async def catch_all(activity):
     if activity.get('text'):
         if activity.get('roomType') == 'group':
             message = dict(
-                text='"' + activity.get(
-                    'original_text') + '"   &#x1F914;  Please reply ' + "**@" +
+                text='"' + activity.get('original_text') + '"   &#x1F914;  Please reply ' + "**@" +
                      activity['bot_name'] + " help** to see my available commands",
                 roomId=activity['roomId'],
                 parentId=activity['parentId'],

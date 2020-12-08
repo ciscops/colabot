@@ -29,3 +29,4 @@ class DefaultConfig:
     NLP_SERVER = os.environ.get('NLP_SERVER', 'nlp-server.example.com')
     NLP_SECRET = os.environ.get('NLP_SECRET', 'xxxx')
     VCENTER_SERVER = os.environ.get('VCENTER_SERVER', 'vcenter.example.com')
+    AWX_SERVER = os.environ.get('AWX_SERVER', 'xxxx')

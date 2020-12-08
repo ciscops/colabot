@@ -359,6 +359,7 @@ async def cml_chat(activity):
                     )
                 except Exception as e:
                     logging.warning('Failed to connect to DB')
+                    logging.warning(e)
             return
         else:
             message = dict(text="You don't have running labs",
@@ -376,6 +377,7 @@ async def cml_chat(activity):
                     r = posts.delete_one(query_lab_filter)
                 except Exception as e:
                     logging.warning('Failed to connect to DB')
+                    logging.warning(e)
 
             return
     if activity.get('card_dialogue_index') == 'cml_stop_lab_choices' and activity.get('dialogue_step') == 2:
@@ -420,6 +422,7 @@ async def cml_chat(activity):
                 r = posts.delete_one(query_lab_filter)
             except Exception as e:
                 logging.warning('Failed to connect to DB')
+                logging.warning(e)
 
         return
     """ END CML STOP LAB DIALOGUE """
@@ -469,6 +472,7 @@ async def cml_chat(activity):
                 post_id = posts.insert_one(dialogue_record).inserted_id
             except Exception as e:
                 logging.warning('Failed to connect to DB')
+                logging.warning(e)
         return
     if activity.get('dialogue_name') == 'cml_delete_lab' and activity.get('dialogue_step') == 1:
         user_and_domain = activity['sender_email'].split('@')
@@ -531,8 +535,8 @@ async def cml_chat(activity):
                            roomId=activity['roomId'],
                            attachments=[
                                {'contentType': 'application/vnd.microsoft.card.adaptive', 'content': card_json}])
-            result100 = await webex.post_message_to_webex(message)
-            # This needs to be an update
+            await webex.post_message_to_webex(message)
+
             with pymongo.MongoClient(mongo_url) as client:
                 db = client[CONFIG.MONGO_DB_ACTIVITY]
                 posts = db[CONFIG.MONGO_COLLECTIONS_ACTIVITY]
@@ -546,6 +550,7 @@ async def cml_chat(activity):
                     )
                 except Exception as e:
                     logging.warning('Failed to connect to DB')
+                    logging.warning(e)
             return
         else:
             message = dict(text="You don't have labs",
@@ -563,6 +568,7 @@ async def cml_chat(activity):
                     r = posts.delete_one(query_lab_filter)
                 except Exception as e:
                     logging.warning('Failed to connect to DB')
+                    logging.warning(e)
 
             return
     if activity.get('card_dialogue_index') == 'cml_delete_lab_choices' and activity.get('dialogue_step') == 2:
@@ -615,6 +621,7 @@ async def cml_chat(activity):
                 r = posts.delete_one(query_lab_filter)
             except Exception as e:
                 logging.warning('Failed to connect to DB')
+                logging.warning(e)
 
         return
     """ END CML DELETE LAB DIALOGUE """
@@ -661,9 +668,10 @@ async def cml_chat(activity):
                                'card_dialogue_index': 'cml_list_lab_details',
                                'card_feature_index': 'cml'}
             try:
-                post_id = posts.insert_one(dialogue_record).inserted_id
+                posts.insert_one(dialogue_record).inserted_id
             except Exception as e:
                 logging.warning('Failed to connect to DB')
+                logging.warning(e)
         return
     if activity.get('dialogue_name') == 'cml_list_lab_details' and activity.get('dialogue_step') == 1:
         results_message = ''
@@ -733,6 +741,7 @@ async def cml_chat(activity):
                 r = posts.delete_one(query_lab_filter)
             except Exception as e:
                 logging.warning('Failed to connect to DB')
+                logging.warning(e)
 
         return
     """END CML LIST MY LAB DETAILS DIALOGUE"""
@@ -779,9 +788,10 @@ async def cml_chat(activity):
                                'card_dialogue_index': 'cml_ips_lab',
                                'card_feature_index': 'cml'}
             try:
-                post_id = posts.insert_one(dialogue_record).inserted_id
+                posts.insert_one(dialogue_record).inserted_id
             except Exception as e:
                 logging.warning('Failed to connect to DB')
+                logging.warning(e)
         return
     if activity.get('dialogue_name') == 'cml_ips_lab' and activity.get('dialogue_step') == 1:
         user_and_domain = activity['sender_email'].split('@')
@@ -864,6 +874,7 @@ async def cml_chat(activity):
                 r = posts.delete_one(query_lab_filter)
             except Exception as e:
                 logging.warning('Failed to connect to DB')
+                logging.warning(e)
 
         return
     """ END CML SHOW IPS DIALOGUE """

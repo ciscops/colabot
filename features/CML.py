@@ -58,8 +58,8 @@ class CML:
             self.bearer_token = response_content
             try:
                 await session.close()
-            except:
-                pass
+            except Exception as e:
+                logging.warning(e)
             return False
         except Exception as e:
             logging.warning(e)
@@ -67,8 +67,8 @@ class CML:
             self.bearer_token = ''
             try:
                 await session.close()
-            except:
-                pass
+            except Exception as e:
+                logging.warning(e)
             return False
 
     async def get_users(self):
@@ -102,8 +102,8 @@ class CML:
             self.users = response_content
             try:
                 await session.close()
-            except:
-                pass
+            except Exception as e:
+                logging.warning(e)
             return False
         except Exception as e:
             logging.warning(e)
@@ -111,8 +111,8 @@ class CML:
             self.users = {}
             try:
                 await session.close()
-            except:
-                pass
+            except Exception as e:
+                logging.warning(e)
             return False
 
     async def get_diagnostics(self):
@@ -146,8 +146,8 @@ class CML:
             self.diagnostics = response_content
             try:
                 await session.close()
-            except:
-                pass
+            except Exception as e:
+                logging.warning(e)
             return False
         except Exception as e:
             logging.warning(e)
@@ -155,8 +155,8 @@ class CML:
             self.diagnostics = {}
             try:
                 await session.close()
-            except:
-                pass
+            except Exception as e:
+                logging.warning(e)
             return False
 
     async def get_lab_nodes(self, lab_id):
@@ -190,8 +190,8 @@ class CML:
             self.lab_nodes = response_content
             try:
                 await session.close()
-            except:
-                pass
+            except Exception as e:
+                logging.warning(e)
             return False
         except Exception as e:
             logging.warning(e)
@@ -199,8 +199,8 @@ class CML:
             self.lab_nodes = []
             try:
                 await session.close()
-            except:
-                pass
+            except Exception as e:
+                logging.warning(e)
             return False
 
     async def layer3_addresses(self, lab_id, node_id):
@@ -234,8 +234,8 @@ class CML:
             self.lab_int_addresses = response_content
             try:
                 await session.close()
-            except:
-                pass
+            except Exception as e:
+                logging.warning(e)
             return False
         except Exception as e:
             logging.warning(e)
@@ -243,8 +243,8 @@ class CML:
             self.lab_int_addresses = {}
             try:
                 await session.close()
-            except:
-                pass
+            except Exception as e:
+                logging.warning(e)
             return False
 
     async def get_user_labs(self):
@@ -278,8 +278,8 @@ class CML:
             self.user_labs = response_content
             try:
                 await session.close()
-            except:
-                pass
+            except Exception as e:
+                logging.warning(e)
             return False
         except Exception as e:
             logging.warning(e)
@@ -287,8 +287,8 @@ class CML:
             self.user_labs = []
             try:
                 await session.close()
-            except:
-                pass
+            except Exception as e:
+                logging.warning(e)
             return False
 
     async def get_user_lab_details(self, lab_id):
@@ -322,8 +322,8 @@ class CML:
             self.user_lab_details = response_content
             try:
                 await session.close()
-            except:
-                pass
+            except Exception as e:
+                logging.warning(e)
             return False
         except Exception as e:
             logging.warning(e)
@@ -331,8 +331,8 @@ class CML:
             self.user_lab_details = {}
             try:
                 await session.close()
-            except:
-                pass
+            except Exception as e:
+                logging.warning(e)
             return False
 
     async def get_system_status(self):
@@ -366,8 +366,8 @@ class CML:
             self.system_status = response_content
             try:
                 await session.close()
-            except:
-                pass
+            except Exception as e:
+                logging.warning(e)
             return False
         except Exception as e:
             logging.warning(e)
@@ -375,8 +375,8 @@ class CML:
             self.system_status = {}
             try:
                 await session.close()
-            except:
-                pass
+            except Exception as e:
+                logging.warning(e)
             return False
 
     async def stop_lab(self, lab_id):
@@ -410,8 +410,8 @@ class CML:
             self.result = response_content
             try:
                 await session.close()
-            except:
-                pass
+            except Exception as e:
+                logging.warning(e)
             return False
         except Exception as e:
             logging.warning(e)
@@ -419,8 +419,8 @@ class CML:
             self.result = {}
             try:
                 await session.close()
-            except:
-                pass
+            except Exception as e:
+                logging.warning(e)
             return False
 
     async def wipe_lab(self, lab_id):
@@ -454,8 +454,8 @@ class CML:
             self.result = response_content
             try:
                 await session.close()
-            except:
-                pass
+            except Exception as e:
+                logging.warning(e)
             return False
         except Exception as e:
             logging.warning(e)
@@ -463,8 +463,8 @@ class CML:
             self.result = {}
             try:
                 await session.close()
-            except:
-                pass
+            except Exception as e:
+                logging.warning(e)
             return False
 
     async def delete_lab(self, lab_id):
@@ -498,8 +498,8 @@ class CML:
             self.result = response_content
             try:
                 await session.close()
-            except:
-                pass
+            except Exception as e:
+                logging.warning(e)
             return False
         except Exception as e:
             logging.warning(e)
@@ -507,8 +507,8 @@ class CML:
             self.result = {}
             try:
                 await session.close()
-            except:
-                pass
+            except Exception as e:
+                logging.warning(e)
             return False
 
     async def change_password(self, username_webex, new_password):
@@ -543,8 +543,8 @@ class CML:
             self.result = response_content
             try:
                 await session.close()
-            except:
-                pass
+            except Exception as e:
+                logging.warning(e)
             return False
         except Exception as e:
             logging.warning(e)
@@ -552,8 +552,8 @@ class CML:
             self.result = {}
             try:
                 await session.close()
-            except:
-                pass
+            except Exception as e:
+                logging.warning(e)
             return False
 
     async def add_user(self, username_webex, user_email, new_password):
@@ -599,8 +599,8 @@ class CML:
             self.result = response_content
             try:
                 await session.close()
-            except:
-                pass
+            except Exception as e:
+                logging.warning(e)
             return False
         except Exception as e:
             logging.warning(e)
@@ -608,8 +608,8 @@ class CML:
             self.result = {}
             try:
                 await session.close()
-            except:
-                pass
+            except Exception as e:
+                logging.warning(e)
             return False
 
     async def delete_user(self, username_webex):
@@ -647,8 +647,8 @@ class CML:
             self.result = response_content
             try:
                 await session.close()
-            except:
-                pass
+            except Exception as e:
+                logging.warning(e)
             return False
         except Exception as e:
             logging.warning(e)
@@ -656,8 +656,8 @@ class CML:
             self.result = {}
             try:
                 await session.close()
-            except:
-                pass
+            except Exception as e:
+                logging.warning(e)
             return False
 
     async def list_user_lab_ids(self, username_webex):

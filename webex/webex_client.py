@@ -44,8 +44,8 @@ class WebExClient:
             logging.warning(e)
             try:
                 await session.close()
-            except:
-                pass
+            except Exception as e:
+                logging.warning(e)
             return response_content
 
     async def get_message_details(self, message_id):
@@ -65,8 +65,8 @@ class WebExClient:
             logging.warning(e)
             try:
                 await session.close()
-            except:
-                pass
+            except Exception as e:
+                logging.warning(e)
             return response_content
 
     async def get_card_attachment(self, message_id):
@@ -86,8 +86,8 @@ class WebExClient:
             logging.warning(e)
             try:
                 await session.close()
-            except:
-                pass
+            except Exception as e:
+                logging.warning(e)
             return response_content
 
     async def delete_message(self, message_id):
@@ -107,8 +107,8 @@ class WebExClient:
             logging.warning(e)
             try:
                 await session.close()
-            except:
-                pass
+            except Exception as e:
+                logging.warning(e)
             return response_content
 
     async def get_room_memberships(self, room_id, person_id):
@@ -126,8 +126,8 @@ class WebExClient:
             logging.warning(e)
             try:
                 await session.close()
-            except:
-                pass
+            except Exception as e:
+                logging.warning(e)
             return 500
 
     @staticmethod
