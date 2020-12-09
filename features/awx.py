@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import aiohttp
+import logging
 from config import DefaultConfig as CONFIG
 from webex import WebExClient
 import json
@@ -23,10 +24,10 @@ async def create_accounts(activity):
     await webex.post_message_to_webex(message)
     urls_cml_servers = ['https://' + s for s in cml_servers]
     if re.search(r'1MDFmYzc$', CONFIG.BOT_ID):
-        id_template = '29'  # prod
+        id_template = '14'  # prod
     else:
-        id_template = '27'  # for dev
-    url = f'https://cpn-rtp-awx1.colab.ciscops.net/api/v2/job_templates/{id_template}/launch/'
+        id_template = '10'  # for dev
+    url = f'https://{CONFIG.AWX_SERVER}/api/v2/job_templates/{id_template}/launch/'
     headers = {'Content-Type': 'application/json'}
     user_and_domain = activity['sender_email'].split('@')
     body = {"extra_vars": {"cml_server_list": urls_cml_servers,
@@ -47,6 +48,7 @@ async def create_accounts(activity):
                 await webex.post_message_to_webex(message)
                 await session.close()
     except Exception as e:
+        logging.warning(e)
         message = dict(text='Error contacting AWX server. ' + str(res.status),
                        roomId=activity['roomId'],
                        parentId=activity['parentId'],
@@ -54,8 +56,8 @@ async def create_accounts(activity):
         await webex.post_message_to_webex(message)
         try:
             await session.close()
-        except:
-            pass
+        except Exception as e:
+            logging.warning(e)
     return
 
 
@@ -69,10 +71,10 @@ async def create_aws_account(activity):
     await webex.post_message_to_webex(message)
     urls_cml_servers = ['https://' + s for s in cml_servers]
     if re.search(r'1MDFmYzc$', CONFIG.BOT_ID):
-        id_template = '32'  # prod
+        id_template = '15'  # prod
     else:
-        id_template = '31'  # for dev
-    url = f'https://cpn-rtp-awx1.colab.ciscops.net/api/v2/job_templates/{id_template}/launch/'
+        id_template = '11'  # for dev
+    url = f'https://{CONFIG.AWX_SERVER}/api/v2/job_templates/{id_template}/launch/'
     headers = {'Content-Type': 'application/json'}
     user_and_domain = activity['sender_email'].split('@')
     body = {"extra_vars": {"cml_server_list": urls_cml_servers,
@@ -93,6 +95,7 @@ async def create_aws_account(activity):
                 await webex.post_message_to_webex(message)
                 await session.close()
     except Exception as e:
+        logging.warning(e)
         message = dict(text='Error contacting AWX server. ' + str(res.status),
                        roomId=activity['roomId'],
                        parentId=activity['parentId'],
@@ -100,8 +103,8 @@ async def create_aws_account(activity):
         await webex.post_message_to_webex(message)
         try:
             await session.close()
-        except:
-            pass
+        except Exception as e:
+            logging.warning(e)
     return
 
 
@@ -115,10 +118,10 @@ async def create_vpn_account(activity):
     await webex.post_message_to_webex(message)
     urls_cml_servers = ['https://' + s for s in cml_servers]
     if re.search(r'1MDFmYzc$', CONFIG.BOT_ID):
-        id_template = '34'  # prod
+        id_template = '16'  # prod
     else:
-        id_template = '33'  # for dev
-    url = f'https://cpn-rtp-awx1.colab.ciscops.net/api/v2/job_templates/{id_template}/launch/'
+        id_template = '12'  # for dev
+    url = f'https://{CONFIG.AWX_SERVER}/api/v2/job_templates/{id_template}/launch/'
     headers = {'Content-Type': 'application/json'}
     user_and_domain = activity['sender_email'].split('@')
     body = {"extra_vars": {"cml_server_list": urls_cml_servers,
@@ -139,6 +142,7 @@ async def create_vpn_account(activity):
                 await webex.post_message_to_webex(message)
                 await session.close()
     except Exception as e:
+        logging.warning(e)
         message = dict(text='Error contacting AWX server. ' + str(res.status),
                        roomId=activity['roomId'],
                        parentId=activity['parentId'],
@@ -146,8 +150,8 @@ async def create_vpn_account(activity):
         await webex.post_message_to_webex(message)
         try:
             await session.close()
-        except:
-            pass
+        except Exception as e:
+            logging.warning(e)
     return
 
 
@@ -197,6 +201,7 @@ async def delete_accounts(activity):
             try:
                 post_id = posts.insert_one(dialogue_record).inserted_id
             except Exception as e:
+                logging.warning(e)
                 print('Failed to connect to DB')
         return
     if activity.get('dialogue_name') == 'colab_delete_accounts' and activity.get('dialogue_step') == 1:
@@ -216,7 +221,8 @@ async def delete_accounts(activity):
                                         'roomId': activity['roomId'],
                                         'dialogue_name': 'colab_delete_accounts'}
                 return
-        except Exception:
+        except Exception as e:
+            logging.warning(e)
             message = dict(text='I thought we were talking about deleting your accounts. Please send a new command',
                            roomId=activity['roomId'],
                            attachments=[])
@@ -237,10 +243,10 @@ async def delete_accounts(activity):
         await webex.post_message_to_webex(message)
         urls_cml_servers = ['https://' + s for s in cml_servers]
         if re.search(r'1MDFmYzc$', CONFIG.BOT_ID):
-            id_template = '30'  # prod
+            id_template = '17'  # prod
         else:
-            id_template = '28'  # dev
-        url = f'https://cpn-rtp-awx1.colab.ciscops.net/api/v2/job_templates/{id_template}/launch/'
+            id_template = '13'  # dev
+        url = f'https://{CONFIG.AWX_SERVER}/api/v2/job_templates/{id_template}/launch/'
         headers = {'Content-Type': 'application/json'}
         user_and_domain = activity['sender_email'].split('@')
         body = {"extra_vars": {"cml_server_list": urls_cml_servers,
@@ -261,14 +267,15 @@ async def delete_accounts(activity):
                     await webex.post_message_to_webex(message)
                     await session.close()
         except Exception as e:
+            logging.warning(e)
             message = dict(text='Error contacting AWX server. ' + str(res.status),
                            roomId=activity['sender_email'],
                            attachments=[])
             await webex.post_message_to_webex(message)
             try:
                 await session.close()
-            except:
-                pass
+            except Exception as e:
+                logging.warning(e)
         with pymongo.MongoClient(mongo_url) as client:
             db = client[CONFIG.MONGO_DB_ACTIVITY]
             posts = db[CONFIG.MONGO_COLLECTIONS_ACTIVITY]
@@ -276,8 +283,9 @@ async def delete_accounts(activity):
                                 'roomId': activity['roomId'],
                                 'dialogue_name': 'colab_delete_accounts'}
             try:
-                r = posts.delete_one(query_lab_filter)
+                posts.delete_one(query_lab_filter)
             except Exception as e:
+                logging.warning(e)
                 print('Failed to connect to DB')
 
     return
@@ -291,10 +299,10 @@ async def create_gitlab(activity):
                    attachments=[])
     await webex.post_message_to_webex(message)
     if re.search(r'1MDFmYzc$', CONFIG.BOT_ID):
-        id_template = '36'  # prod
+        id_template = '18'  # prod
     else:
-        id_template = '38'  # for dev
-    url = f'https://cpn-rtp-awx1.colab.ciscops.net/api/v2/job_templates/{id_template}/launch/'
+        id_template = '19'  # for dev
+    url = f'https://{CONFIG.AWX_SERVER}/api/v2/job_templates/{id_template}/launch/'
     headers = {'Content-Type': 'application/json'}
     user_and_domain = activity['sender_email'].split('@')
     body = {"extra_vars": {"colab_user_username": user_and_domain[0],
@@ -312,6 +320,7 @@ async def create_gitlab(activity):
                 await webex.post_message_to_webex(message)
                 await session.close()
     except Exception as e:
+        logging.warning(e)
         message = dict(text='Error contacting AWX server. ' + str(res.status),
                        roomId=activity['roomId'],
                        parentId=activity['parentId'],
@@ -319,8 +328,8 @@ async def create_gitlab(activity):
         await webex.post_message_to_webex(message)
         try:
             await session.close()
-        except:
-            pass
+        except Exception as e:
+            logging.warning(e)
     return
 
 
@@ -332,10 +341,10 @@ async def remove_gitlab(activity):
                    attachments=[])
     await webex.post_message_to_webex(message)
     if re.search(r'1MDFmYzc$', CONFIG.BOT_ID):
-        id_template = '37'  # prod
+        id_template = '20'  # prod
     else:
-        id_template = '39'  # for dev
-    url = f'https://cpn-rtp-awx1.colab.ciscops.net/api/v2/job_templates/{id_template}/launch/'
+        id_template = '21'  # for dev
+    url = f'https://{CONFIG.AWX_SERVER}/api/v2/job_templates/{id_template}/launch/'
     headers = {'Content-Type': 'application/json'}
     user_and_domain = activity['sender_email'].split('@')
     body = {"extra_vars": {"colab_user_username": user_and_domain[0],
@@ -353,6 +362,7 @@ async def remove_gitlab(activity):
                 await webex.post_message_to_webex(message)
                 await session.close()
     except Exception as e:
+        logging.warning(e)
         message = dict(text='Error contacting AWX server. ' + str(res.status),
                        roomId=activity['roomId'],
                        parentId=activity['parentId'],
@@ -360,6 +370,6 @@ async def remove_gitlab(activity):
         await webex.post_message_to_webex(message)
         try:
             await session.close()
-        except:
-            pass
+        except Exception as e:
+            logging.warning(e)
     return

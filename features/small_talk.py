@@ -6,27 +6,13 @@ from features.catch_all import catch_all
 async def small_talk(activity):
     if activity.get('text') == 'bye':
         responses = ['Bye &#x1F60A;', 'Good bye &#x1F60A;', 'Make it a great day! &#x1F603;']
-        reply = responses[random.randint(0, (len(responses) - 1))]
-        webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
-        message = dict(text=reply,
-                       roomId=activity['roomId'],
-                       parentId=activity['parentId'],
-                       attachments=[])
-        await webex.post_message_to_webex(message)
-        return
+        await send_msg(responses, activity)
 
-    if activity.get('text') == 'thanks':
+    elif activity.get('text') == 'thanks':
         responses = ["You're welcome! &#x1F60A;", 'Anytime &#x1F603;', 'No problem &#x1F603;', '$#x1F970;']
-        reply = responses[random.randint(0, (len(responses) - 1))]
-        webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
-        message = dict(text=reply,
-                       roomId=activity['roomId'],
-                       parentId=activity['parentId'],
-                       attachments=[])
-        await webex.post_message_to_webex(message)
-        return
+        await send_msg(responses, activity)
 
-    if activity.get('text') == 'troubleshoot':
+    elif activity.get('text') == 'troubleshoot':
         excuses = ['clock speed',
                    'solar flares',
                    'electromagnetic radiation from satellite debris',
@@ -90,9 +76,8 @@ async def small_talk(activity):
                        parentId=activity['parentId'],
                        attachments=[])
         await webex.post_message_to_webex(message)
-        return
 
-    if activity.get('text') == 'upset':
+    elif activity.get('text') == 'upset':
         emojis = ['&#x1F308;', '&#x1F92A;', '&#x1F921;', '&#x1F63D;', '&#x1F48B;', '&#x2764;', '&#x1F486;', '&#x1F483;',
                   '&#x1F57A;', '&#x1F46F;', '&#x1F938;', '&#x1F6C0;', '&#x1F6CC;', '&#x1F429;', '&#x1F408;',
                   '&#x1F984;', '&#x1F43F;', '&#x1F423;', '&#x1F99C;', '&#x1F41A;', '&#x1F490;', '&#x1F34D;',
@@ -108,9 +93,8 @@ async def small_talk(activity):
                        parentId=activity['parentId'],
                        attachments=[])
         await webex.post_message_to_webex(message)
-        return
 
-    if activity.get('text') == 'affirmation':
+    elif activity.get('text') == 'affirmation':
         responses = ['You are naturally funny', 'You always have something funny to say',
                      'You have a great sense of humor', 'You see the funny side of every situation',
                      'You are always making others laugh and brightening their day',
@@ -152,7 +136,6 @@ async def small_talk(activity):
                      'You accept and love the way you look without comparing yourself to others',
                      'You are completely unique and therefore, there are no rules to what you are and are not',
                      'You give yourself permission to do what is best for you',
-                     'You admit that you may not always know what is best for you, so you are open to advice from people who you respect',
                      'You do not need drugs or alcohol to have fun',
                      'You do not need to share every personal detail with your entire social network',
                      'You are responsible with your technology', 'Your opinion matters',
@@ -185,29 +168,25 @@ async def small_talk(activity):
                      "You're not perfect, but nobody is", 'You love you life', 'You deserve love',
                      "You're good enough, smart enough, and, doggone it, people like you",
                      "You're kind of a big deal"]
-        reply = responses[random.randint(0, (len(responses) - 1))]
-        webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
-        message = dict(text=reply,
-                       roomId=activity['roomId'],
-                       parentId=activity['parentId'],
-                       attachments=[])
-        await webex.post_message_to_webex(message)
-        return
+        await send_msg(responses, activity)
 
-    if activity.get('text') == 'accept_apology':
+    elif activity.get('text') == 'accept_apology':
         responses = ["It's ok &#x1F60A;",
                      "About what? &#x1F609;",
                      "Apology accepted! &#x1F60A;",
                      "Sorry fixed everything &#x1F60A;",
                      "Thank you for being wonderful &#x1F60D;"]
-        reply = responses[random.randint(0, (len(responses) - 1))]
-        webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
-        message = dict(text=reply,
-                       roomId=activity['roomId'],
-                       parentId=activity['parentId'],
-                       attachments=[])
-        await webex.post_message_to_webex(message)
-        return
+        await send_msg(responses, activity)
 
-    await catch_all(activity)
-    return
+    else:
+        await catch_all(activity)
+
+
+async def send_msg(resps, act):
+    reply = resps[random.randint(0, (len(resps) - 1))]
+    webex = WebExClient(webex_bot_token=act['webex_bot_token'])
+    message = dict(text=reply,
+                   roomId=act['roomId'],
+                   parentId=act['parentId'],
+                   attachments=[])
+    await webex.post_message_to_webex(message)
