@@ -5,6 +5,7 @@ import aiohttp
 from aiohttp.web_request import Request
 from features.CML_chat import cml_chat
 from features.small_talk import small_talk
+import features.admin_actions as admin_actions
 import features.awx as awx
 import hashlib
 import hmac
@@ -35,6 +36,7 @@ help_menu_list = ['**Create accounts** > create COLAB accounts\n',
                   '**CML show IP addresses** > show IP addresses\n',
                   '**CML show server utilization** > show current CPU and Memory usage\n',
                   '**CML stop lab** > stop labs of your choice\n',
+                  '**Admin alert CML users** > admins can alerts users of servers\n',
                   '**help** > display available commands\n']
 
 
@@ -175,6 +177,9 @@ class COLABot:
         elif self.activity['description'] == 'card_details':
             if self.activity['inputs']['card_feature_index'] == 'cml':
                 await cml_chat(self.activity)
+        elif self.activity['description'] == 'card_details':
+            if self.activity['inputs']['card_feature_index'] == 'cml_alert':
+                await admin_actions.admin_alert_cml_users(self.activity)
             if self.activity['inputs']['card_feature_index'] == 'colab':
                 await awx.delete_accounts(self.activity)
             # Add new card activities here
@@ -239,6 +244,9 @@ class COLABot:
 
             elif self.activity.get('text') == 'affirmation':
                 await small_talk(self.activity)
+
+            elif self.activity.get('text') == 'admin alert cml users':
+                await admin_actions.admin_alert_cml_users(self.activity)
 
             # Add new text message activities here
 # End Add elif for new Feature ---->

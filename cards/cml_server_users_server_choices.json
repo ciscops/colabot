@@ -1,0 +1,46 @@
+{
+    "type": "AdaptiveCard",
+    "version": "1.0",
+    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+    "fallbackText": "To run this command, view this message in a supported [Webex Teams](https://www.webex.com/downloads.html) client.",
+    "body": [
+        {
+            "type": "TextBlock",
+            "text": "**Which server's(s')) users would you like to message?**"
+        },
+                {{ server_choices }}
+        {
+            "type": "Input.ChoiceSet",
+            "id": "card_feature_index",
+            "value": "input_key",
+            "isVisible": false,
+            "choices": [
+                {
+                    "title": "This hidden choice ensures that card_feature_index is returned with every Action.Submit attachmentAction",
+                    "value": "cml_alert"
+                }
+            ]
+        },
+                        {
+            "type": "Input.ChoiceSet",
+            "id": "card_dialogue_index",
+            "value": "input_key",
+            "isVisible": false,
+            "choices": [
+                {
+                    "title": "This hidden choice ensures that card_dialogue_index is returned with every Action.Submit attachmentAction",
+                    "value": "cml_alert_server_choices"
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "type": "Action.Submit",
+            "title": "Submit",
+            "data": {
+                "id": "1234567890"
+            }
+        }
+    ]
+}
