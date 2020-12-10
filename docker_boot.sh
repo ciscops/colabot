@@ -1,3 +1,4 @@
 #!/bin/bash
+exec whoami
 source venv/bin/activate
-exec python app.py
+exec python /home/bot/app.py
