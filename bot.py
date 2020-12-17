@@ -177,7 +177,6 @@ class COLABot:
         elif self.activity['description'] == 'card_details':
             if self.activity['inputs']['card_feature_index'] == 'cml':
                 await cml_chat(self.activity)
-        elif self.activity['description'] == 'card_details':
             if self.activity['inputs']['card_feature_index'] == 'cml_alert':
                 await admin_actions.admin_alert_cml_users(self.activity)
             if self.activity['inputs']['card_feature_index'] == 'colab':
