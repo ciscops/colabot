@@ -373,3 +373,45 @@ async def remove_gitlab(activity):
         except Exception as e:
             logging.warning(e)
     return
+
+
+async def extend_gitlab(activity):
+    webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
+    message = dict(text='Working... This can take a minute...',
+                   roomId=activity['roomId'],
+                   parentId=activity['parentId'],
+                   attachments=[])
+    await webex.post_message_to_webex(message)
+
+    id_template = '37'  # prod only or both prod and dev will increase counters
+
+    url = f'https://{CONFIG.AWX_SERVER}/api/v2/job_templates/{id_template}/launch/'
+    headers = {'Content-Type': 'application/json'}
+    user_and_domain = activity['sender_email'].split('@')
+    body = {"extra_vars": {"colab_user_username": user_and_domain[0],
+                           "colab_user_email": activity['sender_email']}}
+    auth = aiohttp.BasicAuth(login=CONFIG.AWX_USERNAME, password=CONFIG.AWX_PASSWORD, encoding='utf-8')
+    session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30), auth=auth)
+    try:
+        async with session.request(method="POST", url=url,
+                                   headers=headers, data=json.dumps(body), ssl=False) as res:
+            if res.status != 201:
+                message = dict(text='Error contacting AWX server. ' + str(res.status),
+                               roomId=activity['roomId'],
+                               parentId=activity['parentId'],
+                               attachments=[])
+                await webex.post_message_to_webex(message)
+                await session.close()
+    except Exception as e:
+        logging.warning(e)
+        message = dict(text='Error contacting AWX server. ' + str(res.status),
+                       roomId=activity['roomId'],
+                       parentId=activity['parentId'],
+                       attachments=[])
+        await webex.post_message_to_webex(message)
+        try:
+            await session.close()
+        except Exception as e:
+            logging.warning(e)
+    return
+

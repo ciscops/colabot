@@ -26,6 +26,7 @@ help_menu_list = ['**Create accounts** > create COLAB accounts\n',
                   '**Create VPN account** > create an AnyConnect to COLAB VPN account\n',
                   '**Build GitLab** > create GitLab deployment\n',
                   '**Terminate GitLab** > terminate GitLab deployment\n',
+                  '**Extend GitLab** > extend time before automatic GitLab deployment termination\n',
                   '**Delete accounts** > delete COLAB accounts\n',
                   '**Reset passwords** > resets all COLAB associated passwords\n',
                   '**CML delete lab** > delete lab\n',
@@ -215,6 +216,9 @@ class COLABot:
 
             elif self.activity.get('text') == 'delete accounts':
                 await awx.delete_accounts(self.activity)
+
+            elif self.activity.get('text') == 'extend gitlab':
+                await awx.extend_gitlab(self.activity)
 
             elif self.activity.get('text') == 'build gitlab':
                 await awx.create_gitlab(self.activity)
