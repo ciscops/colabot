@@ -26,6 +26,7 @@ help_menu_list = ['**Create accounts** > create COLAB accounts\n',
                   '**Create VPN account** > create an AnyConnect to COLAB VPN account\n',
                   '**Build GitLab** > create GitLab deployment\n',
                   '**Terminate GitLab** > terminate GitLab deployment\n',
+                  '**Extend GitLab** > extend time before automatic GitLab deployment termination\n',
                   '**Delete accounts** > delete COLAB accounts\n',
                   '**Reset passwords** > resets all COLAB associated passwords\n',
                   '**CML delete lab** > delete lab\n',
@@ -174,10 +175,13 @@ class COLABot:
 
 
 # Start Add elif for new Feature ---->
+        # pointers to running dialogues
+        elif self.activity.get('dialogue_name') == 'cml_alert_server_choices':
+            await admin_actions.admin_alert_cml_users(self.activity)
+
         elif self.activity['description'] == 'card_details':
             if self.activity['inputs']['card_feature_index'] == 'cml':
                 await cml_chat(self.activity)
-        elif self.activity['description'] == 'card_details':
             if self.activity['inputs']['card_feature_index'] == 'cml_alert':
                 await admin_actions.admin_alert_cml_users(self.activity)
             if self.activity['inputs']['card_feature_index'] == 'colab':
@@ -216,6 +220,9 @@ class COLABot:
 
             elif self.activity.get('text') == 'delete accounts':
                 await awx.delete_accounts(self.activity)
+
+            elif self.activity.get('text') == 'extend gitlab':
+                await awx.extend_gitlab(self.activity)
 
             elif self.activity.get('text') == 'build gitlab':
                 await awx.create_gitlab(self.activity)
