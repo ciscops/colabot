@@ -31,3 +31,6 @@ class DefaultConfig:
     VCENTER_SERVER = os.environ.get('VCENTER_SERVER', 'vcenter.example.com')
     AWX_SERVER = os.environ.get('AWX_SERVER', 'xxxx')
     ADMINISTRATORS = os.environ.get('ADMINISTRATORS', 'admin1@domain.com,admin2@domain.com')
+    AWS_REGION = os.environ.get('AWS_REGION', 'xxxx')
+    AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID', 'xxxx')
+    AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY', 'xxxx')

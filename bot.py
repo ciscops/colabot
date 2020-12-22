@@ -175,6 +175,10 @@ class COLABot:
 
 
 # Start Add elif for new Feature ---->
+        # pointers to running dialogues
+        elif self.activity.get('dialogue_name') == 'cml_alert_server_choices':
+            await admin_actions.admin_alert_cml_users(self.activity)
+
         elif self.activity['description'] == 'card_details':
             if self.activity['inputs']['card_feature_index'] == 'cml':
                 await cml_chat(self.activity)
