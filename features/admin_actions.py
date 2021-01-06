@@ -115,7 +115,7 @@ async def admin_alert_cml_users(activity):
 
     if activity.get('dialogue_name') == 'cml_alert_server_choices' and activity.get('dialogue_step') == 1:
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
-        if activity['inputs']:
+        if activity.get('inputs').get('CML servers'):
             servers = activity['inputs']['CML servers'].split(',')
             message = dict(
                 text=f'What would you like to tell the users of servers: {", ".join(servers)}?',
@@ -156,8 +156,8 @@ async def admin_alert_cml_users(activity):
                     logging.warning(e)
     if activity.get('dialogue_name') == 'cml_alert_server_choices' and activity.get('dialogue_step') == 2:
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
-        if activity.get('text'):
-            message = f"\n\nIs the below the message you would like to send **(yes/no)**? : \n\n  - {activity.get('text')}"
+        if activity.get('original_text'):
+            message = f"\n\nIs the below the message you would like to send **(yes/no)**? : \n\n  - {activity.get('original_text')}"
             message = dict(
                 text=message,
                 roomId=activity['roomId'],
@@ -168,7 +168,7 @@ async def admin_alert_cml_users(activity):
                 posts = db[CONFIG.MONGO_COLLECTIONS_ACTIVITY]
                 try:
                     dialogue_data = activity.get('dialogue_data')
-                    dialogue_data['text'] = activity.get('text')
+                    dialogue_data['text'] = activity.get('original_text')
                     doc = posts.find_one_and_update(
                         {'id': activity['id']},
                         {'$set': {'dialogue_step': 3,
@@ -182,14 +182,14 @@ async def admin_alert_cml_users(activity):
                     logging.warning(e)
     if activity.get('dialogue_name') == 'cml_alert_server_choices' and activity.get('dialogue_step') == 3:
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
-        if activity.get('text').lower() == 'no':
+        if activity.get('text') == 'no':
             message = f"Ok - Let me know if I can help"
             message = dict(
                 text=message,
                 roomId=activity['roomId'],
                 attachments=[])
             await webex.post_message_to_webex(message)
-        if activity.get('text').lower() == 'yes':
+        if activity.get('text') == 'yes':
             records = await dynamo_download_items('colab_directory')
             # New directory with username as key and email as value
             new_directory = dict()
@@ -197,6 +197,7 @@ async def admin_alert_cml_users(activity):
                 new_directory[i['username']] = i['email']
             for server in activity['dialogue_data']['cml_servers']:
                 cml = CML(CONFIG.CML_USERNAME, CONFIG.CML_PASSWORD, server)
+                mentions = list()
                 if not await cml.get_token():
                     message = dict(text='Error accessing server ' + server + ': ' + str(
                         cml.status_code) + ' ' + str(cml.bearer_token),
@@ -204,20 +205,25 @@ async def admin_alert_cml_users(activity):
                                    parentId=activity['parentId'],
                                    attachments=[])
                     await webex.post_message_to_webex(message)
-                    continue
-                if not await cml.get_diagnostics():
-                    message = dict(
-                        text='***' + server + '*** Error retrieving diagnostics: ' + str(cml.diagnostics),
-                        roomId=activity['roomId'],
-                        attachments=[])
-                    await webex.post_message_to_webex(message)
-                    continue
-                mentions = list()
-                for k, v in cml.diagnostics['user_roles']['labs_by_user'].items():
-                    if v:
-                        if new_directory.get(k):
-                            mentions.append(f'<@personEmail:{new_directory.get(k)}|{k}>')
-                message_text = f"The following is an **important message** for users of {server}: \n\n  - {activity['dialogue_data']['text']} \n\n{' '.join(mentions)}"
+                    # continue
+                else:
+                    if not await cml.get_diagnostics():
+                        message = dict(
+                            text='***' + server + '*** Error retrieving diagnostics: ' + str(cml.diagnostics),
+                            roomId=activity['roomId'],
+                            parentId=activity['parentId'],
+                            attachments=[])
+                        await webex.post_message_to_webex(message)
+                        # continue
+                    else:
+                        for k, v in cml.diagnostics['user_roles']['labs_by_user'].items():
+                            if v:
+                                if new_directory.get(k):
+                                    mentions.append(f'<@personEmail:{new_directory.get(k)}|{k}>')
+                if mentions:
+                    message_text = f"The following is an **important message** for users of {server}: \n\n  - {activity['dialogue_data']['text']} \n\n{' '.join(mentions)}"
+                else:
+                    message_text = f"The following is an **important message** for users of {server}: \n\n  - {activity['dialogue_data']['text']} \n\n"
                 logging.info(message_text)
                 message = dict(
                     text=message_text,
