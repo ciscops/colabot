@@ -9,7 +9,7 @@ async def small_talk(activity):
         await send_msg(responses, activity)
 
     elif activity.get('text') == 'thanks':
-        responses = ["You're welcome! &#x1F60A;", 'Anytime &#x1F603;', 'No problem &#x1F603;', '$#x1F970;']
+        responses = ["You're welcome! &#x1F60A;", 'Anytime &#x1F603;', 'No problem &#x1F603;', '&#x1F970;']
         await send_msg(responses, activity)
 
     elif activity.get('text') == 'troubleshoot':
