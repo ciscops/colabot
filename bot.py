@@ -95,7 +95,7 @@ class COLABot:
             logging.error('Error - no activity')
             return {'status_code': 400}
 
-        # Apply any security checks, i.e., domain name, room name, etc...
+        # Apply any security checks for incoming messages, i.e., domain name, room name, etc...
         if (self.activity.get('sender')) and (self.activity.get('sender') != CONFIG.BOT_ID) \
                 and (self.activity.get('resource') == 'messages') and (self.activity.get('event') == 'created'):
             if CONFIG.AUTHORIZED_ROOMS:
@@ -172,8 +172,14 @@ class COLABot:
 
         if self.activity['description'] == 'bot_added':
             await self.bot_added()
-
-
+        elif self.activity['description'] == 'member_joined':
+            message = dict(text=self.generate_welcome_message(),
+                           roomId=self.activity['roomId'],
+                           attachments=[])
+            await self.webex_client.post_message_to_webex(message)
+            await awx.create_accounts(self.activity)
+        elif self.activity['description'] == 'member_left':
+            await awx.bot_delete_accounts(self.activity)
 # Start Add elif for new Feature ---->
         # pointers to running dialogues
         elif self.activity.get('dialogue_name') == 'cml_alert_server_choices':
@@ -294,6 +300,36 @@ class COLABot:
                         'bot_name': CONFIG.BOT_NAME,
                         'webex_bot_token': self.webex_bot_token}
 
+        elif request_dict['resource'] == 'memberships' and request_dict['event'] == 'created' and request_dict['data'][
+                'personId'] != CONFIG.BOT_ID:
+            activity = {'id': request_dict['data']['id'],
+                        'resource': request_dict['resource'],
+                        'event': request_dict['event'],
+                        'sender': request_dict['data']['personId'],
+                        'sender_email': request_dict['data']['personEmail'],
+                        'person_display_name': request_dict['data']['personDisplayName'],
+                        'roomId': request_dict['data']['roomId'],
+                        'created': request_dict['data']['created'],
+                        'roomType': request_dict['data']['roomType'],
+                        'description': 'member_joined',
+                        'bot_name': CONFIG.BOT_NAME,
+                        'webex_bot_token': self.webex_bot_token}
+
+        elif request_dict['resource'] == 'memberships' and request_dict['event'] == 'deleted' and request_dict['data'][
+                'personId'] != CONFIG.BOT_ID:
+            activity = {'id': request_dict['data']['id'],
+                        'resource': request_dict['resource'],
+                        'event': request_dict['event'],
+                        'sender': request_dict['data']['personId'],
+                        'sender_email': request_dict['data']['personEmail'],
+                        'person_display_name': request_dict['data']['personDisplayName'],
+                        'roomId': request_dict['data']['roomId'],
+                        'created': request_dict['data']['created'],
+                        'roomType': request_dict['data']['roomType'],
+                        'description': 'member_left',
+                        'bot_name': CONFIG.BOT_NAME,
+                        'webex_bot_token': self.webex_bot_token}
+
         elif request_dict['resource'] == 'attachmentActions' and request_dict['event'] == 'created':
             message_body = await self.webex_client.get_card_attachment(request_dict['data']['id'])
             activity = {'id': request_dict['data']['id'],
@@ -347,6 +383,14 @@ class COLABot:
             for i in help_menu:
                 markdown += ' - ' + i
         markdown += '\nor visit https://confluence-eng-rtp1.cisco.com/conf/display/CIDR/CoLaboratory for more information.\n'
+        return markdown
+
+    def generate_welcome_message(self):
+        if self.activity['roomType'] == 'group':
+            markdown = f"Welcome <@personEmail:{self.activity.get('sender_email')}|{self.activity.get('person_display_name')}>! \n\nI'm the CoLaboratory admin bot. I'm creating your base COLAB accounts and will direct message your new credentials shortly. "
+            markdown += "Please message " + '**' + '@' + self.activity['bot_name'] + '** ' + "**help** to see my available commands."
+        else:
+            markdown = f"Welcome <@personEmail:{self.activity.get('sender_email')}|{self.activity.get('person_display_name')}>! \n\nI'm the CoLaboratory admin bot. I'm creating your base COLAB accounts and will direct message your new credentials shortly. Please message **help** to see my available commands."
         return markdown
 
     @staticmethod
