@@ -37,9 +37,9 @@ spec:
             }
             stage('Build container') {
                 if ( "${branch}" == "master" ) {
-					imageName = "stmosher/colabot-prod"
+					imageName = "ciscops/colabot-prod"
 				} else if ( "${branch}" == "dev" ) {
-        			imageName = "stmosher/colabot-dev"
+        			imageName = "ciscops/colabot-dev"
 				}
                 colabot = docker.build(imageName)
             }
