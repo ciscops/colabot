@@ -62,20 +62,12 @@ spec:
 		    }
             stage('Apply new COLABot-dev to K8s cluster') {
                 if ( "${branch}" == "dev" ) {
-                    try {
-                        sh "kubectl delete -f colabot-private/colabot_dev/colabot-dev.yaml"
-                    } catch(Exception ex) {
-                        sh "echo No need to delete"
-                    }
-                    sh "kubectl create -f colabot-private/colabot_dev/colabot-dev.yaml"
+                    sh "kubectl apply -f colabot-private/colabot_dev/colabot-dev.yaml"
+                    sh "kubectl rollout restart deployment/colabot-dev-1"
                     sh 'echo Finished'
                 } else if ( "${branch}" == "master" ) {
-                    try {
-                        sh "kubectl delete -f colabot-private/colabot_prod/colabot-prod.yaml"
-                    } catch(Exception ex) {
-                        sh "echo No need to delete"
-                    }
-                    sh "kubectl create -f colabot-private/colabot_prod/colabot-prod.yaml"
+                    sh "kubectl apply -f colabot-private/colabot_prod/colabot-prod.yaml"
+                    sh "kubectl rollout restart deployment/colabot-prod-1"
                     sh 'echo Finished'
                 }
             }
