@@ -21,15 +21,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 mongo_url = 'mongodb://' + CONFIG.MONGO_INITDB_ROOT_USERNAME + ':' + CONFIG.MONGO_INITDB_ROOT_PASSWORD + '@' + CONFIG.MONGO_SERVER + ':' + CONFIG.MONGO_PORT
 
-help_menu_list = ['**Create accounts** > create COLAB accounts\n',
-                  '**Create AWS account** > create AWS COLAB account\n',
-                  '**Create VPN account** > create an AnyConnect to COLAB VPN account\n',
-                  '**Build GitLab** > create GitLab deployment\n',
-                  '**Terminate GitLab** > terminate GitLab deployment\n',
-                  '**Extend GitLab** > extend time before automatic GitLab deployment termination\n',
-                  '**Delete accounts** > delete COLAB accounts\n',
-                  '**Reset passwords** > resets all COLAB associated passwords\n',
-                  '**CML delete lab** > delete lab\n',
+help_menu_list = ['**CML delete lab** > delete lab\n',
                   '**CML list all labs** > list all labs\n',
                   '**CML list my lab details** > list your labs with details\n',
                   '**CML list my labs** > list only your labs\n',
@@ -37,6 +29,14 @@ help_menu_list = ['**Create accounts** > create COLAB accounts\n',
                   '**CML show IP addresses** > show IP addresses\n',
                   '**CML show server utilization** > show current CPU and Memory usage\n',
                   '**CML stop lab** > stop labs of your choice\n',
+                  '**GitLab Build** > create GitLab deployment\n',
+                  '**GitLab Terminate** > terminate GitLab deployment\n',
+                  '**GitLab Extend** > extend time before automatic GitLab deployment termination\n',
+                  '**Create AWS account** > create AWS COLAB account\n',
+                  '**Create VPN account** > create an AnyConnect to COLAB VPN account\n',
+                  '**Create accounts** > create base COLAB accounts\n',
+                  '**Delete accounts** > delete COLAB accounts\n',
+                  '**Reset passwords** > resets all COLAB associated passwords\n',
                   '**Admin alert CML users** > admins can alerts users of servers\n',
                   '**help** > display available commands\n']
 
@@ -227,13 +227,13 @@ class COLABot:
             elif self.activity.get('text') == 'delete accounts':
                 await awx.delete_accounts(self.activity)
 
-            elif self.activity.get('text') == 'extend gitlab':
+            elif self.activity.get('text') == 'gitlab extend':
                 await awx.extend_gitlab(self.activity)
 
-            elif self.activity.get('text') == 'build gitlab':
+            elif self.activity.get('text') == 'gitlab build':
                 await awx.create_gitlab(self.activity)
 
-            elif self.activity.get('text') == 'terminate gitlab':
+            elif self.activity.get('text') == 'gitlab terminate':
                 await awx.remove_gitlab(self.activity)
 
             elif self.activity.get('text')[:3] == 'cml':  # Add searches for cml dialogue here
