@@ -23,7 +23,7 @@ spec:
       - name: DOCKER_TLS_CERTDIR
         value: ""
   - name: kubectl
-    image: stmosher/kubectl
+    image: ciscops/kubectl
     command: ["sleep"]
     args: ["100000"]
 ''') {
