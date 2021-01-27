@@ -22,7 +22,12 @@ async def create_accounts(activity):
                        roomId=activity['roomId'],
                        parentId=activity['parentId'],
                        attachments=[])
-        r = await webex.post_message_to_webex(message)
+        await webex.post_message_to_webex(message)
+    else:
+        message = dict(text='Working... This may take a minute or two...',
+                       roomId=activity['roomId'],
+                       attachments=[])
+        await webex.post_message_to_webex(message)
     urls_cml_servers = ['https://' + s for s in cml_servers]
     if re.search(r'1MDFmYzc$', CONFIG.BOT_ID):
         id_template = '14'  # prod
@@ -51,7 +56,9 @@ async def create_accounts(activity):
                     message = dict(text='Error contacting AWX server. ' + str(res.status),
                                    roomId=activity['roomId'],
                                    attachments=[])
-                r = await webex.post_message_to_webex(message)
+                await webex.post_message_to_webex(message)
+                await session.close()
+            else:
                 await session.close()
     except Exception as e:
         logging.warning(e)
@@ -64,7 +71,7 @@ async def create_accounts(activity):
             message = dict(text='Error contacting AWX server. ' + str(res.status),
                            roomId=activity['roomId'],
                            attachments=[])
-        r = await webex.post_message_to_webex(message)
+        await webex.post_message_to_webex(message)
         try:
             await session.close()
         except Exception as e:
@@ -79,7 +86,7 @@ async def create_aws_account(activity):
                    roomId=activity['roomId'],
                    parentId=activity['parentId'],
                    attachments=[])
-    r = await webex.post_message_to_webex(message)
+    await webex.post_message_to_webex(message)
     urls_cml_servers = ['https://' + s for s in cml_servers]
     if re.search(r'1MDFmYzc$', CONFIG.BOT_ID):
         id_template = '15'  # prod
@@ -103,7 +110,9 @@ async def create_aws_account(activity):
                                roomId=activity['roomId'],
                                parentId=activity['parentId'],
                                attachments=[])
-                r = await webex.post_message_to_webex(message)
+                await webex.post_message_to_webex(message)
+                await session.close()
+            else:
                 await session.close()
     except Exception as e:
         logging.warning(e)
@@ -111,7 +120,7 @@ async def create_aws_account(activity):
                        roomId=activity['roomId'],
                        parentId=activity['parentId'],
                        attachments=[])
-        r = await webex.post_message_to_webex(message)
+        await webex.post_message_to_webex(message)
         try:
             await session.close()
         except Exception as e:
@@ -126,7 +135,7 @@ async def create_vpn_account(activity):
                    roomId=activity['roomId'],
                    parentId=activity['parentId'],
                    attachments=[])
-    r = await webex.post_message_to_webex(message)
+    await webex.post_message_to_webex(message)
     urls_cml_servers = ['https://' + s for s in cml_servers]
     if re.search(r'1MDFmYzc$', CONFIG.BOT_ID):
         id_template = '16'  # prod
@@ -150,7 +159,9 @@ async def create_vpn_account(activity):
                                roomId=activity['roomId'],
                                parentId=activity['parentId'],
                                attachments=[])
-                r = await webex.post_message_to_webex(message)
+                await webex.post_message_to_webex(message)
+                await session.close()
+            else:
                 await session.close()
     except Exception as e:
         logging.warning(e)
@@ -158,7 +169,7 @@ async def create_vpn_account(activity):
                        roomId=activity['roomId'],
                        parentId=activity['parentId'],
                        attachments=[])
-        r = await webex.post_message_to_webex(message)
+        await webex.post_message_to_webex(message)
         try:
             await session.close()
         except Exception as e:
@@ -185,14 +196,14 @@ async def delete_accounts(activity):
                            roomId=activity['roomId'],
                            parentId=activity['parentId'],
                            attachments=[])
-            r = await webex.post_message_to_webex(message)
+            await webex.post_message_to_webex(message)
             activity['roomId'] = result.get('roomId', '')
         # if direct, send a card to the same room
         else:
             message = dict(text='Delete COLAB Accounts',
                            roomId=activity['roomId'],
                            attachments=[{'contentType': 'application/vnd.microsoft.card.adaptive', 'content': card}])
-            r = await webex.post_message_to_webex(message)
+            await webex.post_message_to_webex(message)
         # Post dialogue information to DB
         with pymongo.MongoClient(mongo_url) as client:
             db = client[CONFIG.MONGO_DB_ACTIVITY]
@@ -223,7 +234,7 @@ async def delete_accounts(activity):
                 message = dict(text='Send "help" for available commands',
                                roomId=activity['roomId'],
                                attachments=[])
-                r = await webex.post_message_to_webex(message)
+                await webex.post_message_to_webex(message)
                 # Remove dialogue from DB
                 with pymongo.MongoClient(mongo_url) as client:
                     db = client[CONFIG.MONGO_DB_ACTIVITY]
@@ -237,7 +248,7 @@ async def delete_accounts(activity):
             message = dict(text='I thought we were talking about deleting your accounts. Please send a new command',
                            roomId=activity['roomId'],
                            attachments=[])
-            r = await webex.post_message_to_webex(message)
+            await webex.post_message_to_webex(message)
             # Remove dialogue from DB
             with pymongo.MongoClient(mongo_url) as client:
                 db = client[CONFIG.MONGO_DB_ACTIVITY]
@@ -251,7 +262,7 @@ async def delete_accounts(activity):
         message = dict(text='Working, this may take a minute or two...',
                        roomId=activity['roomId'],
                        attachments=[])
-        r = await webex.post_message_to_webex(message)
+        await webex.post_message_to_webex(message)
         urls_cml_servers = ['https://' + s for s in cml_servers]
         if re.search(r'1MDFmYzc$', CONFIG.BOT_ID):
             id_template = '17'  # prod
@@ -275,14 +286,16 @@ async def delete_accounts(activity):
                     message = dict(text='Error contacting AWX server. ' + str(res.status),
                                    roomId=activity['sender_email'],
                                    attachments=[])
-                    r = await webex.post_message_to_webex(message)
+                    await webex.post_message_to_webex(message)
+                    await session.close()
+                else:
                     await session.close()
         except Exception as e:
             logging.warning(e)
             message = dict(text='Error contacting AWX server. ' + str(res.status),
                            roomId=activity['sender_email'],
                            attachments=[])
-            r = await webex.post_message_to_webex(message)
+            await webex.post_message_to_webex(message)
             try:
                 await session.close()
             except Exception as e:
@@ -308,7 +321,7 @@ async def create_gitlab(activity):
                    roomId=activity['roomId'],
                    parentId=activity['parentId'],
                    attachments=[])
-    r = await webex.post_message_to_webex(message)
+    await webex.post_message_to_webex(message)
     if re.search(r'1MDFmYzc$', CONFIG.BOT_ID):
         id_template = '18'  # prod
     else:
@@ -328,7 +341,9 @@ async def create_gitlab(activity):
                                roomId=activity['roomId'],
                                parentId=activity['parentId'],
                                attachments=[])
-                r = await webex.post_message_to_webex(message)
+                await webex.post_message_to_webex(message)
+                await session.close()
+            else:
                 await session.close()
     except Exception as e:
         logging.warning(e)
@@ -336,7 +351,7 @@ async def create_gitlab(activity):
                        roomId=activity['roomId'],
                        parentId=activity['parentId'],
                        attachments=[])
-        r = await webex.post_message_to_webex(message)
+        await webex.post_message_to_webex(message)
         try:
             await session.close()
         except Exception as e:
@@ -350,7 +365,7 @@ async def remove_gitlab(activity):
                    roomId=activity['roomId'],
                    parentId=activity['parentId'],
                    attachments=[])
-    r = await webex.post_message_to_webex(message)
+    await webex.post_message_to_webex(message)
     if re.search(r'1MDFmYzc$', CONFIG.BOT_ID):
         id_template = '20'  # prod
     else:
@@ -370,7 +385,9 @@ async def remove_gitlab(activity):
                                roomId=activity['roomId'],
                                parentId=activity['parentId'],
                                attachments=[])
-                r = await webex.post_message_to_webex(message)
+                await webex.post_message_to_webex(message)
+                await session.close()
+            else:
                 await session.close()
     except Exception as e:
         logging.warning(e)
@@ -378,7 +395,7 @@ async def remove_gitlab(activity):
                        roomId=activity['roomId'],
                        parentId=activity['parentId'],
                        attachments=[])
-        r = await webex.post_message_to_webex(message)
+        await webex.post_message_to_webex(message)
         try:
             await session.close()
         except Exception as e:
@@ -392,7 +409,7 @@ async def extend_gitlab(activity):
                    roomId=activity['roomId'],
                    parentId=activity['parentId'],
                    attachments=[])
-    r = await webex.post_message_to_webex(message)
+    await webex.post_message_to_webex(message)
 
     id_template = '37'  # prod only or both prod and dev will increase counters
 
@@ -411,7 +428,9 @@ async def extend_gitlab(activity):
                                roomId=activity['roomId'],
                                parentId=activity['parentId'],
                                attachments=[])
-                r = await webex.post_message_to_webex(message)
+                await webex.post_message_to_webex(message)
+                await session.close()
+            else:
                 await session.close()
     except Exception as e:
         logging.warning(e)
@@ -419,7 +438,7 @@ async def extend_gitlab(activity):
                        roomId=activity['roomId'],
                        parentId=activity['parentId'],
                        attachments=[])
-        r = await webex.post_message_to_webex(message)
+        await webex.post_message_to_webex(message)
         try:
             await session.close()
         except Exception as e:
@@ -455,14 +474,16 @@ async def bot_delete_accounts(activity):
                 message = dict(text='Error contacting AWX server. ' + str(res.status),
                                roomId=activity['sender_email'],
                                attachments=[])
-                r = await webex.post_message_to_webex(message)
+                await webex.post_message_to_webex(message)
+                await session.close()
+            else:
                 await session.close()
     except Exception as e:
         logging.warning(e)
         message = dict(text='Error contacting AWX server. ' + str(res.status),
                        roomId=activity['sender_email'],
                        attachments=[])
-        r = await webex.post_message_to_webex(message)
+        await webex.post_message_to_webex(message)
         try:
             await session.close()
         except Exception as e:
