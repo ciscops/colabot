@@ -23,6 +23,11 @@ async def create_accounts(activity):
                        parentId=activity['parentId'],
                        attachments=[])
         await webex.post_message_to_webex(message)
+    else:
+        message = dict(text='Working... This may take a minute or two...',
+                       roomId=activity['roomId'],
+                       attachments=[])
+        await webex.post_message_to_webex(message)
     urls_cml_servers = ['https://' + s for s in cml_servers]
     if re.search(r'1MDFmYzc$', CONFIG.BOT_ID):
         id_template = '14'  # prod
