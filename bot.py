@@ -172,13 +172,13 @@ class COLABot:
 
         if self.activity['description'] == 'bot_added':
             await self.bot_added()
-        elif self.activity['description'] == 'member_joined':
+        elif (self.activity['description'] == 'member_joined') and (self.activity['roomId'] == CONFIG.AUTHORIZED_ROOMS):
             message = dict(text=self.generate_welcome_message(),
                            roomId=self.activity['roomId'],
                            attachments=[])
             await self.webex_client.post_message_to_webex(message)
             await awx.create_accounts(self.activity)
-        elif self.activity['description'] == 'member_left':
+        elif (self.activity['description'] == 'member_left') and (self.activity['roomId'] == CONFIG.AUTHORIZED_ROOMS):
             await awx.bot_delete_accounts(self.activity)
 # Start Add elif for new Feature ---->
         # pointers to running dialogues
@@ -374,8 +374,12 @@ class COLABot:
         return response
 
     def generate_help_menu_markdown(self, help_menu):
-        if self.activity['roomType'] == 'group':
+        if (self.activity['roomType'] == 'group') and (self.activity['roomId'] == CONFIG.AUTHORIZED_ROOMS):
             markdown = 'Hi, See my available commands below: \n'
+            for i in help_menu:
+                markdown += ' - ' + '**' + '@' + self.activity['bot_name'] + '** ' + i
+        elif (self.activity['roomType'] == 'group') and (self.activity['roomId'] != CONFIG.AUTHORIZED_ROOMS):
+            markdown = 'Hi, You must also be a member of the "CoLAB Users" space for me to respond. Below are my available commands: \n'
             for i in help_menu:
                 markdown += ' - ' + '**' + '@' + self.activity['bot_name'] + '** ' + i
         else:
