@@ -18,13 +18,13 @@ async def create_accounts(activity):
     cml_servers = CONFIG.SERVER_LIST.split(',')
     webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
     if activity.get('parentId'):
-        message = dict(text='Working... This may take a minute or two...',
+        message = dict(text='This may take a minute or two...',
                        roomId=activity['roomId'],
                        parentId=activity['parentId'],
                        attachments=[])
         await webex.post_message_to_webex(message)
     else:
-        message = dict(text='Working... This may take a minute or two...',
+        message = dict(text='This may take a minute or two...',
                        roomId=activity['roomId'],
                        attachments=[])
         await webex.post_message_to_webex(message)
@@ -82,7 +82,7 @@ async def create_accounts(activity):
 async def create_aws_account(activity):
     cml_servers = CONFIG.SERVER_LIST.split(',')
     webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
-    message = dict(text='Working... This may take a minute or two...',
+    message = dict(text='This may take a minute or two...',
                    roomId=activity['roomId'],
                    parentId=activity['parentId'],
                    attachments=[])
@@ -131,7 +131,7 @@ async def create_aws_account(activity):
 async def create_vpn_account(activity):
     cml_servers = CONFIG.SERVER_LIST.split(',')
     webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
-    message = dict(text='Working... This may take a minute or two...',
+    message = dict(text='This may take a minute or two...',
                    roomId=activity['roomId'],
                    parentId=activity['parentId'],
                    attachments=[])
@@ -259,7 +259,7 @@ async def delete_accounts(activity):
             return
 
         webex = WebExClient(webex_bot_token=activity['webex_bot_token'])
-        message = dict(text='Working, this may take a minute or two...',
+        message = dict(text='This may take a minute or two...',
                        roomId=activity['roomId'],
                        attachments=[])
         await webex.post_message_to_webex(message)
