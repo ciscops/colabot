@@ -56,13 +56,7 @@ class COLABot:
         """
         # Check WebEx WebHook SECRET
         if not self.webex_client_signing_secret:
-            warning = (
-                "\n****************************************************************************************\n"
-                "* WARNING: Your bot is operating without recommended security mechanisms in place.       *\n"
-                "* Initialize your adapter and your WebEx Webhook with a SECRET for payload signature     *\n"
-                "******************************************************************************************\n"
-            )
-            logging.warning(warning + "Required: include a clientSigningSecret to verify incoming Events API webhooks")
+            logging.warning("Required: You must include a clientSigningSecret to verify incoming API webhooks")
             return {'status_code': 403}
         else:
             body = await req.read()
