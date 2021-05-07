@@ -118,17 +118,19 @@ class WebExClient:
             "Authorization": "Bearer " + self.webex_bot_token
         }
         session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30), )
+        response_content = {}
         try:
             async with session.request(method="GET", url=api_url, headers=headers) as res:
+                response_content = await res.json()
                 await session.close()
-                return res.status
+                return response_content
         except Exception as e:
             logging.warning(e)
             try:
                 await session.close()
             except Exception as e:
                 logging.warning(e)
-            return 500
+            return response_content
 
     @staticmethod
     def dict_from_items_with_values(*dictionaries, **items):
