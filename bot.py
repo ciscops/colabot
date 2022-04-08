@@ -29,9 +29,6 @@ help_menu_list = ['**CML delete lab** > delete lab\n',
                   '**CML show IP addresses** > show IP addresses\n',
                   '**CML show server utilization** > show current CPU and Memory usage\n',
                   '**CML stop lab** > stop labs of your choice\n',
-                  '**GitLab Build** > create GitLab deployment\n',
-                  '**GitLab Terminate** > terminate GitLab deployment\n',
-                  '**GitLab Extend** > extend time before automatic GitLab deployment termination\n',
                   '**Create AWS account** > create AWS COLAB account\n',
                   '**Create VPN account** > create an AnyConnect to COLAB VPN account\n',
                   '**Create accounts** > create base COLAB accounts\n',
@@ -220,15 +217,6 @@ class COLABot:
 
             elif self.activity.get('text') == 'delete accounts':
                 await awx.delete_accounts(self.activity)
-
-            elif self.activity.get('text') == 'gitlab extend':
-                await awx.extend_gitlab(self.activity)
-
-            elif self.activity.get('text') == 'gitlab build':
-                await awx.create_gitlab(self.activity)
-
-            elif self.activity.get('text') == 'gitlab terminate':
-                await awx.remove_gitlab(self.activity)
 
             elif self.activity.get('text')[:3] == 'cml':  # Add searches for cml dialogue here
                 logging.debug('matched cml')
