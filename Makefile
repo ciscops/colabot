@@ -5,7 +5,7 @@ TOPDIR = $(shell git rev-parse --show-toplevel)
 PYDIRS_CARDS=cards
 PYDIRS_FEATURES=features
 PYDIRS_WEBEX=webex
-PYDIRS=$(PYDIRS_CARDS) $(PYDIRS_FEATURES) $(webex)
+PYDIRS=$(PYDIRS_CARDS) $(PYDIRS_FEATURES) $(PYDIRS_WEBEX)
 VENV = venv_$(PROJECT_NAME)
 VENV_BIN=$(VENV)/bin
 
