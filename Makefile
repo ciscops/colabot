@@ -20,21 +20,10 @@ $(VENV_BIN)/activate: requirements.txt test-requirements.txt
 	. $(VENV_BIN)/activate; pip install -U pip; pip install -r requirements.txt -r test-requirements.txt
 
 check-format: $(VENV)/bin/activate ## Check code format with black
-	@( \
-	set -eu pipefail ; set -x ;\
-	DIFF=`$(VENV)/bin/black --diff --color $(PYDIRS)` ;\
-	if [ -n "$$DIFF" ] ;\
-	then \
-	echo -e "\nFormatting changes requested:\n" ;\
-	echo "$$DIFF" ;\
-	echo -e "\nRun 'make format' to automatically make changes.\n" ;\
-	exit 1 ;\
-	fi ;\
-	)
+	$(VENV_BIN)/black --diff --color .
 
 format: $(VENV_BIN)/activate ## Format code using black
 	$(VENV_BIN)/black $(PYDIRS)
-
 
 pylint: $(VENV_BIN)/activate ## Run pylint
 	$(VENV_BIN)/pylint --output-format=parseable --fail-under=8.9 --rcfile .pylintrc *.py $(PYDIRS)
