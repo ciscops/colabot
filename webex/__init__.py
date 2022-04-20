@@ -3,6 +3,4 @@
 
 from .webex_client import WebExClient
 
-__all__ = [
-    "WebExClient"
-]
+__all__ = ["WebExClient"]
