@@ -15,5 +15,5 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - run: pip install virtualenv
-    - run: make check-format
     - run: make pylint
+    - run: make check-format
