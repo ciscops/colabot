@@ -39,13 +39,11 @@ async def cml_chat(activity):
             # Get bearer token
             if (
                 not await cml.get_token()
-            ):  # {'description': 'User already exists: stmosher.', 'code': 422}
+            ):
                 message = dict(
                     text="***"
                     + cml_server
-                    + "*** Error accessing server: "
-                    + str(cml.status_code)
-                    + " "
+                    + "*** Error accessing server "
                     + str(cml.bearer_token),
                     roomId=activity["roomId"],
                     parentId=activity["parentId"],
@@ -100,6 +98,13 @@ async def cml_chat(activity):
                 if labs_flag:
                     on_server = True
                     server_name += lab_string
+                    if len(server_name) > 6500:
+                        logging.debug(f"size out output: {len(server_name)}")
+                        message = dict(
+                            text=server_name, roomId=activity["roomId"], attachments=[]
+                        )
+                        await webex.post_message_to_webex(message)
+                        server_name = "\n***" + cml_server + "***\n"
             if on_server:
                 results_message += server_name
             logging.debug("This is the message: ")
@@ -250,8 +255,6 @@ async def cml_chat(activity):
                 message = dict(
                     text="Error accessing server "
                     + cml_server
-                    + ": "
-                    + str(cml.status_code)
                     + " "
                     + str(cml.bearer_token),
                     roomId=activity["roomId"],
@@ -1160,7 +1163,7 @@ async def cml_chat(activity):
                 continue
             # list the current users labs
             if not await cml_user.get_user_labs():
-                message_text += f" * Error accessing server {cml_server} : {str(cml_user.status_code)} {cml_user.user_labs.get('description', '')}\n"
+                message_text += f" * Error accessing server {cml_server} : {str(cml_user.status_code)}\n"
                 continue
             lab_address_results = (
                 list()

@@ -29,46 +29,27 @@ class CML:
         headers = {"Content-Type": "application/json"}
         u = self.url + api_path
         body = {"username": self.cml_username, "password": self.cml_password}
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10))
-        try:
-            async with session.request(
-                method="POST", url=u, headers=headers, data=json.dumps(body), ssl=False
-            ) as res:
-                response_content = {}
-
-                response_content = await res.json()
-                logging.debug("BELOW IS THE RESPONSE")
-                logging.debug(response_content)
-                logging.debug("BELOW IS THE STATUS CODE")
-                logging.debug(res.status)
-                if res.status != 200:
-                    self.status_code = res.status
-                    self.bearer_token = response_content
-                    await session.close()
-                    return False
-                else:
-                    self.status_code = res.status
-                    self.bearer_token = response_content
-                    await session.close()
-                    return True
-        except aiohttp.ContentTypeError as e:
-            logging.warning(e)
-            self.status_code = 500
-            self.bearer_token = response_content
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
+            logging.debug(f"This is the aiohttp Client session {session}")
             try:
-                await session.close()
-            except Exception as e:
-                logging.warning(e)
-            return False
-        except Exception as e:
-            logging.warning(e)
-            self.status_code = 500
-            self.bearer_token = ""
-            try:
-                await session.close()
-            except Exception as e:
-                logging.warning(e)
-            return False
+                async with session.request(
+                    method="POST", url=u, headers=headers, data=json.dumps(body), ssl=False
+                ) as res:
+                    response_content = await res.json()
+                    if res.status == 200:
+                        logging.debug("token response is 200")
+                        self.status_code = res.status
+                        self.bearer_token = response_content
+                        return True
+                    else:
+                        logging.debug(f"token response is {res.status}")
+                        self.status_code = res.status
+                        self.bearer_token = response_content
+                        return False
+            except:
+                logging.info(f"Exception getting token")
+                self.status_code = 500
+                return False
 
     async def get_users(self):
         api_path = "/api/v0/users"
@@ -79,41 +60,26 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token,
         }
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
-        try:
-            async with session.request(
-                method="GET", url=u, headers=headers, ssl=False
-            ) as res:
-                response_content = {}
-                response_content = await res.json()
-                if res.status != 200:
-                    self.status_code = res.status
-                    self.users = response_content
-                    await session.close()
-                    return False
-                else:
-                    self.status_code = res.status
-                    self.users = response_content
-                    await session.close()
-                    return True
-        except aiohttp.ContentTypeError as e:
-            logging.warning(e)
-            self.status_code = 500
-            self.users = response_content
+        self.users = {}
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
+            logging.debug(f"This is the aiohttp Client session {session}")
             try:
-                await session.close()
-            except Exception as e:
-                logging.warning(e)
-            return False
-        except Exception as e:
-            logging.warning(e)
-            self.status_code = 500
-            self.users = {}
-            try:
-                await session.close()
-            except Exception as e:
-                logging.warning(e)
-            return False
+                async with session.request(
+                    method="GET", url=u, headers=headers, ssl=False
+                ) as res:
+                    response_content = await res.json()
+                    if res.status == 200:
+                        self.status_code = res.status
+                        self.users = response_content
+                        return True
+                    else:
+                        self.status_code = res.status
+                        self.users = response_content
+                        return False
+            except:
+                logging.info(f"Exception getting users")
+                self.status_code = 500
+                return False
 
     async def get_diagnostics(self):
         api_path = "/api/v0/diagnostics"
@@ -124,41 +90,26 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token,
         }
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
-        try:
-            async with session.request(
-                method="GET", url=u, headers=headers, ssl=False
-            ) as res:
-                response_content = {}
-                response_content = await res.json()
-                if res.status != 200:
-                    self.status_code = res.status
-                    self.diagnostics = response_content
-                    await session.close()
-                    return False
-                else:
-                    self.status_code = res.status
-                    self.diagnostics = response_content
-                    await session.close()
-                    return True
-        except aiohttp.ContentTypeError as e:
-            logging.warning(e)
-            self.status_code = 500
-            self.diagnostics = response_content
+        self.diagnostics = {}
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=60)) as session:
+            logging.debug(f"This is the aiohttp Client session {session}")
             try:
-                await session.close()
-            except Exception as e:
-                logging.warning(e)
-            return False
-        except Exception as e:
-            logging.warning(e)
-            self.status_code = 500
-            self.diagnostics = {}
-            try:
-                await session.close()
-            except Exception as e:
-                logging.warning(e)
-            return False
+                async with session.request(
+                    method="GET", url=u, headers=headers, ssl=False
+                ) as res:
+                    response_content = await res.json()
+                    if res.status == 200:
+                        self.status_code = res.status
+                        self.diagnostics = response_content
+                        return True
+                    else:
+                        self.status_code = res.status
+                        self.diagnostics = response_content
+                        return False
+            except:
+                logging.info(f"Exception getting diagnostics")
+                self.status_code = 500
+                return False
 
     async def get_lab_nodes(self, lab_id):
         api_path = f"/api/v0/labs/{lab_id}/nodes"
@@ -169,41 +120,26 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token,
         }
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20))
-        try:
-            async with session.request(
-                method="GET", url=u, headers=headers, ssl=False
-            ) as res:
-                response_content = []
-                response_content = await res.json()
-                if res.status != 200:
-                    self.status_code = res.status
-                    self.lab_nodes = response_content
-                    await session.close()
-                    return False
-                else:
-                    self.status_code = res.status
-                    self.lab_nodes = response_content
-                    await session.close()
-                    return True
-        except aiohttp.ContentTypeError as e:
-            logging.warning(e)
-            self.status_code = 500
-            self.lab_nodes = response_content
+        self.lab_nodes = []
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
+            logging.debug(f"This is the aiohttp Client session {session}")
             try:
-                await session.close()
-            except Exception as e:
-                logging.warning(e)
-            return False
-        except Exception as e:
-            logging.warning(e)
-            self.status_code = 500
-            self.lab_nodes = []
-            try:
-                await session.close()
-            except Exception as e:
-                logging.warning(e)
-            return False
+                async with session.request(
+                    method="GET", url=u, headers=headers, ssl=False
+                ) as res:
+                    response_content = await res.json()
+                    if res.status == 200:
+                        self.status_code = res.status
+                        self.lab_nodes = response_content
+                        return True
+                    else:
+                        self.status_code = res.status
+                        self.lab_nodes = response_content
+                        return False
+            except:
+                logging.info(f"Exception getting lab_nodes")
+                self.status_code = 500
+                return False
 
     async def layer3_addresses(self, lab_id, node_id):
         api_path = f"/api/v0/labs/{lab_id}/nodes/{node_id}/layer3_addresses"
@@ -214,41 +150,26 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token,
         }
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20))
-        try:
-            async with session.request(
-                method="GET", url=u, headers=headers, ssl=False
-            ) as res:
-                response_content = {}
-                response_content = await res.json()
-                if res.status != 200:
-                    self.status_code = res.status
-                    self.lab_int_addresses = response_content
-                    await session.close()
-                    return False
-                else:
-                    self.status_code = res.status
-                    self.lab_int_addresses = response_content
-                    await session.close()
-                    return True
-        except aiohttp.ContentTypeError as e:
-            logging.warning(e)
-            self.status_code = 500
-            self.lab_int_addresses = response_content
+        self.lab_int_addresses = {}
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
+            logging.debug(f"This is the aiohttp Client session {session}")
             try:
-                await session.close()
-            except Exception as e:
-                logging.warning(e)
-            return False
-        except Exception as e:
-            logging.warning(e)
-            self.status_code = 500
-            self.lab_int_addresses = {}
-            try:
-                await session.close()
-            except Exception as e:
-                logging.warning(e)
-            return False
+                async with session.request(
+                    method="GET", url=u, headers=headers, ssl=False
+                ) as res:
+                    response_content = await res.json()
+                    if res.status == 200:
+                        self.status_code = res.status
+                        self.lab_int_addresses = response_content
+                        return True
+                    else:
+                        self.status_code = res.status
+                        self.lab_int_addresses = response_content
+                        return False
+            except:
+                logging.info(f"Exception getting lab_int_addresses")
+                self.status_code = 500
+                return False
 
     async def get_user_labs(self):
         api_path = "/api/v0/labs"
@@ -259,41 +180,26 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token,
         }
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
-        try:
-            async with session.request(
-                method="GET", url=u, headers=headers, ssl=False
-            ) as res:
-                response_content = []
-                response_content = await res.json()
-                if res.status != 200:
-                    self.status_code = res.status
-                    self.user_labs = response_content
-                    await session.close()
-                    return False
-                else:
-                    self.status_code = res.status
-                    self.user_labs = response_content
-                    await session.close()
-                    return True
-        except aiohttp.ContentTypeError as e:
-            logging.warning(e)
-            self.status_code = 500
-            self.user_labs = response_content
+        self.user_labs = []
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
+            logging.debug(f"This is the aiohttp Client session {session}")
             try:
-                await session.close()
-            except Exception as e:
-                logging.warning(e)
-            return False
-        except Exception as e:
-            logging.warning(e)
-            self.status_code = 500
-            self.user_labs = []
-            try:
-                await session.close()
-            except Exception as e:
-                logging.warning(e)
-            return False
+                async with session.request(
+                    method="GET", url=u, headers=headers, ssl=False
+                ) as res:
+                    response_content = await res.json()
+                    if res.status == 200:
+                        self.status_code = res.status
+                        self.user_labs = response_content
+                        return True
+                    else:
+                        self.status_code = res.status
+                        self.user_labs = response_content
+                        return False
+            except:
+                logging.info(f"Exception getting user_labs")
+                self.status_code = 500
+                return False
 
     async def get_user_lab_details(self, lab_id):
         api_path = "/api/v0/labs/" + lab_id
@@ -304,41 +210,26 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token,
         }
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=60))
-        try:
-            async with session.request(
-                method="GET", url=u, headers=headers, ssl=False
-            ) as res:
-                response_content = {}
-                response_content = await res.json()
-                if res.status != 200:
-                    self.status_code = res.status
-                    self.user_lab_details = response_content
-                    await session.close()
-                    return False
-                else:
-                    self.status_code = res.status
-                    self.user_lab_details = response_content
-                    await session.close()
-                    return True
-        except aiohttp.ContentTypeError as e:
-            logging.warning(e)
-            self.status_code = 500
-            self.user_lab_details = response_content
+        self.user_lab_details = {}
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
+            logging.debug(f"This is the aiohttp Client session {session}")
             try:
-                await session.close()
-            except Exception as e:
-                logging.warning(e)
-            return False
-        except Exception as e:
-            logging.warning(e)
-            self.status_code = 500
-            self.user_lab_details = {}
-            try:
-                await session.close()
-            except Exception as e:
-                logging.warning(e)
-            return False
+                async with session.request(
+                    method="GET", url=u, headers=headers, ssl=False
+                ) as res:
+                    response_content = await res.json()
+                    if res.status == 200:
+                        self.status_code = res.status
+                        self.user_lab_details = response_content
+                        return True
+                    else:
+                        self.status_code = res.status
+                        self.user_lab_details = response_content
+                        return False
+            except:
+                logging.info(f"Exception getting user_lab_details")
+                self.status_code = 500
+                return False
 
     async def get_system_status(self):
         api_path = "/api/v0/system_stats"
@@ -349,41 +240,26 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token,
         }
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20))
-        try:
-            async with session.request(
-                method="GET", url=u, headers=headers, ssl=False
-            ) as res:
-                response_content = {}
-                response_content = await res.json()
-                if res.status != 200:
-                    self.status_code = res.status
-                    self.system_status = response_content
-                    await session.close()
-                    return False
-                else:
-                    self.status_code = res.status
-                    self.system_status = response_content
-                    await session.close()
-                    return True
-        except aiohttp.ContentTypeError as e:
-            logging.warning(e)
-            self.status_code = 500
-            self.system_status = response_content
+        self.system_status = {}
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
+            logging.debug(f"This is the aiohttp Client session {session}")
             try:
-                await session.close()
-            except Exception as e:
-                logging.warning(e)
-            return False
-        except Exception as e:
-            logging.warning(e)
-            self.status_code = 500
-            self.system_status = {}
-            try:
-                await session.close()
-            except Exception as e:
-                logging.warning(e)
-            return False
+                async with session.request(
+                    method="GET", url=u, headers=headers, ssl=False
+                ) as res:
+                    response_content = await res.json()
+                    if res.status == 200:
+                        self.status_code = res.status
+                        self.system_status = response_content
+                        return True
+                    else:
+                        self.status_code = res.status
+                        self.system_status = response_content
+                        return False
+            except:
+                logging.info(f"Exception getting system_status")
+                self.status_code = 500
+                return False
 
     async def stop_lab(self, lab_id):
         api_path = "/api/v0/labs/" + lab_id + "/stop"
@@ -394,41 +270,26 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token,
         }
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=300))
-        try:
-            async with session.request(
-                method="PUT", url=u, headers=headers, ssl=False
-            ) as res:
-                response_content = {}
-                response_content = await res.json()
-                if res.status != 200:
-                    self.status_code = res.status
-                    self.result = response_content
-                    await session.close()
-                    return False
-                else:
-                    self.status_code = res.status
-                    self.result = response_content
-                    await session.close()
-                    return True
-        except aiohttp.ContentTypeError as e:
-            logging.warning(e)
-            self.status_code = 500
-            self.result = response_content
+        self.result = {}
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
+            logging.debug(f"This is the aiohttp Client session {session}")
             try:
-                await session.close()
-            except Exception as e:
-                logging.warning(e)
-            return False
-        except Exception as e:
-            logging.warning(e)
-            self.status_code = 500
-            self.result = {}
-            try:
-                await session.close()
-            except Exception as e:
-                logging.warning(e)
-            return False
+                async with session.request(
+                    method="PUT", url=u, headers=headers, ssl=False
+                ) as res:
+                    response_content = await res.json()
+                    if res.status == 200:
+                        self.status_code = res.status
+                        self.result = response_content
+                        return True
+                    else:
+                        self.status_code = res.status
+                        self.result = response_content
+                        return False
+            except:
+                logging.info(f"Exception stopping lab")
+                self.status_code = 500
+                return False
 
     async def wipe_lab(self, lab_id):
         api_path = "/api/v0/labs/" + lab_id + "/wipe"
@@ -439,41 +300,26 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token,
         }
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=300))
-        try:
-            async with session.request(
-                method="PUT", url=u, headers=headers, ssl=False
-            ) as res:
-                response_content = {}
-                response_content = await res.json()
-                if res.status != 200:
-                    self.status_code = res.status
-                    self.result = response_content
-                    await session.close()
-                    return False
-                else:
-                    self.status_code = res.status
-                    self.result = response_content
-                    await session.close()
-                    return True
-        except aiohttp.ContentTypeError as e:
-            logging.warning(e)
-            self.status_code = 500
-            self.result = response_content
+        self.result = {}
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
+            logging.debug(f"This is the aiohttp Client session {session}")
             try:
-                await session.close()
-            except Exception as e:
-                logging.warning(e)
-            return False
-        except Exception as e:
-            logging.warning(e)
-            self.status_code = 500
-            self.result = {}
-            try:
-                await session.close()
-            except Exception as e:
-                logging.warning(e)
-            return False
+                async with session.request(
+                    method="PUT", url=u, headers=headers, ssl=False
+                ) as res:
+                    response_content = await res.json()
+                    if res.status == 200:
+                        self.status_code = res.status
+                        self.result = response_content
+                        return True
+                    else:
+                        self.status_code = res.status
+                        self.result = response_content
+                        return False
+            except:
+                logging.info(f"Exception wiping lab")
+                self.status_code = 500
+                return False
 
     async def delete_lab(self, lab_id):
         api_path = "/api/v0/labs/" + lab_id
@@ -484,41 +330,26 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token,
         }
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
-        try:
-            async with session.request(
-                method="DELETE", url=u, headers=headers, ssl=False
-            ) as res:
-                response_content = {}
-                response_content = await res.json()
-                if res.status != 200:
-                    self.status_code = res.status
-                    self.result = response_content
-                    await session.close()
-                    return False
-                else:
-                    self.status_code = res.status
-                    self.result = response_content
-                    await session.close()
-                    return True
-        except aiohttp.ContentTypeError as e:
-            logging.warning(e)
-            self.status_code = 500
-            self.result = response_content
+        self.result = {}
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
+            logging.debug(f"This is the aiohttp Client session {session}")
             try:
-                await session.close()
-            except Exception as e:
-                logging.warning(e)
-            return False
-        except Exception as e:
-            logging.warning(e)
-            self.status_code = 500
-            self.result = {}
-            try:
-                await session.close()
-            except Exception as e:
-                logging.warning(e)
-            return False
+                async with session.request(
+                    method="DELETE", url=u, headers=headers, ssl=False
+                ) as res:
+                    response_content = await res.json()
+                    if res.status == 200:
+                        self.status_code = res.status
+                        self.result = response_content
+                        return True
+                    else:
+                        self.status_code = res.status
+                        self.result = response_content
+                        return False
+            except:
+                logging.info(f"Exception deleting lab")
+                self.status_code = 500
+                return False
 
     async def change_password(self, username_webex, new_password):
         api_path = "/api/v0/users/" + username_webex + "/change_password"
@@ -530,41 +361,26 @@ class CML:
         }
         body = {"old_password": "", "new_password": new_password}
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20))
-        try:
-            async with session.request(
-                method="PUT", url=u, headers=headers, data=json.dumps(body), ssl=False
-            ) as res:
-                response_content = {}
-                response_content = await res.json()
-                if res.status != 200:
-                    self.status_code = res.status
-                    self.result = response_content
-                    await session.close()
-                    return False
-                else:
-                    self.status_code = res.status
-                    self.result = response_content
-                    await session.close()
-                    return True
-        except aiohttp.ContentTypeError as e:
-            logging.warning(e)
-            self.status_code = 500
-            self.result = response_content
+        self.result = {}
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
+            logging.debug(f"This is the aiohttp Client session {session}")
             try:
-                await session.close()
-            except Exception as e:
-                logging.warning(e)
-            return False
-        except Exception as e:
-            logging.warning(e)
-            self.status_code = 500
-            self.result = {}
-            try:
-                await session.close()
-            except Exception as e:
-                logging.warning(e)
-            return False
+                async with session.request(
+                    method="PUT", url=u, headers=headers, data=json.dumps(body), ssl=False
+                ) as res:
+                    response_content = await res.json()
+                    if res.status == 200:
+                        self.status_code = res.status
+                        self.result = response_content
+                        return True
+                    else:
+                        self.status_code = res.status
+                        self.result = response_content
+                        return False
+            except:
+                logging.info(f"Exception changing password")
+                self.status_code = 500
+                return False
 
     async def add_user(self, username_webex, user_email, new_password):
         api_path = "/api/v0/users/" + username_webex
@@ -582,45 +398,26 @@ class CML:
             "context": {},
         }
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20))
-        try:
-            async with session.request(
-                method="POST", url=u, headers=headers, data=json.dumps(body), ssl=False
-            ) as res:
-                response_content = {}
-                response_content = await res.json()
-                if res.status != 200:
-                    self.status_code = res.status
-                    self.result = response_content
-                    logging.debug(response_content)
-                    logging.debug(type(response_content))
-                    await session.close()
-                    return False
-                else:
-                    self.status_code = res.status
-                    self.result = response_content
-                    logging.debug(response_content)
-                    logging.debug(type(response_content))
-                    await session.close()
-                    return True
-        except aiohttp.ContentTypeError as e:
-            logging.warning(e)
-            self.status_code = 500
-            self.result = response_content
+        self.result = {}
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
+            logging.debug(f"This is the aiohttp Client session {session}")
             try:
-                await session.close()
-            except Exception as e:
-                logging.warning(e)
-            return False
-        except Exception as e:
-            logging.warning(e)
-            self.status_code = 500
-            self.result = {}
-            try:
-                await session.close()
-            except Exception as e:
-                logging.warning(e)
-            return False
+                async with session.request(
+                    method="POST", url=u, headers=headers, data=json.dumps(body), ssl=False
+                ) as res:
+                    response_content = await res.json()
+                    if res.status == 200:
+                        self.status_code = res.status
+                        self.result = response_content
+                        return True
+                    else:
+                        self.status_code = res.status
+                        self.result = response_content
+                        return False
+            except:
+                logging.info(f"Exception adding user")
+                self.status_code = 500
+                return False
 
     async def delete_user(self, username_webex):
         api_path = "/api/v0/users/" + username_webex
@@ -631,45 +428,26 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token,
         }
         u = self.url + api_path
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20))
-        try:
-            async with session.request(
-                method="DELETE", url=u, headers=headers, ssl=False
-            ) as res:
-                response_content = {}
-                response_content = await res.json()
-                if res.status != 200:
-                    self.status_code = res.status
-                    self.result = response_content
-                    logging.debug(response_content)
-                    logging.debug(type(response_content))
-                    await session.close()
-                    return False
-                else:
-                    self.status_code = res.status
-                    self.result = response_content
-                    logging.debug(response_content)
-                    logging.debug(type(response_content))
-                    await session.close()
-                    return True
-        except aiohttp.ContentTypeError as e:
-            logging.warning(e)
-            self.status_code = 500
-            self.result = response_content
+        self.result = {}
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
+            logging.debug(f"This is the aiohttp Client session {session}")
             try:
-                await session.close()
-            except Exception as e:
-                logging.warning(e)
-            return False
-        except Exception as e:
-            logging.warning(e)
-            self.status_code = 500
-            self.result = {}
-            try:
-                await session.close()
-            except Exception as e:
-                logging.warning(e)
-            return False
+                async with session.request(
+                    method="DELETE", url=u, headers=headers, ssl=False
+                ) as res:
+                    response_content = await res.json()
+                    if res.status == 200:
+                        self.status_code = res.status
+                        self.result = response_content
+                        return True
+                    else:
+                        self.status_code = res.status
+                        self.result = response_content
+                        return False
+            except:
+                logging.info(f"Exception adding user")
+                self.status_code = 500
+                return False
 
     async def list_user_lab_ids(self, username_webex):
         if await self.get_diagnostics():
