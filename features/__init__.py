@@ -3,6 +3,4 @@
 
 from .CML import CML
 
-__all__ = [
-    "CML"
-]
+__all__ = ["CML"]
