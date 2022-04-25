@@ -1,11 +1,11 @@
-from .CML import CML
+import logging
+import json
+import boto3
+from jinja2 import Template
+import pymongo
 from config import DefaultConfig as CONFIG
 from webex import WebExClient
-import json
-import pymongo
-from jinja2 import Template
-import logging
-import boto3
+from .CML import CML
 
 
 mongo_url = (
@@ -21,7 +21,7 @@ mongo_url = (
 
 
 async def dynamo_download_items(table: str) -> list:
-    items = list()
+    items = []
     try:
         dynamodb = boto3.resource(
             "dynamodb",
@@ -33,7 +33,8 @@ async def dynamo_download_items(table: str) -> list:
         response = table.scan()
         items = response["Items"]
         while "LastEvaluatedKey" in response:
-            response = table.scan(ExclusiveStartKey=response["LastEvaluatedKey"])
+            response = table.scan(
+                ExclusiveStartKey=response["LastEvaluatedKey"])
             items.extend(response["Items"])
         return items
     except Exception as e:
@@ -44,8 +45,7 @@ async def dynamo_download_items(table: str) -> list:
 async def administrator_check(activity):
     if activity.get("sender_email") in CONFIG.ADMINISTRATORS.split(","):
         return True
-    else:
-        return False
+    return False
 
 
 async def webex_not_admin(activity):
@@ -61,8 +61,7 @@ async def webex_not_admin(activity):
 async def admin_in_group_room(activity):
     if activity.get("roomType", "") == "group":
         return True
-    else:
-        return False
+    return False
 
 
 async def webex_admin_in_group_room(activity):
@@ -89,14 +88,16 @@ async def admin_alert_cml_users(activity):
         if cml_servers:
             lab_choices_string = '{"type": "Input.ChoiceSet","id": "CML servers","style": "expanded","value": "1","choices": ['
             for i in cml_servers:
-                lab_choices_string += '{"title": "' + i + '","value": "' + i + '"},'
+                lab_choices_string += '{"title": "' + \
+                    i + '","value": "' + i + '"},'
             servers_for_card = lab_choices_string[:-1]
             servers_for_card += '],"isMultiSelect": true},'
 
             # send card with cml servers as check boxes
             webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
             card_file = "./cards/cml_server_users_server_choices.json"
-            with open(f"{card_file}") as file_:
+            # verify this doesn't cause problems
+            with open(f"{card_file}", encoding="utf8") as file_:
                 template = Template(file_.read())
             card = template.render(server_choices=servers_for_card)
             card_json = json.loads(card)
@@ -131,6 +132,7 @@ async def admin_alert_cml_users(activity):
                 }
                 try:
                     post_id = posts.insert_one(dialogue_record).inserted_id
+                    logging.debug(post_id)
                 except Exception as e:
                     logging.warning("Failed to connect to DB")
                     logging.warning(e)
@@ -163,6 +165,7 @@ async def admin_alert_cml_users(activity):
                             }
                         },
                     )
+                    logging.debug(doc)
                 except Exception as e:
                     logging.warning("Failed to connect to DB")
                     logging.warning(e)
@@ -184,6 +187,7 @@ async def admin_alert_cml_users(activity):
                 }
                 try:
                     r = posts.delete_one(query_lab_filter)
+                    logging.debug(r)
                 except Exception as e:
                     logging.warning("Failed to connect to DB")
                     logging.warning(e)
@@ -194,7 +198,8 @@ async def admin_alert_cml_users(activity):
         webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
         if activity.get("original_text"):
             message = f"\n\nIs the below the message you would like to send **(yes/no)**? : \n\n  - {activity.get('original_text')}"
-            message = dict(text=message, roomId=activity["roomId"], attachments=[])
+            message = dict(
+                text=message, roomId=activity["roomId"], attachments=[])
             await webex.post_message_to_webex(message)
             with pymongo.MongoClient(mongo_url) as client:
                 db = client[CONFIG.MONGO_DB_ACTIVITY]
@@ -221,63 +226,18 @@ async def admin_alert_cml_users(activity):
     ):
         webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
         if activity.get("text") == "no":
-            message = f"Ok - Let me know if I can help"
-            message = dict(text=message, roomId=activity["roomId"], attachments=[])
+            message = "Ok - Let me know if I can help"
+            message = dict(
+                text=message, roomId=activity["roomId"], attachments=[])
             await webex.post_message_to_webex(message)
         if activity.get("text") == "yes":
             records = await dynamo_download_items("colab_directory")
             # New directory with username as key and email as value
-            new_directory = dict()
+            new_directory = {}
             for i in records:
                 new_directory[i["username"]] = i["email"]
             for server in activity["dialogue_data"]["cml_servers"]:
-                cml = CML(CONFIG.CML_USERNAME, CONFIG.CML_PASSWORD, server)
-                mentions = list()
-                if not await cml.get_token():
-                    message = dict(
-                        text="Error accessing server "
-                        + server
-                        + ": "
-                        + str(cml.status_code)
-                        + " "
-                        + str(cml.bearer_token),
-                        roomId=activity["roomId"],
-                        parentId=activity["parentId"],
-                        attachments=[],
-                    )
-                    await webex.post_message_to_webex(message)
-                    # continue
-                else:
-                    if not await cml.get_diagnostics():
-                        message = dict(
-                            text="***"
-                            + server
-                            + "*** Error retrieving diagnostics: "
-                            + str(cml.diagnostics),
-                            roomId=activity["roomId"],
-                            parentId=activity["parentId"],
-                            attachments=[],
-                        )
-                        await webex.post_message_to_webex(message)
-                        # continue
-                    else:
-                        for k, v in cml.diagnostics["user_roles"][
-                            "labs_by_user"
-                        ].items():
-                            if v:
-                                if new_directory.get(k):
-                                    mentions.append(
-                                        f"<@personEmail:{new_directory.get(k)}|{k}>"
-                                    )
-                if mentions:
-                    message_text = f"The following is an **important message** for users of {server}: \n\n  - {activity['dialogue_data']['text']} \n\n{' '.join(mentions)}"
-                else:
-                    message_text = f"The following is an **important message** for users of {server}: \n\n  - {activity['dialogue_data']['text']} \n\n"
-                logging.info(message_text)
-                message = dict(
-                    text=message_text, roomId=CONFIG.AUTHORIZED_ROOMS, attachments=[]
-                )
-                await webex.post_message_to_webex(message)
+                await find_active_labs(server, activity, webex, new_directory)
 
         with pymongo.MongoClient(mongo_url) as client:
             db = client[CONFIG.MONGO_DB_ACTIVITY]
@@ -293,3 +253,53 @@ async def admin_alert_cml_users(activity):
                 logging.warning("Failed to connect to DB")
                 logging.warning(e)
     return
+
+
+async def find_active_labs(server, activity, webex, new_directory):
+    cml = CML(CONFIG.CML_USERNAME, CONFIG.CML_PASSWORD, server)
+    mentions = []
+    if not await cml.get_token():
+        message = dict(
+            text="Error accessing server "
+            + server
+            + ": "
+            + str(cml.status_code)
+            + " "
+            + str(cml.bearer_token),
+            roomId=activity["roomId"],
+            parentId=activity["parentId"],
+            attachments=[],
+        )
+        await webex.post_message_to_webex(message)
+        # continue
+    else:
+        if not await cml.get_diagnostics():
+            message = dict(
+                text="***"
+                + server
+                + "*** Error retrieving diagnostics: "
+                + str(cml.diagnostics),
+                roomId=activity["roomId"],
+                parentId=activity["parentId"],
+                attachments=[],
+            )
+            await webex.post_message_to_webex(message)
+            # continue
+        else:
+            for k, v in cml.diagnostics["user_roles"][
+                "labs_by_user"
+            ].items():
+                if v:
+                    if new_directory.get(k):
+                        mentions.append(
+                            f"<@personEmail:{new_directory.get(k)}|{k}>"
+                        )
+    if mentions:
+        message_text = f"The following is an **important message** for users of {server}: \n\n  - {activity['dialogue_data']['text']} \n\n{' '.join(mentions)}"
+    else:
+        message_text = f"The following is an **important message** for users of {server}: \n\n  - {activity['dialogue_data']['text']} \n\n"
+    logging.info(message_text)
+    message = dict(
+        text=message_text, roomId=CONFIG.AUTHORIZED_ROOMS, attachments=[]
+    )
+    await webex.post_message_to_webex(message)

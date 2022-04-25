@@ -1,22 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import string
-import aiohttp
-from aiohttp.web_request import Request
-from features.CML_chat import cml_chat
-from features.small_talk import small_talk
-import features.admin_actions as admin_actions
-import features.awx as awx
 import hashlib
 import hmac
 import json
+import time
+import logging
+import aiohttp
+import pymongo
+import urllib3
+from aiohttp.web_request import Request
+from features.CML_chat import cml_chat
+from features.small_talk import small_talk
+from features import admin_actions
+from features import awx
+from features.catch_all import catch_all
 from webex import WebExClient
 from config import DefaultConfig as CONFIG
-from features.catch_all import catch_all
-import pymongo
-import time
-import urllib3
-import logging
+
+
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 mongo_url = 'mongodb://' + CONFIG.MONGO_INITDB_ROOT_USERNAME + ':' + CONFIG.MONGO_INITDB_ROOT_PASSWORD + '@' + CONFIG.MONGO_SERVER + ':' + CONFIG.MONGO_PORT
@@ -55,14 +57,14 @@ class COLABot:
         if not self.webex_client_signing_secret:
             logging.warning("Required: You must include a clientSigningSecret to verify incoming API webhooks")
             return {'status_code': 403}
-        else:
-            body = await req.read()
-            logging.info('This is the initial message')
-            key_bytes = self.webex_client_signing_secret.encode()
-            hashed = hmac.new(key_bytes, body, hashlib.sha1)
-            body_signature = hashed.hexdigest()
-            if req.headers['X-Spark-Signature'] != body_signature:
-                return {'status_code': 403}
+
+        body = await req.read()
+        logging.info('This is the initial message')
+        key_bytes = self.webex_client_signing_secret.encode()
+        hashed = hmac.new(key_bytes, body, hashlib.sha1)
+        body_signature = hashed.hexdigest()
+        if req.headers['X-Spark-Signature'] != body_signature:
+            return {'status_code': 403}
 
         # Process web request
         if not req:
@@ -98,7 +100,7 @@ class COLABot:
                         denied = False
                         break
                 if denied:
-                    logging.warning('Denied Access - user: ' + self.activity['sender'])
+                    logging.warning('Denied Access - user: %s', self.activity['sender'])
                     return {'status_code': 401}
 
         # Preprocess text
@@ -405,6 +407,6 @@ async def process_text(message):
         logging.warning(e)
         try:
             await session.close()
-        except Exception as e:
-            logging.warning(e)
+        except Exception as e1:
+            logging.warning(e1)
         return response_content

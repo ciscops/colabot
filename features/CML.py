@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import aiohttp
 import json
 import random
 import logging
+import aiohttp
 import urllib3
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -16,13 +16,21 @@ class CML:
         self.cml_password = cml_password
         self.url = "https://" + cml_server
         self.bearer_token = ""
-        self.diagnostics = dict()
-        self.old_labs_results_list = list()
+        self.diagnostics = {}
+        self.old_labs_results_list = []
         self.stop_result = ""
         self.wipe_result = ""
         self.delete_result = ""
-        self.all_labs = list()
+        self.all_labs = []
         self.status_code = ""
+        self.users = {}
+        self.lab_nodes = []
+        self.lab_int_addresses = {}
+        self.user_labs = []
+        self.user_lab_details = {}
+        self.system_status = {}
+        self.result = {}
+        self.user_lab_ids = ""
 
     async def get_token(self):
         api_path = "/api/v0/authenticate"
@@ -30,7 +38,7 @@ class CML:
         u = self.url + api_path
         body = {"username": self.cml_username, "password": self.cml_password}
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
-            logging.debug(f"This is the aiohttp Client session {session}")
+            logging.debug("This is the aiohttp Client session %s", session)
             try:
                 async with session.request(
                     method="POST", url=u, headers=headers, data=json.dumps(body), ssl=False
@@ -41,13 +49,12 @@ class CML:
                         self.status_code = res.status
                         self.bearer_token = response_content
                         return True
-                    else:
-                        logging.debug(f"token response is {res.status}")
-                        self.status_code = res.status
-                        self.bearer_token = response_content
-                        return False
-            except:
-                logging.info(f"Exception getting token")
+                    logging.debug("token response is %s", res.status)
+                    self.status_code = res.status
+                    self.bearer_token = response_content
+                    return False
+            except Exception:
+                logging.info("Exception getting token")
                 self.status_code = 500
                 return False
 
@@ -60,9 +67,8 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token,
         }
         u = self.url + api_path
-        self.users = {}
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
-            logging.debug(f"This is the aiohttp Client session {session}")
+            logging.debug("This is the aiohttp Client session %s", session)
             try:
                 async with session.request(
                     method="GET", url=u, headers=headers, ssl=False
@@ -72,12 +78,11 @@ class CML:
                         self.status_code = res.status
                         self.users = response_content
                         return True
-                    else:
-                        self.status_code = res.status
-                        self.users = response_content
-                        return False
-            except:
-                logging.info(f"Exception getting users")
+                    self.status_code = res.status
+                    self.users = response_content
+                    return False
+            except Exception:
+                logging.info("Exception getting users")
                 self.status_code = 500
                 return False
 
@@ -92,7 +97,7 @@ class CML:
         u = self.url + api_path
         self.diagnostics = {}
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=60)) as session:
-            logging.debug(f"This is the aiohttp Client session {session}")
+            logging.debug("This is the aiohttp Client session %s", session)
             try:
                 async with session.request(
                     method="GET", url=u, headers=headers, ssl=False
@@ -102,12 +107,11 @@ class CML:
                         self.status_code = res.status
                         self.diagnostics = response_content
                         return True
-                    else:
-                        self.status_code = res.status
-                        self.diagnostics = response_content
-                        return False
-            except:
-                logging.info(f"Exception getting diagnostics")
+                    self.status_code = res.status
+                    self.diagnostics = response_content
+                    return False
+            except Exception:
+                logging.info("Exception getting diagnostics")
                 self.status_code = 500
                 return False
 
@@ -120,9 +124,8 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token,
         }
         u = self.url + api_path
-        self.lab_nodes = []
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
-            logging.debug(f"This is the aiohttp Client session {session}")
+            logging.debug("This is the aiohttp Client session %s", session)
             try:
                 async with session.request(
                     method="GET", url=u, headers=headers, ssl=False
@@ -132,12 +135,11 @@ class CML:
                         self.status_code = res.status
                         self.lab_nodes = response_content
                         return True
-                    else:
-                        self.status_code = res.status
-                        self.lab_nodes = response_content
-                        return False
-            except:
-                logging.info(f"Exception getting lab_nodes")
+                    self.status_code = res.status
+                    self.lab_nodes = response_content
+                    return False
+            except Exception:
+                logging.info("Exception getting lab_nodes")
                 self.status_code = 500
                 return False
 
@@ -150,9 +152,8 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token,
         }
         u = self.url + api_path
-        self.lab_int_addresses = {}
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
-            logging.debug(f"This is the aiohttp Client session {session}")
+            logging.debug("This is the aiohttp Client session %s", session)
             try:
                 async with session.request(
                     method="GET", url=u, headers=headers, ssl=False
@@ -162,12 +163,11 @@ class CML:
                         self.status_code = res.status
                         self.lab_int_addresses = response_content
                         return True
-                    else:
-                        self.status_code = res.status
-                        self.lab_int_addresses = response_content
-                        return False
-            except:
-                logging.info(f"Exception getting lab_int_addresses")
+                    self.status_code = res.status
+                    self.lab_int_addresses = response_content
+                    return False
+            except Exception:
+                logging.info("Exception getting lab_int_addresses")
                 self.status_code = 500
                 return False
 
@@ -180,9 +180,8 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token,
         }
         u = self.url + api_path
-        self.user_labs = []
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
-            logging.debug(f"This is the aiohttp Client session {session}")
+            logging.debug("This is the aiohttp Client session %s", session)
             try:
                 async with session.request(
                     method="GET", url=u, headers=headers, ssl=False
@@ -192,12 +191,11 @@ class CML:
                         self.status_code = res.status
                         self.user_labs = response_content
                         return True
-                    else:
-                        self.status_code = res.status
-                        self.user_labs = response_content
-                        return False
-            except:
-                logging.info(f"Exception getting user_labs")
+                    self.status_code = res.status
+                    self.user_labs = response_content
+                    return False
+            except Exception:
+                logging.info("Exception getting user_labs")
                 self.status_code = 500
                 return False
 
@@ -210,9 +208,8 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token,
         }
         u = self.url + api_path
-        self.user_lab_details = {}
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
-            logging.debug(f"This is the aiohttp Client session {session}")
+            logging.debug("This is the aiohttp Client session %s", session)
             try:
                 async with session.request(
                     method="GET", url=u, headers=headers, ssl=False
@@ -222,12 +219,11 @@ class CML:
                         self.status_code = res.status
                         self.user_lab_details = response_content
                         return True
-                    else:
-                        self.status_code = res.status
-                        self.user_lab_details = response_content
-                        return False
-            except:
-                logging.info(f"Exception getting user_lab_details")
+                    self.status_code = res.status
+                    self.user_lab_details = response_content
+                    return False
+            except Exception:
+                logging.info("Exception getting user_lab_details")
                 self.status_code = 500
                 return False
 
@@ -240,9 +236,8 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token,
         }
         u = self.url + api_path
-        self.system_status = {}
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
-            logging.debug(f"This is the aiohttp Client session {session}")
+            logging.debug("This is the aiohttp Client session %s", session)
             try:
                 async with session.request(
                     method="GET", url=u, headers=headers, ssl=False
@@ -252,12 +247,11 @@ class CML:
                         self.status_code = res.status
                         self.system_status = response_content
                         return True
-                    else:
-                        self.status_code = res.status
-                        self.system_status = response_content
-                        return False
-            except:
-                logging.info(f"Exception getting system_status")
+                    self.status_code = res.status
+                    self.system_status = response_content
+                    return False
+            except Exception:
+                logging.info("Exception getting system_status")
                 self.status_code = 500
                 return False
 
@@ -272,7 +266,7 @@ class CML:
         u = self.url + api_path
         self.result = {}
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
-            logging.debug(f"This is the aiohttp Client session {session}")
+            logging.debug("This is the aiohttp Client session %s", session)
             try:
                 async with session.request(
                     method="PUT", url=u, headers=headers, ssl=False
@@ -282,12 +276,11 @@ class CML:
                         self.status_code = res.status
                         self.result = response_content
                         return True
-                    else:
-                        self.status_code = res.status
-                        self.result = response_content
-                        return False
-            except:
-                logging.info(f"Exception stopping lab")
+                    self.status_code = res.status
+                    self.result = response_content
+                    return False
+            except Exception:
+                logging.info("Exception stopping lab")
                 self.status_code = 500
                 return False
 
@@ -302,7 +295,7 @@ class CML:
         u = self.url + api_path
         self.result = {}
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
-            logging.debug(f"This is the aiohttp Client session {session}")
+            logging.debug("This is the aiohttp Client session %s", session)
             try:
                 async with session.request(
                     method="PUT", url=u, headers=headers, ssl=False
@@ -312,12 +305,11 @@ class CML:
                         self.status_code = res.status
                         self.result = response_content
                         return True
-                    else:
-                        self.status_code = res.status
-                        self.result = response_content
-                        return False
-            except:
-                logging.info(f"Exception wiping lab")
+                    self.status_code = res.status
+                    self.result = response_content
+                    return False
+            except Exception:
+                logging.info("Exception wiping lab")
                 self.status_code = 500
                 return False
 
@@ -332,7 +324,7 @@ class CML:
         u = self.url + api_path
         self.result = {}
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
-            logging.debug(f"This is the aiohttp Client session {session}")
+            logging.debug("This is the aiohttp Client session %s", session)
             try:
                 async with session.request(
                     method="DELETE", url=u, headers=headers, ssl=False
@@ -342,12 +334,11 @@ class CML:
                         self.status_code = res.status
                         self.result = response_content
                         return True
-                    else:
-                        self.status_code = res.status
-                        self.result = response_content
-                        return False
-            except:
-                logging.info(f"Exception deleting lab")
+                    self.status_code = res.status
+                    self.result = response_content
+                    return False
+            except Exception:
+                logging.info("Exception deleting lab")
                 self.status_code = 500
                 return False
 
@@ -363,7 +354,7 @@ class CML:
         u = self.url + api_path
         self.result = {}
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
-            logging.debug(f"This is the aiohttp Client session {session}")
+            logging.debug("This is the aiohttp Client session %s", session)
             try:
                 async with session.request(
                     method="PUT", url=u, headers=headers, data=json.dumps(body), ssl=False
@@ -373,12 +364,11 @@ class CML:
                         self.status_code = res.status
                         self.result = response_content
                         return True
-                    else:
-                        self.status_code = res.status
-                        self.result = response_content
-                        return False
-            except:
-                logging.info(f"Exception changing password")
+                    self.status_code = res.status
+                    self.result = response_content
+                    return False
+            except Exception:
+                logging.info("Exception changing password")
                 self.status_code = 500
                 return False
 
@@ -400,7 +390,7 @@ class CML:
         u = self.url + api_path
         self.result = {}
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
-            logging.debug(f"This is the aiohttp Client session {session}")
+            logging.debug("This is the aiohttp Client session %s", session)
             try:
                 async with session.request(
                     method="POST", url=u, headers=headers, data=json.dumps(body), ssl=False
@@ -410,12 +400,11 @@ class CML:
                         self.status_code = res.status
                         self.result = response_content
                         return True
-                    else:
-                        self.status_code = res.status
-                        self.result = response_content
-                        return False
-            except:
-                logging.info(f"Exception adding user")
+                    self.status_code = res.status
+                    self.result = response_content
+                    return False
+            except Exception:
+                logging.info("Exception adding user")
                 self.status_code = 500
                 return False
 
@@ -430,7 +419,7 @@ class CML:
         u = self.url + api_path
         self.result = {}
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
-            logging.debug(f"This is the aiohttp Client session {session}")
+            logging.debug("This is the aiohttp Client session %s", session)
             try:
                 async with session.request(
                     method="DELETE", url=u, headers=headers, ssl=False
@@ -440,12 +429,11 @@ class CML:
                         self.status_code = res.status
                         self.result = response_content
                         return True
-                    else:
-                        self.status_code = res.status
-                        self.result = response_content
-                        return False
-            except:
-                logging.info(f"Exception adding user")
+                    self.status_code = res.status
+                    self.result = response_content
+                    return False
+            except Exception:
+                logging.info("Exception adding user")
                 self.status_code = 500
                 return False
 
@@ -470,70 +458,7 @@ class CML:
         l = list(pos)
         random.shuffle(l)
         pos = "".join(l)
-        for i in range(0, length):
+        for _ in range(0, length):
             rand = random.randint(0, len(pos) - 1)
             pwd += pos[rand]
         return pwd
-
-
-if __name__ == "__main__":
-    import asyncio
-    import time
-
-    FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    logging.basicConfig(format=FORMAT, level=logging.DEBUG)
-    my_username = ""
-    my_password = ""
-
-    async def check_get_token(my_username, my_password):
-        cml_servers = [
-            "cpn-rtp-cml4.ciscops.net",
-            "cpn-rtp-cml-stable3.ciscops.net",
-            "cpn-rtp-cml-test1.ciscops.net",
-            "cpn-rtp-cml-stable2.ciscops.net",
-        ]
-        for cml_server in cml_servers:
-            print("\n\n\n" + cml_server)
-            cml = CML(my_username, my_password, cml_server)
-            print(await cml.get_token())
-            if cml.status_code == 200:
-                if not await cml.get_system_status():
-                    print(
-                        "Error accessing server "
-                        + cml_server
-                        + ": "
-                        + str(cml.status_code)
-                        + " "
-                        + cml.system_status.get("description", "")
-                    )
-                else:
-                    cpu = round(
-                        cml.system_status["clusters"]["cluster_1"][
-                            "high_level_drivers"
-                        ]["compute_1"]["cpu"]["percent"]
-                    )
-                    memory = round(
-                        cml.system_status["clusters"]["cluster_1"][
-                            "high_level_drivers"
-                        ]["compute_1"]["memory"]["used"]
-                        / cml.system_status["clusters"]["cluster_1"][
-                            "high_level_drivers"
-                        ]["compute_1"]["memory"]["total"]
-                        * 100
-                    )
-                    print(" -  CPU: " + str(cpu) + "% Memory: " + str(memory) + "%\n")
-            else:
-                print(
-                    "Error accessing server "
-                    + cml_server
-                    + ": "
-                    + str(cml.status_code)
-                    + " "
-                    + cml.bearer_token
-                )
-                print(cml.bearer_token)
-
-    s = time.perf_counter()
-    asyncio.run(check_get_token(my_username, my_password))
-    elapsed = time.perf_counter() - s
-    print(f"executed in {elapsed:0.2f} seconds.")

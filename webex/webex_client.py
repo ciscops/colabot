@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import json
-import aiohttp
 import logging
+import aiohttp
 
 
 class WebExClient:
@@ -33,7 +33,7 @@ class WebExClient:
             files=message.get("files"),
         )
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30)) as session:
-            logging.debug(f"This is the aiohttp webex Client session {session}")
+            logging.debug("This is the aiohttp webex Client session %s", session)
             try:
                 async with session.request(
                     method="POST",
@@ -42,10 +42,10 @@ class WebExClient:
                     data=json.dumps(post_data)
                 ) as res:
                     response_content = await res.json()
-                    logging.debug(f"WebEx POST message response_content: {response_content}")
+                    logging.debug("WebEx POST message response_content: %s", {response_content})
                     return response_content
-            except:
-                logging.info(f"Exception posting WebEx message")
+            except Exception:
+                logging.info("Exception posting WebEx message")
                 return {}
 
     async def get_message_details(self, message_id):
@@ -55,7 +55,7 @@ class WebExClient:
             "Authorization": "Bearer " + self.webex_bot_token,
         }
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30)) as session:
-            logging.debug(f"This is the aiohttp webex Client session {session}")
+            logging.debug("This is the aiohttp webex Client session %s", session)
             try:
                 async with session.request(
                     method="GET",
@@ -64,8 +64,8 @@ class WebExClient:
                 ) as res:
                     response_content = await res.json()
                     return response_content
-            except:
-                logging.info(f"Exception retrieving WebEx message")
+            except Exception:
+                logging.info("Exception retrieving WebEx message")
                 return {}
 
     async def get_card_attachment(self, message_id):
@@ -75,7 +75,7 @@ class WebExClient:
             "Authorization": "Bearer " + self.webex_bot_token,
         }
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30)) as session:
-            logging.debug(f"This is the aiohttp webex Client session {session}")
+            logging.debug("This is the aiohttp webex Client session %s", session)
             try:
                 async with session.request(
                     method="GET",
@@ -84,8 +84,8 @@ class WebExClient:
                 ) as res:
                     response_content = await res.json()
                     return response_content
-            except:
-                logging.info(f"Exception retrieving WebEx message attachment")
+            except Exception:
+                logging.info("Exception retrieving WebEx message attachment")
                 return {}
 
     async def delete_message(self, message_id):
@@ -95,7 +95,7 @@ class WebExClient:
             "Authorization": "Bearer " + self.webex_bot_token,
         }
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30)) as session:
-            logging.debug(f"This is the aiohttp webex Client session {session}")
+            logging.debug("This is the aiohttp webex Client session %s", session)
             try:
                 async with session.request(
                     method="DELETE",
@@ -104,8 +104,8 @@ class WebExClient:
                 ) as res:
                     response_content = await res.json()
                     return response_content
-            except:
-                logging.info(f"Exception retrieving WebEx message attachment")
+            except Exception:
+                logging.info("Exception retrieving WebEx message attachment")
                 return {}
 
     async def get_room_memberships(self, room_id, person_id):
@@ -120,7 +120,7 @@ class WebExClient:
             "Authorization": "Bearer " + self.webex_bot_token,
         }
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30)) as session:
-            logging.debug(f"This is the aiohttp webex Client session {session}")
+            logging.debug("This is the aiohttp webex Client session %s", session)
             try:
                 async with session.request(
                         method="GET",
@@ -129,8 +129,8 @@ class WebExClient:
                 ) as res:
                     response_content = await res.json()
                     return response_content
-            except:
-                logging.info(f"Exception retrieving WebEx message attachment")
+            except Exception:
+                logging.info("Exception retrieving WebEx message attachment")
                 return {}
 
     @staticmethod
