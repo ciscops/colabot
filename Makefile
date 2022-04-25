@@ -26,4 +26,4 @@ format: $(VENV_BIN)/activate ## Format code using black
 	$(VENV_BIN)/black $(PYDIRS)
 
 pylint: $(VENV_BIN)/activate ## Run pylint
-	$(VENV_BIN)/pylint --output-format=parseable --fail-under=8.5 --rcfile .pylintrc *.py $(PYDIRS)
+	$(VENV_BIN)/pylint --output-format=parseable --fail-under=9.9 --rcfile .pylintrc *.py $(PYDIRS)
