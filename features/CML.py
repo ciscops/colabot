@@ -31,17 +31,24 @@ class CML:
         self.system_status = {}
         self.result = {}
         self.user_lab_ids = ""
+        self.logging_message = "This is the aiohttp Client session"
 
     async def get_token(self):
         api_path = "/api/v0/authenticate"
         headers = {"Content-Type": "application/json"}
         u = self.url + api_path
         body = {"username": self.cml_username, "password": self.cml_password}
-        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
-            logging.debug("This is the aiohttp Client session %s", session)
+        async with aiohttp.ClientSession(
+            timeout=aiohttp.ClientTimeout(total=20)
+        ) as session:
+            logging.debug("%s %s", self.logging_message, session)
             try:
                 async with session.request(
-                    method="POST", url=u, headers=headers, data=json.dumps(body), ssl=False
+                    method="POST",
+                    url=u,
+                    headers=headers,
+                    data=json.dumps(body),
+                    ssl=False,
                 ) as res:
                     response_content = await res.json()
                     if res.status == 200:
@@ -67,8 +74,10 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token,
         }
         u = self.url + api_path
-        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
-            logging.debug("This is the aiohttp Client session %s", session)
+        async with aiohttp.ClientSession(
+            timeout=aiohttp.ClientTimeout(total=20)
+        ) as session:
+            logging.debug("%s %s", self.logging_message, session)
             try:
                 async with session.request(
                     method="GET", url=u, headers=headers, ssl=False
@@ -96,8 +105,10 @@ class CML:
         }
         u = self.url + api_path
         self.diagnostics = {}
-        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=60)) as session:
-            logging.debug("This is the aiohttp Client session %s", session)
+        async with aiohttp.ClientSession(
+            timeout=aiohttp.ClientTimeout(total=60)
+        ) as session:
+            logging.debug("%s %s", self.logging_message, session)
             try:
                 async with session.request(
                     method="GET", url=u, headers=headers, ssl=False
@@ -124,8 +135,10 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token,
         }
         u = self.url + api_path
-        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
-            logging.debug("This is the aiohttp Client session %s", session)
+        async with aiohttp.ClientSession(
+            timeout=aiohttp.ClientTimeout(total=20)
+        ) as session:
+            logging.debug("%s %s", self.logging_message, session)
             try:
                 async with session.request(
                     method="GET", url=u, headers=headers, ssl=False
@@ -152,8 +165,10 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token,
         }
         u = self.url + api_path
-        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
-            logging.debug("This is the aiohttp Client session %s", session)
+        async with aiohttp.ClientSession(
+            timeout=aiohttp.ClientTimeout(total=20)
+        ) as session:
+            logging.debug("%s %s", self.logging_message, session)
             try:
                 async with session.request(
                     method="GET", url=u, headers=headers, ssl=False
@@ -180,8 +195,10 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token,
         }
         u = self.url + api_path
-        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
-            logging.debug("This is the aiohttp Client session %s", session)
+        async with aiohttp.ClientSession(
+            timeout=aiohttp.ClientTimeout(total=20)
+        ) as session:
+            logging.debug("%s %s", self.logging_message, session)
             try:
                 async with session.request(
                     method="GET", url=u, headers=headers, ssl=False
@@ -208,8 +225,10 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token,
         }
         u = self.url + api_path
-        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
-            logging.debug("This is the aiohttp Client session %s", session)
+        async with aiohttp.ClientSession(
+            timeout=aiohttp.ClientTimeout(total=20)
+        ) as session:
+            logging.debug("%s %s", self.logging_message, session)
             try:
                 async with session.request(
                     method="GET", url=u, headers=headers, ssl=False
@@ -236,8 +255,10 @@ class CML:
             "Authorization": "Bearer " + self.bearer_token,
         }
         u = self.url + api_path
-        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
-            logging.debug("This is the aiohttp Client session %s", session)
+        async with aiohttp.ClientSession(
+            timeout=aiohttp.ClientTimeout(total=20)
+        ) as session:
+            logging.debug("%s %s", self.logging_message, session)
             try:
                 async with session.request(
                     method="GET", url=u, headers=headers, ssl=False
@@ -265,8 +286,10 @@ class CML:
         }
         u = self.url + api_path
         self.result = {}
-        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
-            logging.debug("This is the aiohttp Client session %s", session)
+        async with aiohttp.ClientSession(
+            timeout=aiohttp.ClientTimeout(total=20)
+        ) as session:
+            logging.debug("%s %s", self.logging_message, session)
             try:
                 async with session.request(
                     method="PUT", url=u, headers=headers, ssl=False
@@ -294,8 +317,10 @@ class CML:
         }
         u = self.url + api_path
         self.result = {}
-        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
-            logging.debug("This is the aiohttp Client session %s", session)
+        async with aiohttp.ClientSession(
+            timeout=aiohttp.ClientTimeout(total=20)
+        ) as session:
+            logging.debug("%s %s", self.logging_message, session)
             try:
                 async with session.request(
                     method="PUT", url=u, headers=headers, ssl=False
@@ -323,8 +348,10 @@ class CML:
         }
         u = self.url + api_path
         self.result = {}
-        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
-            logging.debug("This is the aiohttp Client session %s", session)
+        async with aiohttp.ClientSession(
+            timeout=aiohttp.ClientTimeout(total=20)
+        ) as session:
+            logging.debug("%s %s", self.logging_message, session)
             try:
                 async with session.request(
                     method="DELETE", url=u, headers=headers, ssl=False
@@ -353,11 +380,17 @@ class CML:
         body = {"old_password": "", "new_password": new_password}
         u = self.url + api_path
         self.result = {}
-        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
-            logging.debug("This is the aiohttp Client session %s", session)
+        async with aiohttp.ClientSession(
+            timeout=aiohttp.ClientTimeout(total=20)
+        ) as session:
+            logging.debug("%s %s", self.logging_message, session)
             try:
                 async with session.request(
-                    method="PUT", url=u, headers=headers, data=json.dumps(body), ssl=False
+                    method="PUT",
+                    url=u,
+                    headers=headers,
+                    data=json.dumps(body),
+                    ssl=False,
                 ) as res:
                     response_content = await res.json()
                     if res.status == 200:
@@ -389,11 +422,17 @@ class CML:
         }
         u = self.url + api_path
         self.result = {}
-        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
-            logging.debug("This is the aiohttp Client session %s", session)
+        async with aiohttp.ClientSession(
+            timeout=aiohttp.ClientTimeout(total=20)
+        ) as session:
+            logging.debug("%s %s", self.logging_message, session)
             try:
                 async with session.request(
-                    method="POST", url=u, headers=headers, data=json.dumps(body), ssl=False
+                    method="POST",
+                    url=u,
+                    headers=headers,
+                    data=json.dumps(body),
+                    ssl=False,
                 ) as res:
                     response_content = await res.json()
                     if res.status == 200:
@@ -418,8 +457,10 @@ class CML:
         }
         u = self.url + api_path
         self.result = {}
-        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
-            logging.debug("This is the aiohttp Client session %s", session)
+        async with aiohttp.ClientSession(
+            timeout=aiohttp.ClientTimeout(total=20)
+        ) as session:
+            logging.debug("%s %s", self.logging_message, session)
             try:
                 async with session.request(
                     method="DELETE", url=u, headers=headers, ssl=False

@@ -1,4 +1,4 @@
-   #"""import json
+# """import json
 import time
 import re
 import copy
@@ -38,9 +38,7 @@ async def cml_chat(activity):
             server_name = "\n***" + cml_server + "***\n"
             cml = CML(CONFIG.CML_USERNAME, CONFIG.CML_PASSWORD, cml_server)
             # Get bearer token
-            if (
-                not await cml.get_token()
-            ):
+            if not await cml.get_token():
                 message = dict(
                     text="***"
                     + cml_server
@@ -116,9 +114,9 @@ async def cml_chat(activity):
             )
             await webex.post_message_to_webex(message)
         return
-     #"""END CML LIST ALL LABS""" #why is a doc string here?
+    # """END CML LIST ALL LABS""" #why is a doc string here?
 
-     #"""START CML LIST USERS"""
+    # """START CML LIST USERS"""
     if activity.get("text") == "cml list users":
         webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
         for cml_server in cml_servers:
@@ -162,9 +160,9 @@ async def cml_chat(activity):
             )
             await webex.post_message_to_webex(message)
         return
-     #"""END CML LIST USERS"""
+    # """END CML LIST USERS"""
 
-     #"""START CML LIST MY LABS"""
+    # """START CML LIST MY LABS"""
     if activity.get("text") == "cml list my labs":
         results_message = ""
         user_and_domain = activity["sender_email"].split("@")
@@ -238,9 +236,9 @@ async def cml_chat(activity):
             )
         await webex.post_message_to_webex(message)
         return
-     #"""END CML LIST MY LABS"""
+    # """END CML LIST MY LABS"""
 
-     #"""START CML SHOW SERVER UTILIZATION"""
+    # """START CML SHOW SERVER UTILIZATION"""
     if activity.get("text") == "cml show server utilization":
         logging.debug("Made it to cml show server utilization!")
         results_message = ""
@@ -300,9 +298,9 @@ async def cml_chat(activity):
         message = dict(text=results_message, roomId=activity["roomId"], attachments=[])
         await webex.post_message_to_webex(message)
         return
-     #"""END CML SHOW SERVER UTILIZATION"""
+    # """END CML SHOW SERVER UTILIZATION"""
 
-     #"""START CML EXTEND LAB"""
+    # """START CML EXTEND LAB"""
 
     if re.search("^CML extend lab .*", activity.get("text", "")):
         temp = activity.get("text").split("lab")
@@ -327,9 +325,9 @@ async def cml_chat(activity):
         message = dict(text=results_message, roomId=activity["roomId"], attachments=[])
         await webex.post_message_to_webex(message)
         return
-     #"""END CML EXTEND LAB"""
+    # """END CML EXTEND LAB"""
 
-     #"""START CML STOP LAB DIALOGUE"""
+    # """START CML STOP LAB DIALOGUE"""
     if activity.get("text") == "cml stop lab":
         webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
         card_file = "./cards/cml_stop_lab_get_password.json"
@@ -605,9 +603,9 @@ async def cml_chat(activity):
                 logging.warning(e)
 
         return
-     #""" END CML STOP LAB DIALOGUE """
+    # """ END CML STOP LAB DIALOGUE """
 
-     #"""START CML DELETE LAB DIALOGUE"""
+    # """START CML DELETE LAB DIALOGUE"""
     if activity.get("text") == "cml delete lab":
         webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
         card_file = "./cards/cml_delete_lab_get_password.json"
@@ -887,9 +885,9 @@ async def cml_chat(activity):
                 logging.warning(e)
 
         return
-     #""" END CML DELETE LAB DIALOGUE """
+    # """ END CML DELETE LAB DIALOGUE """
 
-     #"""START CML LIST MY LAB DETAILS DIALOGUE"""
+    # """START CML LIST MY LAB DETAILS DIALOGUE"""
     if activity.get("text") == "cml list my lab details":
         webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
         card_file = "./cards/list_my_lab_details_get_password.json"
@@ -1059,9 +1057,9 @@ async def cml_chat(activity):
                 logging.warning(e)
 
         return
-     #"""END CML LIST MY LAB DETAILS DIALOGUE"""
+    # """END CML LIST MY LAB DETAILS DIALOGUE"""
 
-     #"""START CML SHOW IPS DIALOGUE"""
+    # """START CML SHOW IPS DIALOGUE"""
     if activity.get("text") == "cml show ip addresses":
         webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
         card_file = "./cards/cml_ips_get_password.json"
@@ -1247,9 +1245,9 @@ async def cml_chat(activity):
                 logging.warning(e)
 
         return
-     #""" END CML SHOW IPS DIALOGUE """
+    # """ END CML SHOW IPS DIALOGUE """
 
-     #"""START CATCH ALL"""
+    # """START CATCH ALL"""
     await catch_all(activity)
     return
-     #"""END CATCH ALL"""
+    # """END CATCH ALL"""

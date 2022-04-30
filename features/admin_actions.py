@@ -33,8 +33,7 @@ async def dynamo_download_items(table: str) -> list:
         response = table.scan()
         items = response["Items"]
         while "LastEvaluatedKey" in response:
-            response = table.scan(
-                ExclusiveStartKey=response["LastEvaluatedKey"])
+            response = table.scan(ExclusiveStartKey=response["LastEvaluatedKey"])
             items.extend(response["Items"])
         return items
     except Exception as e:
@@ -88,8 +87,7 @@ async def admin_alert_cml_users(activity):
         if cml_servers:
             lab_choices_string = '{"type": "Input.ChoiceSet","id": "CML servers","style": "expanded","value": "1","choices": ['
             for i in cml_servers:
-                lab_choices_string += '{"title": "' + \
-                    i + '","value": "' + i + '"},'
+                lab_choices_string += '{"title": "' + i + '","value": "' + i + '"},'
             servers_for_card = lab_choices_string[:-1]
             servers_for_card += '],"isMultiSelect": true},'
 
@@ -198,8 +196,7 @@ async def admin_alert_cml_users(activity):
         webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
         if activity.get("original_text"):
             message = f"\n\nIs the below the message you would like to send **(yes/no)**? : \n\n  - {activity.get('original_text')}"
-            message = dict(
-                text=message, roomId=activity["roomId"], attachments=[])
+            message = dict(text=message, roomId=activity["roomId"], attachments=[])
             await webex.post_message_to_webex(message)
             with pymongo.MongoClient(mongo_url) as client:
                 db = client[CONFIG.MONGO_DB_ACTIVITY]
@@ -227,8 +224,7 @@ async def admin_alert_cml_users(activity):
         webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
         if activity.get("text") == "no":
             message = "Ok - Let me know if I can help"
-            message = dict(
-                text=message, roomId=activity["roomId"], attachments=[])
+            message = dict(text=message, roomId=activity["roomId"], attachments=[])
             await webex.post_message_to_webex(message)
         if activity.get("text") == "yes":
             records = await dynamo_download_items("colab_directory")
@@ -286,20 +282,13 @@ async def find_active_labs(server, activity, webex, new_directory):
             await webex.post_message_to_webex(message)
             # continue
         else:
-            for k, v in cml.diagnostics["user_roles"][
-                "labs_by_user"
-            ].items():
-                if v:
-                    if new_directory.get(k):
-                        mentions.append(
-                            f"<@personEmail:{new_directory.get(k)}|{k}>"
-                        )
+            for k, v in cml.diagnostics["user_roles"]["labs_by_user"].items():
+                if v and new_directory.get(k):
+                    mentions.append(f"<@personEmail:{new_directory.get(k)}|{k}>")
     if mentions:
         message_text = f"The following is an **important message** for users of {server}: \n\n  - {activity['dialogue_data']['text']} \n\n{' '.join(mentions)}"
     else:
         message_text = f"The following is an **important message** for users of {server}: \n\n  - {activity['dialogue_data']['text']} \n\n"
     logging.info(message_text)
-    message = dict(
-        text=message_text, roomId=CONFIG.AUTHORIZED_ROOMS, attachments=[]
-    )
+    message = dict(text=message_text, roomId=CONFIG.AUTHORIZED_ROOMS, attachments=[])
     await webex.post_message_to_webex(message)

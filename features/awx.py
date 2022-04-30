@@ -10,11 +10,8 @@ from config import DefaultConfig as CONFIG
 from webex import WebExClient
 
 
-
-
-
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
+logging_message = "This is the aiohttp Client session"
 
 mongo_url = (
     "mongodb://"
@@ -66,7 +63,7 @@ async def create_accounts(activity):
         login=CONFIG.AWX_USERNAME, password=CONFIG.AWX_PASSWORD, encoding="utf-8"
     )
     session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=60), auth=auth)
-    logging.debug("This is the aiohttp Client session %s", session)
+    logging.debug("%s %s", logging_message, session)
     try:
         async with session.request(
             method="POST", url=url, headers=headers, data=json.dumps(body), ssl=False
@@ -142,7 +139,7 @@ async def create_aws_account(activity):
         login=CONFIG.AWX_USERNAME, password=CONFIG.AWX_PASSWORD, encoding="utf-8"
     )
     session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=60), auth=auth)
-    logging.debug("This is the aiohttp Client session %s", session)
+    logging.debug("%s %s", logging_message, session)
     try:
         async with session.request(
             method="POST", url=url, headers=headers, data=json.dumps(body), ssl=False
@@ -204,7 +201,7 @@ async def create_vpn_account(activity):
         login=CONFIG.AWX_USERNAME, password=CONFIG.AWX_PASSWORD, encoding="utf-8"
     )
     session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=60), auth=auth)
-    logging.debug("This is the aiohttp Client session %s", session)
+    logging.debug("%s %s", logging_message, session)
     try:
         async with session.request(
             method="POST", url=url, headers=headers, data=json.dumps(body), ssl=False
@@ -377,7 +374,7 @@ async def delete_accounts(activity):
         session = aiohttp.ClientSession(
             timeout=aiohttp.ClientTimeout(total=60), auth=auth
         )
-        logging.debug("This is the aiohttp Client session %s", session)
+        logging.debug("%s %s", logging_message, session)
         try:
             async with session.request(
                 method="POST",
@@ -451,7 +448,7 @@ async def bot_delete_accounts(activity):
         login=CONFIG.AWX_USERNAME, password=CONFIG.AWX_PASSWORD, encoding="utf-8"
     )
     session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=60), auth=auth)
-    logging.debug("This is the aiohttp Client session %s", session)
+    logging.debug("%s %s", logging_message, session)
     try:
         async with session.request(
             method="POST", url=url, headers=headers, data=json.dumps(body), ssl=False
