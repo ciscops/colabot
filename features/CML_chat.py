@@ -27,7 +27,7 @@ mongo_url = (
 async def cml_chat(activity):
     cml_servers = CONFIG.SERVER_LIST.split(",")
 
-    #   #"""START CML LIST ALL LABS"""
+    # """START CML LIST ALL LABS"""
     if activity.get("text") == "cml list all labs":
         await list_all_labs(cml_servers, activity)
     # """START CML LIST USERS"""
@@ -93,7 +93,6 @@ async def cml_chat(activity):
 
     # """START CATCH ALL"""
     await catch_all(activity)
-    return
     # """END CATCH ALL"""
 
 
@@ -181,7 +180,7 @@ async def list_all_labs(cml_servers, activity):
         message = dict(text=results_message, roomId=activity["roomId"], attachments=[])
         await webex.post_message_to_webex(message)
     return
-    # """END CML LIST ALL LABS""" #why is a doc string here?
+    # """END CML LIST ALL LABS"""
 
 
 async def list_users(cml_servers, activity):
