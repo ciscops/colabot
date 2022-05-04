@@ -68,10 +68,10 @@ class COLABot:
 
         # Process web request
         if not req:
-            raise Exception("Request is required")
+            raise ValueError("Request is required")
         body = await req.text()
         if not body:
-            raise Exception("Error receiving request body")
+            raise ValueError("Error receiving request body")
         request_dict = json.loads(body)
         if request_dict['resource'] == 'memberships' and request_dict['event'] == 'deleted' and request_dict['data'][
                 'personId'] == CONFIG.BOT_ID:
@@ -129,15 +129,8 @@ class COLABot:
             if result:
                 epoch_time_now = time.time()
                 last_dialogue_epoch_time = int(time.mktime(time.strptime(result['created'], pattern)))
-                if epoch_time_now - last_dialogue_epoch_time >= int(CONFIG.DIALOGUE_TIMEOUT):  # Remove stale convos
-                    try:
-                        posts.delete_many(query_lab_filter)
-                    except Exception as e:
-                        logging.error('Could not remove stale dialogue record from DB')
-                        logging.error(e)
-                        return {'status_code': 500}
                 # If somehow the dialogue_max_step is maxed out
-                elif result['dialogue_step'] > result['dialogue_max_steps']:
+                if epoch_time_now - last_dialogue_epoch_time >= int(CONFIG.DIALOGUE_TIMEOUT) or result['dialogue_step'] > result['dialogue_max_steps']:  # Remove stale convos
                     try:
                         posts.delete_many(query_lab_filter)
                     except Exception as e:
