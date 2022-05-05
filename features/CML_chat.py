@@ -1,14 +1,15 @@
-from .CML import CML
-from config import DefaultConfig as CONFIG
-from features.catch_all import catch_all
-from webex import WebExClient
-import json
-import pymongo
-from jinja2 import Template
+# """import json
 import time
 import re
 import copy
 import logging
+import json
+import pymongo
+from jinja2 import Template
+from config import DefaultConfig as CONFIG
+from features.catch_all import catch_all
+from webex import WebExClient
+from .CML import CML
 
 
 mongo_url = (
@@ -26,7 +27,7 @@ mongo_url = (
 async def cml_chat(activity):
     cml_servers = CONFIG.SERVER_LIST.split(",")
 
-    """START CML LIST ALL LABS"""
+    #   #"""START CML LIST ALL LABS"""
     if activity.get("text") == "cml list all labs":
         logging.debug("in cml list all labs")
         webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
@@ -37,9 +38,7 @@ async def cml_chat(activity):
             server_name = "\n***" + cml_server + "***\n"
             cml = CML(CONFIG.CML_USERNAME, CONFIG.CML_PASSWORD, cml_server)
             # Get bearer token
-            if (
-                not await cml.get_token()
-            ):
+            if not await cml.get_token():
                 message = dict(
                     text="***"
                     + cml_server
@@ -70,7 +69,7 @@ async def cml_chat(activity):
                 logging.debug(v)
                 labs_flag = False
                 lab_string = "\nLabs for account: ***" + k + "***\n\n"
-                logging.debug("begin: " + lab_string)
+                logging.debug("begin: %s", lab_string)
                 # lab_string = ''
                 for i in v:
                     logging.debug("This is i: ")
@@ -94,12 +93,12 @@ async def cml_chat(activity):
                     )
                     logging.debug(uptime)
                     lab_string += " -  Lab Id: " + i + " Uptime: " + uptime + "\n"
-                logging.debug("end: " + lab_string)
+                logging.debug("end: %s", lab_string)
                 if labs_flag:
                     on_server = True
                     server_name += lab_string
                     if len(server_name) > 6500:
-                        logging.debug(f"size out output: {len(server_name)}")
+                        logging.debug("size out output: %s", len(server_name))
                         message = dict(
                             text=server_name, roomId=activity["roomId"], attachments=[]
                         )
@@ -115,9 +114,9 @@ async def cml_chat(activity):
             )
             await webex.post_message_to_webex(message)
         return
-    """END CML LIST ALL LABS"""
+    # """END CML LIST ALL LABS""" #why is a doc string here?
 
-    """START CML LIST USERS"""
+    # """START CML LIST USERS"""
     if activity.get("text") == "cml list users":
         webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
         for cml_server in cml_servers:
@@ -161,9 +160,9 @@ async def cml_chat(activity):
             )
             await webex.post_message_to_webex(message)
         return
-    """END CML LIST USERS"""
+    # """END CML LIST USERS"""
 
-    """START CML LIST MY LABS"""
+    # """START CML LIST MY LABS"""
     if activity.get("text") == "cml list my labs":
         results_message = ""
         user_and_domain = activity["sender_email"].split("@")
@@ -237,9 +236,9 @@ async def cml_chat(activity):
             )
         await webex.post_message_to_webex(message)
         return
-    """END CML LIST MY LABS"""
+    # """END CML LIST MY LABS"""
 
-    """START CML SHOW SERVER UTILIZATION"""
+    # """START CML SHOW SERVER UTILIZATION"""
     if activity.get("text") == "cml show server utilization":
         logging.debug("Made it to cml show server utilization!")
         results_message = ""
@@ -263,10 +262,10 @@ async def cml_chat(activity):
                 )
                 await webex.post_message_to_webex(message)
                 continue
-            logging.debug(f"Got the token for server{cml_server}")
-            logging.debug(f"Trying to get the system status for {cml_server}")
+            logging.debug("Got the token for server %s", cml_server)
+            logging.debug("Trying to get the system status for %s", cml_server)
             if not await cml.get_system_status():
-                logging.debug(f"Got a get_system_status = False for {cml_server}")
+                logging.debug("Got a get_system_status = False for %s", cml_server)
                 server_name += (
                     "Error accessing server "
                     + cml_server
@@ -276,7 +275,7 @@ async def cml_chat(activity):
                     + cml.system_status.get("description", "")
                 )
             else:
-                logging.debug(f"Got the system status for {cml_server}")
+                logging.debug("Got the system status for %s", cml_server)
                 cpu = round(
                     cml.system_status["clusters"]["cluster_1"]["high_level_drivers"][
                         "compute_1"
@@ -299,9 +298,9 @@ async def cml_chat(activity):
         message = dict(text=results_message, roomId=activity["roomId"], attachments=[])
         await webex.post_message_to_webex(message)
         return
-    """END CML SHOW SERVER UTILIZATION"""
+    # """END CML SHOW SERVER UTILIZATION"""
 
-    """START CML EXTEND LAB"""
+    # """START CML EXTEND LAB"""
 
     if re.search("^CML extend lab .*", activity.get("text", "")):
         temp = activity.get("text").split("lab")
@@ -326,13 +325,13 @@ async def cml_chat(activity):
         message = dict(text=results_message, roomId=activity["roomId"], attachments=[])
         await webex.post_message_to_webex(message)
         return
-    """END CML EXTEND LAB"""
+    # """END CML EXTEND LAB"""
 
-    """START CML STOP LAB DIALOGUE"""
+    # """START CML STOP LAB DIALOGUE"""
     if activity.get("text") == "cml stop lab":
         webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
         card_file = "./cards/cml_stop_lab_get_password.json"
-        with open(f"{card_file}") as fp:
+        with open(f"{card_file}", encoding="utf8") as fp:
             text = fp.read()
         card = json.loads(text)
 
@@ -390,8 +389,10 @@ async def cml_chat(activity):
             }
             try:
                 post_id = posts.insert_one(dialogue_record).inserted_id
+                logging.debug(post_id)
             except Exception as e:
                 logging.warning("Failed to connect to DB")
+                logging.warning(e)
         return
     if (
         activity.get("dialogue_name") == "cml_stop_lab"
@@ -405,7 +406,7 @@ async def cml_chat(activity):
                 cml_user = CML(
                     user_and_domain[0], activity["inputs"]["cml_password"], cml_server
                 )
-            except:
+            except Exception:
                 message = dict(
                     text="I thought we were talking about stopping a lab. Please send a new command",
                     roomId=activity["roomId"],
@@ -452,7 +453,7 @@ async def cml_chat(activity):
                 )
                 await webex.post_message_to_webex(message)
                 continue
-            lab_details = list()
+            lab_details = []
             for lab in cml_user.user_labs:
                 if await cml_user.get_user_lab_details(lab):
                     lab_details.append(cml_user.user_lab_details)
@@ -484,7 +485,7 @@ async def cml_chat(activity):
                 if running_labs:
                     running_labs_for_card += final
         if running_labs_for_card:
-            with open("cards/cml_stop_lab_choices.json") as file_:
+            with open("cards/cml_stop_lab_choices.json", encoding="utf8") as file_:
                 template = Template(file_.read())
             card = template.render(lab_choices=running_labs_for_card)
             card_json = json.loads(card)
@@ -518,29 +519,28 @@ async def cml_chat(activity):
                     logging.warning("Failed to connect to DB")
                     logging.warning(e)
             return
-        else:
-            message = dict(
-                text="You don't have running labs",
-                roomId=activity["roomId"],
-                attachments=[],
-            )
-            await webex.post_message_to_webex(message)
-            # Delete the dialogue record
-            with pymongo.MongoClient(mongo_url) as client:
-                db = client[CONFIG.MONGO_DB_ACTIVITY]
-                posts = db[CONFIG.MONGO_COLLECTIONS_ACTIVITY]
-                query_lab_filter = {
-                    "sender": activity["sender"],
-                    "roomId": activity["roomId"],
-                    "dialogue_name": "cml_stop_lab",
-                }
-                try:
-                    r = posts.delete_one(query_lab_filter)
-                except Exception as e:
-                    logging.warning("Failed to connect to DB")
-                    logging.warning(e)
-
-            return
+        message = dict(
+            text="You don't have running labs",
+            roomId=activity["roomId"],
+            attachments=[],
+        )
+        await webex.post_message_to_webex(message)
+        # Delete the dialogue record
+        with pymongo.MongoClient(mongo_url) as client:
+            db = client[CONFIG.MONGO_DB_ACTIVITY]
+            posts = db[CONFIG.MONGO_COLLECTIONS_ACTIVITY]
+            query_lab_filter = {
+                "sender": activity["sender"],
+                "roomId": activity["roomId"],
+                "dialogue_name": "cml_stop_lab",
+            }
+            try:
+                r = posts.delete_one(query_lab_filter)
+                logging.debug(r)
+            except Exception as e:
+                logging.warning("Failed to connect to DB")
+                logging.warning(e)
+        return
     if (
         activity.get("card_dialogue_index") == "cml_stop_lab_choices"
         and activity.get("dialogue_step") == 2
@@ -603,13 +603,13 @@ async def cml_chat(activity):
                 logging.warning(e)
 
         return
-    """ END CML STOP LAB DIALOGUE """
+    # """ END CML STOP LAB DIALOGUE """
 
-    """START CML DELETE LAB DIALOGUE"""
+    # """START CML DELETE LAB DIALOGUE"""
     if activity.get("text") == "cml delete lab":
         webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
         card_file = "./cards/cml_delete_lab_get_password.json"
-        with open(f"{card_file}") as fp:
+        with open(f"{card_file}", encoding="utf8") as fp:
             text = fp.read()
         card = json.loads(text)
 
@@ -682,7 +682,7 @@ async def cml_chat(activity):
                 cml_user = CML(
                     user_and_domain[0], activity["inputs"]["cml_password"], cml_server
                 )
-            except:
+            except Exception:
                 message = dict(
                     text="I thought we were talking about deleting a lab. Please send a new command",
                     roomId=activity["roomId"],
@@ -730,7 +730,7 @@ async def cml_chat(activity):
                 )
                 await webex.post_message_to_webex(message)
                 continue
-            lab_details = list()
+            lab_details = []
             for lab in cml_user.user_labs:
                 if await cml_user.get_user_lab_details(lab):
                     lab_details.append(cml_user.user_lab_details)
@@ -759,7 +759,7 @@ async def cml_chat(activity):
 
                 labs_for_card += final
         if labs_for_card:
-            with open("cards/cml_delete_lab_choices.json") as file_:
+            with open("cards/cml_delete_lab_choices.json", encoding="utf8") as file_:
                 template = Template(file_.read())
             card = template.render(lab_choices=labs_for_card)
             card_json = json.loads(card)
@@ -793,27 +793,26 @@ async def cml_chat(activity):
                     logging.warning("Failed to connect to DB")
                     logging.warning(e)
             return
-        else:
-            message = dict(
-                text="You don't have labs", roomId=activity["roomId"], attachments=[]
-            )
-            await webex.post_message_to_webex(message)
-            # Delete the dialogue record
-            with pymongo.MongoClient(mongo_url) as client:
-                db = client[CONFIG.MONGO_DB_ACTIVITY]
-                posts = db[CONFIG.MONGO_COLLECTIONS_ACTIVITY]
-                query_lab_filter = {
-                    "sender": activity["sender"],
-                    "roomId": activity["roomId"],
-                    "dialogue_name": "cml_delete_lab",
-                }
-                try:
-                    r = posts.delete_one(query_lab_filter)
-                except Exception as e:
-                    logging.warning("Failed to connect to DB")
-                    logging.warning(e)
 
-            return
+        message = dict(
+            text="You don't have labs", roomId=activity["roomId"], attachments=[]
+        )
+        await webex.post_message_to_webex(message)
+        # Delete the dialogue record
+        with pymongo.MongoClient(mongo_url) as client:
+            db = client[CONFIG.MONGO_DB_ACTIVITY]
+            posts = db[CONFIG.MONGO_COLLECTIONS_ACTIVITY]
+            query_lab_filter = {
+                "sender": activity["sender"],
+                "roomId": activity["roomId"],
+                "dialogue_name": "cml_delete_lab",
+            }
+            try:
+                r = posts.delete_one(query_lab_filter)
+            except Exception as e:
+                logging.warning("Failed to connect to DB")
+                logging.warning(e)
+        return
     if (
         activity.get("card_dialogue_index") == "cml_delete_lab_choices"
         and activity.get("dialogue_step") == 2
@@ -886,13 +885,13 @@ async def cml_chat(activity):
                 logging.warning(e)
 
         return
-    """ END CML DELETE LAB DIALOGUE """
+    # """ END CML DELETE LAB DIALOGUE """
 
-    """START CML LIST MY LAB DETAILS DIALOGUE"""
+    # """START CML LIST MY LAB DETAILS DIALOGUE"""
     if activity.get("text") == "cml list my lab details":
         webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
         card_file = "./cards/list_my_lab_details_get_password.json"
-        with open(f"{card_file}") as fp:
+        with open(f"{card_file}", encoding="utf8") as fp:
             text = fp.read()
         card = json.loads(text)
 
@@ -965,7 +964,7 @@ async def cml_chat(activity):
                 cml_user = CML(
                     user_and_domain[0], activity["inputs"]["cml_password"], cml_server
                 )
-            except:
+            except Exception:
                 message = dict(
                     text="I thought we were talking about lab details. Please send a new command",
                     roomId=activity["roomId"],
@@ -1013,7 +1012,7 @@ async def cml_chat(activity):
                 )
                 await webex.post_message_to_webex(message)
                 continue
-            lab_details = list()
+            lab_details = []
             for lab in cml_user.user_labs:
                 if await cml_user.get_user_lab_details(lab):
                     lab_details.append(cml_user.user_lab_details)
@@ -1058,13 +1057,13 @@ async def cml_chat(activity):
                 logging.warning(e)
 
         return
-    """END CML LIST MY LAB DETAILS DIALOGUE"""
+    # """END CML LIST MY LAB DETAILS DIALOGUE"""
 
-    """START CML SHOW IPS DIALOGUE"""
+    # """START CML SHOW IPS DIALOGUE"""
     if activity.get("text") == "cml show ip addresses":
         webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
         card_file = "./cards/cml_ips_get_password.json"
-        with open(f"{card_file}") as fp:
+        with open(f"{card_file}", encoding="utf8") as fp:
             text = fp.read()
         card = json.loads(text)
 
@@ -1137,7 +1136,7 @@ async def cml_chat(activity):
                 cml_user = CML(
                     user_and_domain[0], activity["inputs"]["cml_password"], cml_server
                 )
-            except:
+            except Exception:
                 message = dict(
                     text="I thought we were talking about getting your lab IP addresses. Please send a new command",
                     roomId=activity["roomId"],
@@ -1166,7 +1165,7 @@ async def cml_chat(activity):
                 message_text += f" * Error accessing server {cml_server} : {str(cml_user.status_code)}\n"
                 continue
             lab_address_results = (
-                list()
+                []
             )  # [{'lab_id': '9eecab', 'nodes': [{'node_id': 'n0', 'node_name': 'csr1000v-0', 'interfaces': [{'interface_name': 'GigabitEthernet1', 'ip4': ['192.133.186.51']]}]}]
             for lab in cml_user.user_labs:
                 temp_lab_dict = {"lab_id": lab, "nodes": []}
@@ -1225,7 +1224,7 @@ async def cml_chat(activity):
                             )
 
             else:
-                message_text += f" * None\n"
+                message_text += " * None\n"
 
             message = dict(text=message_text, roomId=activity["roomId"], attachments=[])
             await webex.post_message_to_webex(message)
@@ -1246,9 +1245,9 @@ async def cml_chat(activity):
                 logging.warning(e)
 
         return
-    """ END CML SHOW IPS DIALOGUE """
+    # """ END CML SHOW IPS DIALOGUE """
 
-    """START CATCH ALL"""
+    # """START CATCH ALL"""
     await catch_all(activity)
     return
-    """END CATCH ALL"""
+    # """END CATCH ALL"""

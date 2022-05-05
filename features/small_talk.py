@@ -1,5 +1,5 @@
-from webex import WebExClient
 import random
+from webex import WebExClient
 from features.catch_all import catch_all
 
 
@@ -52,7 +52,8 @@ async def small_talk(activity):
             "IRQ dropout",
             "root nameservers are out of sync",
             "sticky bits on disk",
-            "unplugged" "daemons loose in system",
+            "unplugged",
+            "daemons loose in system",
             "party-bug in the Aloha protocol.",
             "big to little endian conversion error",
             "zombie processes haunting the computer",
@@ -124,7 +125,7 @@ async def small_talk(activity):
             "&#x1F9F8;",
         ]
         reply = ""
-        for i in range(0, random.randint(1, 10)):
+        for _ in range(0, random.randint(1, 10)):
             reply += emojis[random.randint(0, (len(emojis) - 1))]
         full_response = "Maybe this will help \n " + reply
         webex = WebExClient(webex_bot_token=activity["webex_bot_token"])

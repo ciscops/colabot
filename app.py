@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import logging
 from aiohttp import web
 from aiohttp.web import Request, Response
 from config import DefaultConfig as CONFIG
 from bot import COLABot
-import logging
+
 
 FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.INFO)
