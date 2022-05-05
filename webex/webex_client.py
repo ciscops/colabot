@@ -47,7 +47,7 @@ class WebExClient:
                 ) as res:
                     response_content = await res.json()
                     logging.debug(
-                        "WebEx POST message response_content: %s", {response_content}
+                        "WebEx POST message response_content: %s", response_content
                     )
                     return response_content
             except Exception:

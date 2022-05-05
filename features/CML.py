@@ -60,7 +60,7 @@ class CML:
                     self.status_code = res.status
                     self.bearer_token = response_content
                     return False
-            except Exception:
+            except BaseException:
                 logging.info("Exception getting token")
                 self.status_code = 500
                 return False
@@ -90,7 +90,7 @@ class CML:
                     self.status_code = res.status
                     self.users = response_content
                     return False
-            except Exception:
+            except BaseException:
                 logging.info("Exception getting users")
                 self.status_code = 500
                 return False
@@ -121,7 +121,7 @@ class CML:
                     self.status_code = res.status
                     self.diagnostics = response_content
                     return False
-            except Exception:
+            except BaseException:
                 logging.info("Exception getting diagnostics")
                 self.status_code = 500
                 return False
@@ -151,7 +151,7 @@ class CML:
                     self.status_code = res.status
                     self.lab_nodes = response_content
                     return False
-            except Exception:
+            except BaseException:
                 logging.info("Exception getting lab_nodes")
                 self.status_code = 500
                 return False
@@ -181,7 +181,7 @@ class CML:
                     self.status_code = res.status
                     self.lab_int_addresses = response_content
                     return False
-            except Exception:
+            except BaseException:
                 logging.info("Exception getting lab_int_addresses")
                 self.status_code = 500
                 return False
@@ -211,7 +211,7 @@ class CML:
                     self.status_code = res.status
                     self.user_labs = response_content
                     return False
-            except Exception:
+            except BaseException:
                 logging.info("Exception getting user_labs")
                 self.status_code = 500
                 return False
@@ -241,7 +241,7 @@ class CML:
                     self.status_code = res.status
                     self.user_lab_details = response_content
                     return False
-            except Exception:
+            except BaseException:
                 logging.info("Exception getting user_lab_details")
                 self.status_code = 500
                 return False
@@ -271,7 +271,7 @@ class CML:
                     self.status_code = res.status
                     self.system_status = response_content
                     return False
-            except Exception:
+            except BaseException:
                 logging.info("Exception getting system_status")
                 self.status_code = 500
                 return False
@@ -302,7 +302,7 @@ class CML:
                     self.status_code = res.status
                     self.result = response_content
                     return False
-            except Exception:
+            except BaseException:
                 logging.info("Exception stopping lab")
                 self.status_code = 500
                 return False
@@ -333,7 +333,7 @@ class CML:
                     self.status_code = res.status
                     self.result = response_content
                     return False
-            except Exception:
+            except BaseException:
                 logging.info("Exception wiping lab")
                 self.status_code = 500
                 return False
@@ -364,7 +364,7 @@ class CML:
                     self.status_code = res.status
                     self.result = response_content
                     return False
-            except Exception:
+            except BaseException:
                 logging.info("Exception deleting lab")
                 self.status_code = 500
                 return False
@@ -400,7 +400,7 @@ class CML:
                     self.status_code = res.status
                     self.result = response_content
                     return False
-            except Exception:
+            except BaseException:
                 logging.info("Exception changing password")
                 self.status_code = 500
                 return False
@@ -442,7 +442,7 @@ class CML:
                     self.status_code = res.status
                     self.result = response_content
                     return False
-            except Exception:
+            except BaseException:
                 logging.info("Exception adding user")
                 self.status_code = 500
                 return False
@@ -473,7 +473,7 @@ class CML:
                     self.status_code = res.status
                     self.result = response_content
                     return False
-            except Exception:
+            except BaseException:
                 logging.info("Exception adding user")
                 self.status_code = 500
                 return False
