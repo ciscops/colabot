@@ -121,8 +121,8 @@ class CML:
                     self.status_code = res.status
                     self.diagnostics = response_content
                     return False
-            except BaseException:
-                logging.info("Exception getting diagnostics")
+            except BaseException as error:
+                logging.info("Exception getting diagnostics %s", error)
                 self.status_code = 500
                 return False
 
