@@ -60,8 +60,8 @@ class CML:
                     self.status_code = res.status
                     self.bearer_token = response_content
                     return False
-            except Exception:
-                logging.info("Exception getting token")
+            except BaseException as E:
+                logging.info("Exception getting token %s", E)
                 self.status_code = 500
                 return False
 
@@ -90,8 +90,8 @@ class CML:
                     self.status_code = res.status
                     self.users = response_content
                     return False
-            except Exception:
-                logging.info("Exception getting users")
+            except BaseException as E:
+                logging.info("Exception getting users %s", E)
                 self.status_code = 500
                 return False
 
@@ -121,8 +121,8 @@ class CML:
                     self.status_code = res.status
                     self.diagnostics = response_content
                     return False
-            except Exception:
-                logging.info("Exception getting diagnostics")
+            except BaseException as E:
+                logging.info("Exception getting diagnostics %s", E)
                 self.status_code = 500
                 return False
 
@@ -151,8 +151,8 @@ class CML:
                     self.status_code = res.status
                     self.lab_nodes = response_content
                     return False
-            except Exception:
-                logging.info("Exception getting lab_nodes")
+            except BaseException as E:
+                logging.info("Exception getting lab_nodes %s", E)
                 self.status_code = 500
                 return False
 
@@ -181,8 +181,8 @@ class CML:
                     self.status_code = res.status
                     self.lab_int_addresses = response_content
                     return False
-            except Exception:
-                logging.info("Exception getting lab_int_addresses")
+            except BaseException as E:
+                logging.info("Exception getting lab_int_addresses %s", E)
                 self.status_code = 500
                 return False
 
@@ -211,8 +211,8 @@ class CML:
                     self.status_code = res.status
                     self.user_labs = response_content
                     return False
-            except Exception:
-                logging.info("Exception getting user_labs")
+            except BaseException as E:
+                logging.info("Exception getting user_labs %s", E)
                 self.status_code = 500
                 return False
 
@@ -241,8 +241,8 @@ class CML:
                     self.status_code = res.status
                     self.user_lab_details = response_content
                     return False
-            except Exception:
-                logging.info("Exception getting user_lab_details")
+            except BaseException as E:
+                logging.info("Exception getting user_lab_details %s", E)
                 self.status_code = 500
                 return False
 
@@ -271,8 +271,8 @@ class CML:
                     self.status_code = res.status
                     self.system_status = response_content
                     return False
-            except Exception:
-                logging.info("Exception getting system_status")
+            except BaseException as E:
+                logging.info("Exception getting system_status %s", E)
                 self.status_code = 500
                 return False
 
@@ -302,8 +302,8 @@ class CML:
                     self.status_code = res.status
                     self.result = response_content
                     return False
-            except Exception:
-                logging.info("Exception stopping lab")
+            except BaseException as E:
+                logging.info("Exception stopping lab %s", E)
                 self.status_code = 500
                 return False
 
@@ -333,8 +333,8 @@ class CML:
                     self.status_code = res.status
                     self.result = response_content
                     return False
-            except Exception:
-                logging.info("Exception wiping lab")
+            except BaseException as E:
+                logging.info("Exception wiping lab %s", E)
                 self.status_code = 500
                 return False
 
@@ -364,8 +364,8 @@ class CML:
                     self.status_code = res.status
                     self.result = response_content
                     return False
-            except Exception:
-                logging.info("Exception deleting lab")
+            except BaseException as E:
+                logging.info("Exception deleting lab %s", E)
                 self.status_code = 500
                 return False
 
@@ -400,8 +400,8 @@ class CML:
                     self.status_code = res.status
                     self.result = response_content
                     return False
-            except Exception:
-                logging.info("Exception changing password")
+            except BaseException as E:
+                logging.info("Exception changing password %s", E)
                 self.status_code = 500
                 return False
 
@@ -442,8 +442,8 @@ class CML:
                     self.status_code = res.status
                     self.result = response_content
                     return False
-            except Exception:
-                logging.info("Exception adding user")
+            except BaseException as E:
+                logging.info("Exception adding user %s", E)
                 self.status_code = 500
                 return False
 
@@ -473,8 +473,8 @@ class CML:
                     self.status_code = res.status
                     self.result = response_content
                     return False
-            except Exception:
-                logging.info("Exception adding user")
+            except BaseException as E:
+                logging.info("Exception adding user %s", E)
                 self.status_code = 500
                 return False
 
