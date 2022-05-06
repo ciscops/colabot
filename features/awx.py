@@ -1,16 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import aiohttp
 import logging
+import json
+import re
+import aiohttp
+import pymongo
+import urllib3
 from config import DefaultConfig as CONFIG
 from webex import WebExClient
-import json
-import pymongo
-import re
-import urllib3
+
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
+logging_message = "This is the aiohttp Client session"
 
 mongo_url = (
     "mongodb://"
@@ -62,7 +63,7 @@ async def create_accounts(activity):
         login=CONFIG.AWX_USERNAME, password=CONFIG.AWX_PASSWORD, encoding="utf-8"
     )
     session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=60), auth=auth)
-    logging.debug(f"This is the aiohttp Client session {session}")
+    logging.debug("%s %s", logging_message, session)
     try:
         async with session.request(
             method="POST", url=url, headers=headers, data=json.dumps(body), ssl=False
@@ -103,8 +104,8 @@ async def create_accounts(activity):
         await webex.post_message_to_webex(message)
         try:
             await session.close()
-        except Exception as e:
-            logging.warning(e)
+        except Exception as e1:
+            logging.warning(e1)
     return
 
 
@@ -138,7 +139,7 @@ async def create_aws_account(activity):
         login=CONFIG.AWX_USERNAME, password=CONFIG.AWX_PASSWORD, encoding="utf-8"
     )
     session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=60), auth=auth)
-    logging.debug(f"This is the aiohttp Client session {session}")
+    logging.debug("%s %s", logging_message, session)
     try:
         async with session.request(
             method="POST", url=url, headers=headers, data=json.dumps(body), ssl=False
@@ -154,8 +155,8 @@ async def create_aws_account(activity):
                 await session.close()
             else:
                 await session.close()
-    except Exception as e:
-        logging.warning(e)
+    except Exception as e2:
+        logging.warning(e2)
         message = dict(
             text="Error contacting AWX server. " + str(res.status),
             roomId=activity["roomId"],
@@ -165,8 +166,8 @@ async def create_aws_account(activity):
         await webex.post_message_to_webex(message)
         try:
             await session.close()
-        except Exception as e:
-            logging.warning(e)
+        except Exception as e3:
+            logging.warning(e3)
     return
 
 
@@ -200,7 +201,7 @@ async def create_vpn_account(activity):
         login=CONFIG.AWX_USERNAME, password=CONFIG.AWX_PASSWORD, encoding="utf-8"
     )
     session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=60), auth=auth)
-    logging.debug(f"This is the aiohttp Client session {session}")
+    logging.debug("%s %s", logging_message, session)
     try:
         async with session.request(
             method="POST", url=url, headers=headers, data=json.dumps(body), ssl=False
@@ -227,8 +228,8 @@ async def create_vpn_account(activity):
         await webex.post_message_to_webex(message)
         try:
             await session.close()
-        except Exception as e:
-            logging.warning(e)
+        except Exception as e4:
+            logging.warning(e4)
     return
 
 
@@ -237,7 +238,7 @@ async def delete_accounts(activity):
     if activity.get("text") == "delete accounts":
         webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
         card_file = "./cards/delete_account_get_password.json"
-        with open(f"{card_file}") as fp:
+        with open(f"{card_file}", encoding="utf8") as fp:
             text = fp.read()
         card = json.loads(text)
 
@@ -295,6 +296,7 @@ async def delete_accounts(activity):
             }
             try:
                 post_id = posts.insert_one(dialogue_record).inserted_id
+                logging.debug(post_id)
             except Exception as e:
                 logging.warning(e)
                 print("Failed to connect to DB")
@@ -372,7 +374,7 @@ async def delete_accounts(activity):
         session = aiohttp.ClientSession(
             timeout=aiohttp.ClientTimeout(total=60), auth=auth
         )
-        logging.debug(f"This is the aiohttp Client session {session}")
+        logging.debug("%s %s", logging_message, session)
         try:
             async with session.request(
                 method="POST",
@@ -401,8 +403,8 @@ async def delete_accounts(activity):
             await webex.post_message_to_webex(message)
             try:
                 await session.close()
-            except Exception as e:
-                logging.warning(e)
+            except Exception as e5:
+                logging.warning(e5)
         with pymongo.MongoClient(mongo_url) as client:
             db = client[CONFIG.MONGO_DB_ACTIVITY]
             posts = db[CONFIG.MONGO_COLLECTIONS_ACTIVITY]
@@ -446,7 +448,7 @@ async def bot_delete_accounts(activity):
         login=CONFIG.AWX_USERNAME, password=CONFIG.AWX_PASSWORD, encoding="utf-8"
     )
     session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=60), auth=auth)
-    logging.debug(f"This is the aiohttp Client session {session}")
+    logging.debug("%s %s", logging_message, session)
     try:
         async with session.request(
             method="POST", url=url, headers=headers, data=json.dumps(body), ssl=False
@@ -461,8 +463,8 @@ async def bot_delete_accounts(activity):
                 await session.close()
             else:
                 await session.close()
-    except Exception as e:
-        logging.warning(e)
+    except Exception as e6:
+        logging.warning(e6)
         message = dict(
             text="Error contacting AWX server. " + str(res.status),
             roomId=activity["sender_email"],
