@@ -122,8 +122,8 @@ class CML:
                     self.status_code = res.status
                     self.diagnostics = response_content
                     return False
-            except asyncio.CancelledError:
-                logging.info("Exception getting diagnostics")
+            except BaseException as E:
+                logging.info("Exception getting diagnostics %s", E)
                 self.status_code = 500
                 return False
 
