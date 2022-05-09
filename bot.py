@@ -129,15 +129,8 @@ class COLABot:
             if result:
                 epoch_time_now = time.time()
                 last_dialogue_epoch_time = int(time.mktime(time.strptime(result['created'], pattern)))
-                if epoch_time_now - last_dialogue_epoch_time >= int(CONFIG.DIALOGUE_TIMEOUT):  # Remove stale convos
-                    try:
-                        posts.delete_many(query_lab_filter)
-                    except Exception as e:
-                        logging.error('Could not remove stale dialogue record from DB')
-                        logging.error(e)
-                        return {'status_code': 500}
                 # If somehow the dialogue_max_step is maxed out
-                elif result['dialogue_step'] > result['dialogue_max_steps']:
+                if epoch_time_now - last_dialogue_epoch_time >= int(CONFIG.DIALOGUE_TIMEOUT) or result['dialogue_step'] > result['dialogue_max_steps']:  # Remove stale convos
                     try:
                         posts.delete_many(query_lab_filter)
                     except Exception as e:
