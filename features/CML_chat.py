@@ -23,6 +23,10 @@ mongo_url = (
     + CONFIG.MONGO_PORT
 )
 
+server_access_error_message = "Error accessing server "
+stop_cml_message = "Stop CML lab"
+webex_message_content_type = "application/vnd.microsoft.card.adaptive"
+db_connect_error_message = "Failed to connect to DB"
 
 async def cml_chat(activity):
     cml_servers = CONFIG.SERVER_LIST.split(",")
@@ -31,68 +35,69 @@ async def cml_chat(activity):
     if activity.get("text") == "cml list all labs":
         await list_all_labs(cml_servers, activity)
     # """START CML LIST USERS"""
-    if activity.get("text") == "cml list users":
+    elif activity.get("text") == "cml list users":
         await list_users(cml_servers, activity)
     # """START CML LIST MY LABS"""
-    if activity.get("text") == "cml list my labs":
+    elif activity.get("text") == "cml list my labs":
         await list_my_labs(cml_servers, activity)
     # """START CML SHOW SERVER UTILIZATION"""
-    if activity.get("text") == "cml show server utilization":
+    elif activity.get("text") == "cml show server utilization":
         await show_server_utili(cml_servers, activity)
     # """START CML EXTEND LAB"""
-    if re.search("^CML extend lab .*", activity.get("text", "")):
+    elif re.search("^CML extend lab .*", activity.get("text", "")):
         await extend_lab(activity)
     # """START CML STOP LAB DIALOGUE"""
-    if activity.get("text") == "cml stop lab":
+    elif activity.get("text") == "cml stop lab":
         await stop_lab(activity)
     # """START CML STOP LAB DIALOGUE 1"""
-    if (
+    elif (
         activity.get("dialogue_name") == "cml_stop_lab"
         and activity.get("dialogue_step") == 1
     ):
         await stop_lab_dialogue_1(cml_servers, activity)
     # """START CML STOP LAB DIALOGUE 2"""
-    if (
+    elif (
         activity.get("card_dialogue_index") == "cml_stop_lab_choices"
         and activity.get("dialogue_step") == 2
     ):
         await stop_lab_dialogue_2(cml_servers, activity)
     # """START CML DELETE LAB DIALOGUE"""
-    if activity.get("text") == "cml delete lab":
+    elif activity.get("text") == "cml delete lab":
         await delete_lab(activity)
     # """START CML DELETE LAB DIALOGUE 1"""
-    if (
+    elif (
         activity.get("dialogue_name") == "cml_delete_lab"
         and activity.get("dialogue_step") == 1
     ):
         await delete_lab_dialogue_1(cml_servers, activity)
     # """START CML DELETE LAB DIALOGUE 2"""
-    if (
+    elif (
         activity.get("card_dialogue_index") == "cml_delete_lab_choices"
         and activity.get("dialogue_step") == 2
     ):
         await delete_lab_dialogue_2(cml_servers, activity)
     # """START CML LIST MY LAB DETAILS DIALOGUE"""
-    if activity.get("text") == "cml list my lab details":
+    elif activity.get("text") == "cml list my lab details":
         await list_lab_details(activity)
     # """START CML LIST MY LAB DETAILS DIALOGUE 1"""
-    if (
+    elif (
         activity.get("dialogue_name") == "cml_list_lab_details"
         and activity.get("dialogue_step") == 1
     ):
         await list_lab_details_1(cml_servers, activity)
     # """START CML SHOW IPS DIALOGUE"""
-    if activity.get("text") == "cml show ip addresses":
+    elif activity.get("text") == "cml show ip addresses":
         await show_ip_addresses(activity)
     # """START CML SHOW IPS DIALOGUE 1"""
-    if (
+    elif (
         activity.get("dialogue_name") == "cml_ips_lab"
         and activity.get("dialogue_step") == 1
     ):
         await show_ip_addresses_1(cml_servers, activity)
 
     # """START CATCH ALL"""
-    await catch_all(activity)
+    else:
+        await catch_all(activity)
     # """END CATCH ALL"""
 
 
@@ -138,7 +143,6 @@ async def list_all_labs(cml_servers, activity):
             labs_flag = False
             lab_string = "\nLabs for account: ***" + k + "***\n\n"
             logging.debug("begin: %s", lab_string)
-            # lab_string = ''
             for i in v:
                 logging.debug("This is i: ")
                 logging.debug(i)
@@ -194,7 +198,7 @@ async def list_users(cml_servers, activity):
             not await cml.get_token()
         ):  # {'description': 'User already exists: stmosher.', 'code': 422}
             message = dict(
-                text="Error accessing server "
+                text=server_access_error_message
                 + cml_server
                 + ": "
                 + str(cml.status_code)
@@ -209,7 +213,7 @@ async def list_users(cml_servers, activity):
 
         if not await cml.get_users():
             server_name += (
-                "Error accessing server "
+                server_access_error_message
                 + cml_server
                 + ": "
                 + str(cml.status_code)
@@ -241,7 +245,7 @@ async def list_my_labs(cml_servers, activity):
             not await cml.get_token()
         ):  # {'description': 'User already exists: stmosher.', 'code': 422}
             message = dict(
-                text="Error accessing server "
+                text=server_access_error_message
                 + cml_server
                 + ": "
                 + str(cml.status_code)
@@ -255,7 +259,7 @@ async def list_my_labs(cml_servers, activity):
 
         if not await cml.get_diagnostics():
             server_name += (
-                "Error accessing server "
+                server_access_error_message
                 + cml_server
                 + ": "
                 + str(cml.status_code)
@@ -314,7 +318,7 @@ async def show_server_utili(cml_servers, activity):
             not await cml.get_token()
         ):  # {'description': 'User already exists: stmosher.', 'code': 422}
             message = dict(
-                text="Error accessing server "
+                text=server_access_error_message
                 + cml_server
                 + " "
                 + str(cml.bearer_token),
@@ -329,7 +333,7 @@ async def show_server_utili(cml_servers, activity):
         if not await cml.get_system_status():
             logging.debug("Got a get_system_status = False for %s", cml_server)
             server_name += (
-                "Error accessing server "
+                server_access_error_message
                 + cml_server
                 + ": "
                 + str(cml.status_code)
@@ -396,11 +400,11 @@ async def stop_lab(activity):
     # If group then send a DM with a card
     if activity.get("roomType", "") == "group":
         message = dict(
-            text="Stop CML lab",
+            text=stop_cml_message ,
             toPersonId=activity["sender"],
             attachments=[
                 {
-                    "contentType": "application/vnd.microsoft.card.adaptive",
+                    "contentType": webex_message_content_type,
                     "content": card,
                 }
             ],
@@ -417,11 +421,11 @@ async def stop_lab(activity):
     # if direct, send a card to the same room
     else:
         message = dict(
-            text="Stop CML lab",
+            text=stop_cml_message ,
             roomId=activity["roomId"],
             attachments=[
                 {
-                    "contentType": "application/vnd.microsoft.card.adaptive",
+                    "contentType": webex_message_content_type,
                     "content": card,
                 }
             ],
@@ -449,7 +453,7 @@ async def stop_lab(activity):
             post_id = posts.insert_one(dialogue_record).inserted_id
             logging.debug(post_id)
         except Exception as e:
-            logging.warning("Failed to connect to DB")
+            logging.warning(db_connect_error_message)
             logging.warning(e)
     return
 
@@ -485,7 +489,7 @@ async def stop_lab_dialogue_1(cml_servers, activity):
             not await cml_user.get_token()
         ):  # {'description': 'User already exists: stmosher.', 'code': 422}
             message = dict(
-                text="Error accessing server "
+                text=server_access_error_message
                 + cml_server
                 + ": "
                 + str(cml_user.status_code)
@@ -499,7 +503,7 @@ async def stop_lab_dialogue_1(cml_servers, activity):
         # list the current users labs
         if not await cml_user.get_user_labs():
             message = dict(
-                text="Error accessing server "
+                text=server_access_error_message
                 + cml_server
                 + ": "
                 + str(cml_user.status_code)
@@ -547,11 +551,11 @@ async def stop_lab_dialogue_1(cml_servers, activity):
         card = template.render(lab_choices=running_labs_for_card)
         card_json = json.loads(card)
         message = dict(
-            text="Stop CML lab",
+            text=stop_cml_message ,
             roomId=activity["roomId"],
             attachments=[
                 {
-                    "contentType": "application/vnd.microsoft.card.adaptive",
+                    "contentType": webex_message_content_type,
                     "content": card_json,
                 }
             ],
@@ -575,7 +579,7 @@ async def stop_lab_dialogue_1(cml_servers, activity):
                 )
                 logging.debug(doc)
             except Exception as e:
-                logging.warning("Failed to connect to DB")
+                logging.warning(db_connect_error_message)
                 logging.warning(e)
         return
     message = dict(
@@ -597,7 +601,7 @@ async def stop_lab_dialogue_1(cml_servers, activity):
             r = posts.delete_one(query_lab_filter)
             logging.debug(r)
         except Exception as e:
-            logging.warning("Failed to connect to DB")
+            logging.warning(db_connect_error_message)
             logging.warning(e)
     return
 
@@ -612,7 +616,7 @@ async def stop_lab_dialogue_2(cml_servers, activity):
             # If the user is not there, the below won't work
             if not await cml_user.get_token():
                 message = dict(
-                    text="Error accessing server "
+                    text=server_access_error_message
                     + cml_server
                     + ": "
                     + str(cml_user.status_code)
@@ -658,7 +662,7 @@ async def stop_lab_dialogue_2(cml_servers, activity):
             r = posts.delete_one(query_lab_filter)
             logging.debug(r)
         except Exception as e:
-            logging.warning("Failed to connect to DB")
+            logging.warning(db_connect_error_message)
             logging.warning(e)
 
     return
@@ -675,11 +679,11 @@ async def delete_lab(activity):
     # If group then send a DM with a card
     if activity.get("roomType", "") == "group":
         message = dict(
-            text="Stop CML lab",
+            text=stop_cml_message ,
             toPersonId=activity["sender"],
             attachments=[
                 {
-                    "contentType": "application/vnd.microsoft.card.adaptive",
+                    "contentType": webex_message_content_type,
                     "content": card,
                 }
             ],
@@ -699,7 +703,7 @@ async def delete_lab(activity):
             roomId=activity["roomId"],
             attachments=[
                 {
-                    "contentType": "application/vnd.microsoft.card.adaptive",
+                    "contentType": webex_message_content_type,
                     "content": card,
                 }
             ],
@@ -727,7 +731,7 @@ async def delete_lab(activity):
             post_id = posts.insert_one(dialogue_record).inserted_id
             logging.debug(post_id)
         except Exception as e:
-            logging.warning("Failed to connect to DB")
+            logging.warning(db_connect_error_message)
             logging.warning(e)
     return
 
@@ -764,7 +768,7 @@ async def delete_lab_dialogue_1(cml_servers, activity):
             not await cml_user.get_token()
         ):  # {'description': 'User already exists: stmosher.', 'code': 422}
             message = dict(
-                text="Error accessing server "
+                text=server_access_error_message
                 + cml_server
                 + ": "
                 + str(cml_user.status_code)
@@ -778,7 +782,7 @@ async def delete_lab_dialogue_1(cml_servers, activity):
         # list the current users labs
         if not await cml_user.get_user_labs():
             message = dict(
-                text="Error accessing server "
+                text=server_access_error_message
                 + cml_server
                 + ": "
                 + str(cml_user.status_code)
@@ -823,7 +827,7 @@ async def delete_lab_dialogue_1(cml_servers, activity):
             roomId=activity["roomId"],
             attachments=[
                 {
-                    "contentType": "application/vnd.microsoft.card.adaptive",
+                    "contentType": webex_message_content_type,
                     "content": card_json,
                 }
             ],
@@ -846,7 +850,7 @@ async def delete_lab_dialogue_1(cml_servers, activity):
                 )
                 logging.debug(doc)
             except Exception as e:
-                logging.warning("Failed to connect to DB")
+                logging.warning(db_connect_error_message)
                 logging.warning(e)
         return
 
@@ -867,7 +871,7 @@ async def delete_lab_dialogue_1(cml_servers, activity):
             r = posts.delete_one(query_lab_filter)
             logging.debug(r)
         except Exception as e:
-            logging.warning("Failed to connect to DB")
+            logging.warning(db_connect_error_message)
             logging.warning(e)
     return
 
@@ -884,7 +888,7 @@ async def delete_lab_dialogue_2(cml_servers, activity):
                 not await cml_user.get_token()
             ):  # {'description': 'User already exists: stmosher.', 'code': 422}
                 message = dict(
-                    text="Error accessing server "
+                    text=server_access_error_message
                     + cml_server
                     + ": "
                     + str(cml_user.status_code)
@@ -938,7 +942,7 @@ async def delete_lab_dialogue_2(cml_servers, activity):
             r = posts.delete_one(query_lab_filter)
             logging.debug(r)
         except Exception as e:
-            logging.warning("Failed to connect to DB")
+            logging.warning(db_connect_error_message)
             logging.warning(e)
 
     return
@@ -959,7 +963,7 @@ async def list_lab_details(activity):
             toPersonId=activity["sender"],
             attachments=[
                 {
-                    "contentType": "application/vnd.microsoft.card.adaptive",
+                    "contentType": webex_message_content_type,
                     "content": card,
                 }
             ],
@@ -979,7 +983,7 @@ async def list_lab_details(activity):
             roomId=activity["roomId"],
             attachments=[
                 {
-                    "contentType": "application/vnd.microsoft.card.adaptive",
+                    "contentType": webex_message_content_type,
                     "content": card,
                 }
             ],
@@ -1006,7 +1010,7 @@ async def list_lab_details(activity):
         try:
             posts.insert_one(dialogue_record).inserted_id
         except Exception as e:
-            logging.warning("Failed to connect to DB")
+            logging.warning(db_connect_error_message)
             logging.warning(e)
     return
 
@@ -1043,7 +1047,7 @@ async def list_lab_details_1(cml_servers, activity):
             not await cml_user.get_token()
         ):  # {'description': 'User already exists: stmosher.', 'code': 422}
             message = dict(
-                text="Error accessing server "
+                text=server_access_error_message
                 + cml_server
                 + ": "
                 + str(cml_user.status_code)
@@ -1057,7 +1061,7 @@ async def list_lab_details_1(cml_servers, activity):
         # list the current users labs
         if not await cml_user.get_user_labs():
             message = dict(
-                text="Error accessing server "
+                text=server_access_error_message
                 + cml_server
                 + ": "
                 + str(cml_user.status_code)
@@ -1108,7 +1112,7 @@ async def list_lab_details_1(cml_servers, activity):
             r = posts.delete_one(query_lab_filter)
             logging.debug(r)
         except Exception as e:
-            logging.warning("Failed to connect to DB")
+            logging.warning(db_connect_error_message)
             logging.warning(e)
 
     return
@@ -1129,7 +1133,7 @@ async def show_ip_addresses(activity):
             toPersonId=activity["sender"],
             attachments=[
                 {
-                    "contentType": "application/vnd.microsoft.card.adaptive",
+                    "contentType": webex_message_content_type,
                     "content": card,
                 }
             ],
@@ -1149,7 +1153,7 @@ async def show_ip_addresses(activity):
             roomId=activity["roomId"],
             attachments=[
                 {
-                    "contentType": "application/vnd.microsoft.card.adaptive",
+                    "contentType": webex_message_content_type,
                     "content": card,
                 }
             ],
@@ -1176,7 +1180,7 @@ async def show_ip_addresses(activity):
         try:
             posts.insert_one(dialogue_record).inserted_id
         except Exception as e:
-            logging.warning("Failed to connect to DB")
+            logging.warning(db_connect_error_message)
             logging.warning(e)
     return
 
@@ -1288,7 +1292,7 @@ async def show_ip_addresses_1(cml_servers, activity):
             r = posts.delete_one(query_lab_filter)
             logging.debug(r)
         except Exception as e:
-            logging.warning("Failed to connect to DB")
+            logging.warning(db_connect_error_message)
             logging.warning(e)
 
     return
