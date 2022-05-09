@@ -32,10 +32,14 @@ class CML:
         self.result = {}
         self.user_lab_ids = ""
         self.logging_message = "This is the aiohttp Client session"
+        self.content_type = "application/json"
+        self.bearer_text = "Bearer "
+        self.api_labs_path = "/api/v0/labs/"
+        self.api_users_path = "/api/v0/users/"
 
     async def get_token(self):
         api_path = "/api/v0/authenticate"
-        headers = {"Content-Type": "application/json"}
+        headers = {"Content-Type": self.content_type}
         u = self.url + api_path
         body = {"username": self.cml_username, "password": self.cml_password}
         async with aiohttp.ClientSession(
@@ -68,10 +72,10 @@ class CML:
     async def get_users(self):
         api_path = "/api/v0/users"
         headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
+            "Content-Type": self.content_type,
+            "Accept": self.content_type,
             "cache-control": "no-cache",
-            "Authorization": "Bearer " + self.bearer_token,
+            "Authorization": self.bearer_text + self.bearer_token,
         }
         u = self.url + api_path
         async with aiohttp.ClientSession(
@@ -98,10 +102,10 @@ class CML:
     async def get_diagnostics(self):
         api_path = "/api/v0/diagnostics"
         headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
+            "Content-Type": self.content_type,
+            "Accept": self.content_type,
             "cache-control": "no-cache",
-            "Authorization": "Bearer " + self.bearer_token,
+            "Authorization": self.bearer_text + self.bearer_token,
         }
         u = self.url + api_path
         self.diagnostics = {}
@@ -129,10 +133,10 @@ class CML:
     async def get_lab_nodes(self, lab_id):
         api_path = f"/api/v0/labs/{lab_id}/nodes"
         headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
+            "Content-Type": self.content_type,
+            "Accept": self.content_type,
             "cache-control": "no-cache",
-            "Authorization": "Bearer " + self.bearer_token,
+            "Authorization": self.bearer_text + self.bearer_token,
         }
         u = self.url + api_path
         async with aiohttp.ClientSession(
@@ -159,10 +163,10 @@ class CML:
     async def layer3_addresses(self, lab_id, node_id):
         api_path = f"/api/v0/labs/{lab_id}/nodes/{node_id}/layer3_addresses"
         headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
+            "Content-Type": self.content_type,
+            "Accept": self.content_type,
             "cache-control": "no-cache",
-            "Authorization": "Bearer " + self.bearer_token,
+            "Authorization": self.bearer_text + self.bearer_token,
         }
         u = self.url + api_path
         async with aiohttp.ClientSession(
@@ -189,10 +193,10 @@ class CML:
     async def get_user_labs(self):
         api_path = "/api/v0/labs"
         headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
+            "Content-Type": self.content_type,
+            "Accept": self.content_type,
             "cache-control": "no-cache",
-            "Authorization": "Bearer " + self.bearer_token,
+            "Authorization": self.bearer_text + self.bearer_token,
         }
         u = self.url + api_path
         async with aiohttp.ClientSession(
@@ -217,12 +221,12 @@ class CML:
                 return False
 
     async def get_user_lab_details(self, lab_id):
-        api_path = "/api/v0/labs/" + lab_id
+        api_path = self.api_labs_path + lab_id
         headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
+            "Content-Type": self.content_type,
+            "Accept": self.content_type,
             "cache-control": "no-cache",
-            "Authorization": "Bearer " + self.bearer_token,
+            "Authorization": self.bearer_text + self.bearer_token,
         }
         u = self.url + api_path
         async with aiohttp.ClientSession(
@@ -249,10 +253,10 @@ class CML:
     async def get_system_status(self):
         api_path = "/api/v0/system_stats"
         headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
+            "Content-Type": self.content_type,
+            "Accept": self.content_type,
             "cache-control": "no-cache",
-            "Authorization": "Bearer " + self.bearer_token,
+            "Authorization": self.bearer_text + self.bearer_token,
         }
         u = self.url + api_path
         async with aiohttp.ClientSession(
@@ -277,12 +281,12 @@ class CML:
                 return False
 
     async def stop_lab(self, lab_id):
-        api_path = "/api/v0/labs/" + lab_id + "/stop"
+        api_path = self.api_labs_path + lab_id + "/stop"
         headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
+            "Content-Type": self.content_type,
+            "Accept": self.content_type,
             "cache-control": "no-cache",
-            "Authorization": "Bearer " + self.bearer_token,
+            "Authorization": self.bearer_text + self.bearer_token,
         }
         u = self.url + api_path
         self.result = {}
@@ -308,12 +312,12 @@ class CML:
                 return False
 
     async def wipe_lab(self, lab_id):
-        api_path = "/api/v0/labs/" + lab_id + "/wipe"
+        api_path = self.api_labs_path + lab_id + "/wipe"
         headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
+            "Content-Type": self.content_type,
+            "Accept": self.content_type,
             "cache-control": "no-cache",
-            "Authorization": "Bearer " + self.bearer_token,
+            "Authorization": self.bearer_text + self.bearer_token,
         }
         u = self.url + api_path
         self.result = {}
@@ -339,12 +343,12 @@ class CML:
                 return False
 
     async def delete_lab(self, lab_id):
-        api_path = "/api/v0/labs/" + lab_id
+        api_path = self.api_labs_path + lab_id
         headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
+            "Content-Type": self.content_type,
+            "Accept": self.content_type,
             "cache-control": "no-cache",
-            "Authorization": "Bearer " + self.bearer_token,
+            "Authorization": self.bearer_text + self.bearer_token,
         }
         u = self.url + api_path
         self.result = {}
@@ -370,12 +374,12 @@ class CML:
                 return False
 
     async def change_password(self, username_webex, new_password):
-        api_path = "/api/v0/users/" + username_webex + "/change_password"
+        api_path = self.api_users_path + username_webex + "/change_password"
         headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
+            "Content-Type": self.content_type,
+            "Accept": self.content_type,
             "cache-control": "no-cache",
-            "Authorization": "Bearer " + self.bearer_token,
+            "Authorization": self.bearer_text + self.bearer_token,
         }
         body = {"old_password": "", "new_password": new_password}
         u = self.url + api_path
@@ -406,12 +410,12 @@ class CML:
                 return False
 
     async def add_user(self, username_webex, user_email, new_password):
-        api_path = "/api/v0/users/" + username_webex
+        api_path = self.api_users_path + username_webex
         headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
+            "Content-Type": self.content_type,
+            "Accept": self.content_type,
             "cache-control": "no-cache",
-            "Authorization": "Bearer " + self.bearer_token,
+            "Authorization": self.bearer_text + self.bearer_token,
         }
         body = {
             "password": new_password,
@@ -448,12 +452,12 @@ class CML:
                 return False
 
     async def delete_user(self, username_webex):
-        api_path = "/api/v0/users/" + username_webex
+        api_path = self.api_users_path + username_webex
         headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
+            "Content-Type": self.content_type,
+            "Accept": self.content_type,
             "cache-control": "no-cache",
-            "Authorization": "Bearer " + self.bearer_token,
+            "Authorization": self.bearer_text + self.bearer_token,
         }
         u = self.url + api_path
         self.result = {}
