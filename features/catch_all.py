@@ -52,4 +52,3 @@ async def catch_all(activity):
     )
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
     await webex.post_message_to_webex(message)
-    return
