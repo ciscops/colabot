@@ -19,6 +19,8 @@ mongo_url = (
     + CONFIG.MONGO_PORT
 )
 
+db_connect_error_message = "Failed to connect to DB"
+
 
 async def dynamo_download_items(table: str) -> list:
     items = []
@@ -132,7 +134,7 @@ async def admin_alert_cml_users(activity):
                     post_id = posts.insert_one(dialogue_record).inserted_id
                     logging.debug(post_id)
                 except Exception as e:
-                    logging.warning("Failed to connect to DB")
+                    logging.warning(db_connect_error_message)
                     logging.warning(e)
         return
 
@@ -165,7 +167,7 @@ async def admin_alert_cml_users(activity):
                     )
                     logging.debug(doc)
                 except Exception as e:
-                    logging.warning("Failed to connect to DB")
+                    logging.warning(db_connect_error_message)
                     logging.warning(e)
         else:
             message = dict(
@@ -187,7 +189,7 @@ async def admin_alert_cml_users(activity):
                     r = posts.delete_one(query_lab_filter)
                     logging.debug(r)
                 except Exception as e:
-                    logging.warning("Failed to connect to DB")
+                    logging.warning(db_connect_error_message)
                     logging.warning(e)
     if (
         activity.get("dialogue_name") == "cml_alert_server_choices"
@@ -215,7 +217,7 @@ async def admin_alert_cml_users(activity):
                         },
                     )
                 except Exception as e:
-                    logging.warning("Failed to connect to DB")
+                    logging.warning(db_connect_error_message)
                     logging.warning(e)
     if (
         activity.get("dialogue_name") == "cml_alert_server_choices"
@@ -246,9 +248,8 @@ async def admin_alert_cml_users(activity):
             try:
                 r = posts.delete_one(query_lab_filter)
             except Exception as e:
-                logging.warning("Failed to connect to DB")
+                logging.warning(db_connect_error_message)
                 logging.warning(e)
-    return
 
 
 async def find_active_labs(server, activity, webex, new_directory):

@@ -12,6 +12,11 @@ from webex import WebExClient
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 logging_message = "This is the aiohttp Client session"
+bot_wait_message = "This may take a minute or two..."
+https_header = "https://"
+botId_regex_pattern = r"1MDFmYzc$"
+content_type = "application/json"
+awx_server_error_message = "Error contacting AWX server. "
 
 mongo_url = (
     "mongodb://"
@@ -30,7 +35,7 @@ async def create_accounts(activity):
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
     if activity.get("parentId"):
         message = dict(
-            text="This may take a minute or two...",
+            text=bot_wait_message,
             roomId=activity["roomId"],
             parentId=activity["parentId"],
             attachments=[],
@@ -38,18 +43,18 @@ async def create_accounts(activity):
         await webex.post_message_to_webex(message)
     else:
         message = dict(
-            text="This may take a minute or two...",
+            text=bot_wait_message,
             roomId=activity["roomId"],
             attachments=[],
         )
         await webex.post_message_to_webex(message)
-    urls_cml_servers = ["https://" + s for s in cml_servers]
-    if re.search(r"1MDFmYzc$", CONFIG.BOT_ID):
+    urls_cml_servers = [https_header + s for s in cml_servers]
+    if re.search(botId_regex_pattern, CONFIG.BOT_ID):
         id_template = "14"  # prod
     else:
         id_template = "10"  # for dev
     url = f"https://{CONFIG.AWX_SERVER}/api/v2/job_templates/{id_template}/launch/"
-    headers = {"Content-Type": "application/json"}
+    headers = {"Content-Type": content_type}
     user_and_domain = activity["sender_email"].split("@")
     body = {
         "extra_vars": {
@@ -71,14 +76,14 @@ async def create_accounts(activity):
             if res.status != 201:
                 if activity.get("parentId"):
                     message = dict(
-                        text="Error contacting AWX server. " + str(res.status),
+                        text=awx_server_error_message + str(res.status),
                         roomId=activity["roomId"],
                         parentId=activity["parentId"],
                         attachments=[],
                     )
                 else:
                     message = dict(
-                        text="Error contacting AWX server. " + str(res.status),
+                        text=awx_server_error_message + str(res.status),
                         roomId=activity["roomId"],
                         attachments=[],
                     )
@@ -90,14 +95,14 @@ async def create_accounts(activity):
         logging.warning(e)
         if activity.get("parentId"):
             message = dict(
-                text="Error contacting AWX server. " + str(res.status),
+                text=awx_server_error_message + str(res.status),
                 roomId=activity["roomId"],
                 parentId=activity["parentId"],
                 attachments=[],
             )
         else:
             message = dict(
-                text="Error contacting AWX server. " + str(res.status),
+                text=awx_server_error_message + str(res.status),
                 roomId=activity["roomId"],
                 attachments=[],
             )
@@ -106,26 +111,25 @@ async def create_accounts(activity):
             await session.close()
         except Exception as e1:
             logging.warning(e1)
-    return
 
 
 async def create_aws_account(activity):
     cml_servers = CONFIG.SERVER_LIST.split(",")
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
     message = dict(
-        text="This may take a minute or two...",
+        text=bot_wait_message,
         roomId=activity["roomId"],
         parentId=activity["parentId"],
         attachments=[],
     )
     await webex.post_message_to_webex(message)
-    urls_cml_servers = ["https://" + s for s in cml_servers]
-    if re.search(r"1MDFmYzc$", CONFIG.BOT_ID):
+    urls_cml_servers = [https_header + s for s in cml_servers]
+    if re.search(botId_regex_pattern, CONFIG.BOT_ID):
         id_template = "15"  # prod
     else:
         id_template = "11"  # for dev
     url = f"https://{CONFIG.AWX_SERVER}/api/v2/job_templates/{id_template}/launch/"
-    headers = {"Content-Type": "application/json"}
+    headers = {"Content-Type": content_type}
     user_and_domain = activity["sender_email"].split("@")
     body = {
         "extra_vars": {
@@ -146,7 +150,7 @@ async def create_aws_account(activity):
         ) as res:
             if res.status != 201:
                 message = dict(
-                    text="Error contacting AWX server. " + str(res.status),
+                    text=awx_server_error_message + str(res.status),
                     roomId=activity["roomId"],
                     parentId=activity["parentId"],
                     attachments=[],
@@ -158,7 +162,7 @@ async def create_aws_account(activity):
     except Exception as e2:
         logging.warning(e2)
         message = dict(
-            text="Error contacting AWX server. " + str(res.status),
+            text=awx_server_error_message + str(res.status),
             roomId=activity["roomId"],
             parentId=activity["parentId"],
             attachments=[],
@@ -168,26 +172,25 @@ async def create_aws_account(activity):
             await session.close()
         except Exception as e3:
             logging.warning(e3)
-    return
 
 
 async def create_vpn_account(activity):
     cml_servers = CONFIG.SERVER_LIST.split(",")
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
     message = dict(
-        text="This may take a minute or two...",
+        text=bot_wait_message,
         roomId=activity["roomId"],
         parentId=activity["parentId"],
         attachments=[],
     )
     await webex.post_message_to_webex(message)
-    urls_cml_servers = ["https://" + s for s in cml_servers]
-    if re.search(r"1MDFmYzc$", CONFIG.BOT_ID):
+    urls_cml_servers = [https_header + s for s in cml_servers]
+    if re.search(botId_regex_pattern, CONFIG.BOT_ID):
         id_template = "16"  # prod
     else:
         id_template = "12"  # for dev
     url = f"https://{CONFIG.AWX_SERVER}/api/v2/job_templates/{id_template}/launch/"
-    headers = {"Content-Type": "application/json"}
+    headers = {"Content-Type": content_type}
     user_and_domain = activity["sender_email"].split("@")
     body = {
         "extra_vars": {
@@ -208,7 +211,7 @@ async def create_vpn_account(activity):
         ) as res:
             if res.status != 201:
                 message = dict(
-                    text="Error contacting AWX server. " + str(res.status),
+                    text=awx_server_error_message + str(res.status),
                     roomId=activity["roomId"],
                     parentId=activity["parentId"],
                     attachments=[],
@@ -220,7 +223,7 @@ async def create_vpn_account(activity):
     except Exception as e:
         logging.warning(e)
         message = dict(
-            text="Error contacting AWX server. " + str(res.status),
+            text=awx_server_error_message + str(res.status),
             roomId=activity["roomId"],
             parentId=activity["parentId"],
             attachments=[],
@@ -230,7 +233,6 @@ async def create_vpn_account(activity):
             await session.close()
         except Exception as e4:
             logging.warning(e4)
-    return
 
 
 async def delete_accounts(activity):
@@ -346,18 +348,18 @@ async def delete_accounts(activity):
 
         webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
         message = dict(
-            text="This may take a minute or two...",
+            text=bot_wait_message,
             roomId=activity["roomId"],
             attachments=[],
         )
         await webex.post_message_to_webex(message)
-        urls_cml_servers = ["https://" + s for s in cml_servers]
-        if re.search(r"1MDFmYzc$", CONFIG.BOT_ID):
+        urls_cml_servers = [https_header + s for s in cml_servers]
+        if re.search(botId_regex_pattern, CONFIG.BOT_ID):
             id_template = "17"  # prod
         else:
             id_template = "13"  # dev
         url = f"https://{CONFIG.AWX_SERVER}/api/v2/job_templates/{id_template}/launch/"
-        headers = {"Content-Type": "application/json"}
+        headers = {"Content-Type": content_type}
         user_and_domain = activity["sender_email"].split("@")
         body = {
             "extra_vars": {
@@ -385,7 +387,7 @@ async def delete_accounts(activity):
             ) as res:
                 if res.status != 201:
                     message = dict(
-                        text="Error contacting AWX server. " + str(res.status),
+                        text=awx_server_error_message + str(res.status),
                         roomId=activity["sender_email"],
                         attachments=[],
                     )
@@ -396,7 +398,7 @@ async def delete_accounts(activity):
         except Exception as e:
             logging.warning(e)
             message = dict(
-                text="Error contacting AWX server. " + str(res.status),
+                text=awx_server_error_message + str(res.status),
                 roomId=activity["sender_email"],
                 attachments=[],
             )
@@ -419,21 +421,19 @@ async def delete_accounts(activity):
                 logging.warning(e)
                 print("Failed to connect to DB")
 
-    return
-
 
 async def bot_delete_accounts(activity):
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
     cml_servers = CONFIG.SERVER_LIST.split(",")
-    urls_cml_servers = ["https://" + s for s in cml_servers]
+    urls_cml_servers = [https_header + s for s in cml_servers]
 
-    if re.search(r"1MDFmYzc$", CONFIG.BOT_ID):
+    if re.search(botId_regex_pattern, CONFIG.BOT_ID):
         id_template = "38"  # prod
     else:
         id_template = "39"  # dev
 
     url = f"https://{CONFIG.AWX_SERVER}/api/v2/job_templates/{id_template}/launch/"
-    headers = {"Content-Type": "application/json"}
+    headers = {"Content-Type": content_type}
     user_and_domain = activity["sender_email"].split("@")
     body = {
         "extra_vars": {
@@ -455,7 +455,7 @@ async def bot_delete_accounts(activity):
         ) as res:
             if res.status != 201:
                 message = dict(
-                    text="Error contacting AWX server. " + str(res.status),
+                    text=awx_server_error_message + str(res.status),
                     roomId=activity["sender_email"],
                     attachments=[],
                 )
@@ -466,7 +466,7 @@ async def bot_delete_accounts(activity):
     except Exception as e6:
         logging.warning(e6)
         message = dict(
-            text="Error contacting AWX server. " + str(res.status),
+            text=awx_server_error_message + str(res.status),
             roomId=activity["sender_email"],
             attachments=[],
         )
@@ -475,4 +475,3 @@ async def bot_delete_accounts(activity):
             await session.close()
         except Exception as e:
             logging.warning(e)
-    return

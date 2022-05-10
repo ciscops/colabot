@@ -183,7 +183,6 @@ async def list_all_labs(cml_servers, activity):
         logging.debug(activity["roomId"])
         message = dict(text=results_message, roomId=activity["roomId"], attachments=[])
         await webex.post_message_to_webex(message)
-    return
     # """END CML LIST ALL LABS"""
 
 
@@ -227,7 +226,6 @@ async def list_users(cml_servers, activity):
 
         message = dict(text=results_message, roomId=activity["roomId"], attachments=[])
         await webex.post_message_to_webex(message)
-    return
     # """END CML LIST USERS"""
 
 
@@ -301,7 +299,6 @@ async def list_my_labs(cml_servers, activity):
             attachments=[],
         )
     await webex.post_message_to_webex(message)
-    return
     # """END CML LIST MY LABS"""
 
 
@@ -361,7 +358,6 @@ async def show_server_utili(cml_servers, activity):
             results_message += server_name
     message = dict(text=results_message, roomId=activity["roomId"], attachments=[])
     await webex.post_message_to_webex(message)
-    return
     # """END CML SHOW SERVER UTILIZATION"""
 
 
@@ -386,7 +382,6 @@ async def extend_lab(activity):
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
     message = dict(text=results_message, roomId=activity["roomId"], attachments=[])
     await webex.post_message_to_webex(message)
-    return
     # """END CML EXTEND LAB"""
 
 
@@ -455,7 +450,6 @@ async def stop_lab(activity):
         except Exception as e:
             logging.warning(db_connect_error_message)
             logging.warning(e)
-    return
 
 
 async def stop_lab_dialogue_1(cml_servers, activity):
