@@ -28,6 +28,7 @@ stop_cml_message = "Stop CML lab"
 webex_message_content_type = "application/vnd.microsoft.card.adaptive"
 db_connect_error_message = "Failed to connect to DB"
 
+
 async def cml_chat(activity):
     cml_servers = CONFIG.SERVER_LIST.split(",")
 
@@ -395,7 +396,7 @@ async def stop_lab(activity):
     # If group then send a DM with a card
     if activity.get("roomType", "") == "group":
         message = dict(
-            text=stop_cml_message ,
+            text=stop_cml_message,
             toPersonId=activity["sender"],
             attachments=[
                 {
@@ -416,7 +417,7 @@ async def stop_lab(activity):
     # if direct, send a card to the same room
     else:
         message = dict(
-            text=stop_cml_message ,
+            text=stop_cml_message,
             roomId=activity["roomId"],
             attachments=[
                 {
@@ -450,6 +451,7 @@ async def stop_lab(activity):
         except Exception as e:
             logging.warning(db_connect_error_message)
             logging.warning(e)
+
 
 async def stop_lab_dialogue_1(cml_servers, activity):
     user_and_domain = activity["sender_email"].split("@")
@@ -544,7 +546,7 @@ async def stop_lab_dialogue_1(cml_servers, activity):
         card = template.render(lab_choices=running_labs_for_card)
         card_json = json.loads(card)
         message = dict(
-            text=stop_cml_message ,
+            text=stop_cml_message,
             roomId=activity["roomId"],
             attachments=[
                 {
@@ -672,7 +674,7 @@ async def delete_lab(activity):
     # If group then send a DM with a card
     if activity.get("roomType", "") == "group":
         message = dict(
-            text=stop_cml_message ,
+            text=stop_cml_message,
             toPersonId=activity["sender"],
             attachments=[
                 {
