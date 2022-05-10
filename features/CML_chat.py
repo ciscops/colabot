@@ -597,7 +597,6 @@ async def stop_lab_dialogue_1(cml_servers, activity):
         except Exception as e:
             logging.warning(db_connect_error_message)
             logging.warning(e)
-    return
 
 
 async def stop_lab_dialogue_2(cml_servers, activity):
@@ -659,7 +658,6 @@ async def stop_lab_dialogue_2(cml_servers, activity):
             logging.warning(db_connect_error_message)
             logging.warning(e)
 
-    return
     # """ END CML STOP LAB DIALOGUE """
 
 
@@ -727,7 +725,6 @@ async def delete_lab(activity):
         except Exception as e:
             logging.warning(db_connect_error_message)
             logging.warning(e)
-    return
 
 
 async def delete_lab_dialogue_1(cml_servers, activity):
@@ -867,7 +864,6 @@ async def delete_lab_dialogue_1(cml_servers, activity):
         except Exception as e:
             logging.warning(db_connect_error_message)
             logging.warning(e)
-    return
 
 
 async def delete_lab_dialogue_2(cml_servers, activity):
@@ -939,7 +935,6 @@ async def delete_lab_dialogue_2(cml_servers, activity):
             logging.warning(db_connect_error_message)
             logging.warning(e)
 
-    return
     # """ END CML DELETE LAB DIALOGUE """
 
 
@@ -1006,7 +1001,6 @@ async def list_lab_details(activity):
         except Exception as e:
             logging.warning(db_connect_error_message)
             logging.warning(e)
-    return
 
 
 async def list_lab_details_1(cml_servers, activity):
@@ -1109,7 +1103,6 @@ async def list_lab_details_1(cml_servers, activity):
             logging.warning(db_connect_error_message)
             logging.warning(e)
 
-    return
     # """END CML LIST MY LAB DETAILS DIALOGUE"""
 
 
@@ -1176,7 +1169,6 @@ async def show_ip_addresses(activity):
         except Exception as e:
             logging.warning(db_connect_error_message)
             logging.warning(e)
-    return
 
 
 async def show_ip_addresses_1(cml_servers, activity):
@@ -1289,5 +1281,4 @@ async def show_ip_addresses_1(cml_servers, activity):
             logging.warning(db_connect_error_message)
             logging.warning(e)
 
-    return
     # """ END CML SHOW IPS DIALOGUE """
