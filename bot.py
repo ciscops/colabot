@@ -368,10 +368,10 @@ class COLABot:
 
     def generate_welcome_message(self):
         if self.activity['roomType'] == 'group':
-            markdown = f"Welcome <@personEmail:{self.activity.get('sender_email')}|{self.activity.get('person_display_name')}>! \n\nI'm the CoLaboratory admin bot. I'm creating your base COLAB accounts and will direct message your new credentials shortly. "
+            markdown = f"Welcome <@personEmail:{self.activity.get('sender_email')}|{self.activity.get('person_display_name')}>! \n\nI'm the CoLaboratory admin bot. I'm creating your base COLAB accounts. By using the Colaboratory resources you are agreeing to the Rules of the Road which can be found at \nhttps://confluence-eng-rtp1.cisco.com/conf/display/CIDR/Colaboratory+Rules+of+the+Road. \n\nI will direct message your new credentials shortly. "
             markdown += "Please message " + '**' + '@' + self.activity['bot_name'] + '** ' + "**help** to see my available commands."
         else:
-            markdown = f"Welcome <@personEmail:{self.activity.get('sender_email')}|{self.activity.get('person_display_name')}>! \n\nI'm the CoLaboratory admin bot. I'm creating your base COLAB accounts and will direct message your new credentials shortly. Please message **help** to see my available commands."
+            markdown = f"Welcome <@personEmail:{self.activity.get('sender_email')}|{self.activity.get('person_display_name')}>! \n\nI'm the CoLaboratory admin bot. I'm creating your base COLAB accounts. By using the Colaboratory resources you are agreeing to the Rules of the Road which can be found \nhttps://confluence-eng-rtp1.cisco.com/conf/display/CIDR/Colaboratory+Rules+of+the+Road. \n\nI will direct message your new credentials shortly. Please message **help** to see my available commands."
         return markdown
 
     @staticmethod
