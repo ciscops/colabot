@@ -21,6 +21,7 @@ mongo_url = (
 
 db_connect_error_message = "Failed to connect to DB"
 
+
 async def dynamo_download_items(table: str) -> list:
     items = []
     try:
@@ -249,6 +250,7 @@ async def admin_alert_cml_users(activity):
             except Exception as e:
                 logging.warning(db_connect_error_message)
                 logging.warning(e)
+
 
 async def find_active_labs(server, activity, webex, new_directory):
     cml = CML(CONFIG.CML_USERNAME, CONFIG.CML_PASSWORD, server)

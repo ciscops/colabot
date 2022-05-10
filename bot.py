@@ -68,10 +68,10 @@ class COLABot:
 
         # Process web request
         if not req:
-            raise Exception("Request is required")
+            raise ValueError("Request is required")
         body = await req.text()
         if not body:
-            raise Exception("Error receiving request body")
+            raise ValueError("Error receiving request body")
         request_dict = json.loads(body)
         if request_dict['resource'] == 'memberships' and request_dict['event'] == 'deleted' and request_dict['data'][
                 'personId'] == CONFIG.BOT_ID:
