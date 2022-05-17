@@ -20,6 +20,7 @@ jobs:
 
   deploy:
     #if: github.event.pull_request.merged == true
+    #if: github.event.pull_request.approved == true
     runs-on: ubuntu-latest
 
     env:
