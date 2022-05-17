@@ -1,7 +1,7 @@
 name: Colabot PY CI
 on:
   pull_request:
-    branches: [master, dev]
+    branches: [dev]
 jobs:
   linting:
     runs-on: ubuntu-latest
@@ -17,3 +17,42 @@ jobs:
     - run: pip install virtualenv
     - run: make pylint
     - run: make check-format
+
+  deploy:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    env:
+      REGISTRY: ghcr.io # registry
+      IMAGE_NAME: ${{ github.repository }} # "ciscops/colabot-dev"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Login to GHCR
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GHCR_pass }} # set up secret token with access rights to packages
+
+      - name: Build and push image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          file: ./Dockerfile
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      #- name: Deploy to kubernetes
+      #  run: |
+      #    kubectl apply -f colabot-manifest.yaml
+
+
+    # docker push ghcr.io/OWNER/IMAGE_NAME:latest
+    # checkout the repo code
+    # create image with image name
+    # push image to ghcr
+    # get manifest
+    # push image with manifest to kubes

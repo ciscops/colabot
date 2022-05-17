@@ -1,0 +1,2 @@
+#SECRET1: ${{ secrets.SECRET_TOKEN }}
+#SECRET2: ${{ secrets.SECRET_TOKEN }}
