@@ -44,5 +44,5 @@ jobs:
           file: ./Dockerfile
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} # name of image
 
-      - name: Deploy to kubernetes
+      #- name: Deploy to kubernetes
       - run: kubectl apply -f colabot-manifest-dev.yaml # deploy image from ghcr to kubernetes with the manifest file
