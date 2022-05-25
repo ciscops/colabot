@@ -19,8 +19,6 @@ jobs:
     - run: make check-format
 
   deploy:
-    #if: github.event.pull_request.merged == true
-    #if: github.event.pull_request.approved == true
     runs-on: ubuntu-latest
 
     env:
@@ -44,16 +42,8 @@ jobs:
           context: .
           push: true
           file: ./Dockerfile
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} # name of image
 
-      #- name: Deploy to kubernetes
-      #  run: |
-      #    kubectl apply -f colabot-manifest.yaml
-
-
-    # docker push ghcr.io/OWNER/IMAGE_NAME:latest
-    # checkout the repo code
-    # create image with image name
-    # push image to ghcr
-    # get manifest
-    # push image with manifest to kubes
+      - name: Deploy to kubernetes
+       run: |
+         kubectl apply -f colabot-manifest-dev.yaml # deploy image from ghcr to kubernetes with the manifest file
