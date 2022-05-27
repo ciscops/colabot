@@ -22,6 +22,8 @@ spec:
       containers:
         - image: ciscops/colabot-dev:latest
           name: colabot-dev-1
+          ports:
+            - containerPort: 3000
           securityContext:
             allowPrivilegeEscalation: false
             privileged: false
@@ -113,9 +115,7 @@ spec:
              secretKeyRef:
                name: colabot-dev-1-secret
                key: aws_password
-          ports:
-          - containerPort:  3000
-          
+
 ---
 
 apiVersion: v1
