@@ -114,8 +114,8 @@ spec:
                name: colabot-dev-1-secret
                key: aws_password
           ports:
-          - containerPort:  '3000'
-
+          - containerPort:  3000
+          
 ---
 
 apiVersion: v1

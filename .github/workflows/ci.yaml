@@ -46,3 +46,4 @@ jobs:
 
       #- name: Deploy to kubernetes
       - run: kubectl apply -f colabot-manifest-dev.yaml # deploy image from ghcr to kubernetes with the manifest file
+      #- run: kubectl rollout restart deployment/colabot-dev-1
