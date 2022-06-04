@@ -338,7 +338,7 @@ async def reset_aws_key(activity):
         await delete_all_aws_keys(activity, user, webex)
         await create_key_and_message_user(activity, user, webex)
         return
-    
+
     message = dict(
             text=("Unable to reset keys: no keys exist. You can create a key with **create aws key**"),
             toPersonId=activity["sender"],
