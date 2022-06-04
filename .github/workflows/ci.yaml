@@ -45,4 +45,5 @@ jobs:
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} # name of image
 
       - run: kubectl apply -f colabot-manifest-dev.yaml # Deploy to kubernetes
+      - run: kubectl config view #for debugging purposes
       #-run: kubectl rollout restart deployment/colabot-dev-1 # Verify deployment
