@@ -6,6 +6,7 @@ import re
 import aiohttp
 import pymongo
 import urllib3
+import boto3
 from config import DefaultConfig as CONFIG
 from webex import WebExClient
 
@@ -233,6 +234,67 @@ async def create_vpn_account(activity):
             await session.close()
         except Exception as e4:
             logging.warning(e4)
+
+
+async def create_aws_key(activity):
+    logging.debug("create aws key")
+    webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
+    iam = boto3.client(
+        "iam",
+        region_name=CONFIG.AWS_REGION,
+        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY,
+    )
+
+    # split the webex username from the domain
+    user_and_domain = activity["sender_email"].split("@")
+    iam_username = user_and_domain[0]
+
+    paginator = iam.get_paginator("list_access_keys")
+    access_key_count = 0
+
+    try: # try except incase the iam_user doesn't show
+        for response in paginator.paginate(UserName=iam_username):
+            # is this safe? What happens if the username doesn't match?
+            # docs seem to indicate aws will make a choice if it doesn't have
+            # a username field specified
+            # my guess is that if it can't find the username, it returns none/empty list
+            if len(response) > 0:
+                access_key_count += 1
+    except Exception as e:
+        logging.warning(e)
+        print("Cannot find user")
+        return
+
+    # If the user has active access keys that colabot has not expired, don't create keys
+    if access_key_count > 0:
+        message = dict(
+            text=(
+                "You already have active aws key(s),"
+                + " if you would like to refresh them, use **reset aws keys**"
+            ),
+            toPersonId=activity["sender"],
+        )
+        await webex.post_message_to_webex(message)
+        return
+
+    if access_key_count == 0:
+        # this iam username query is safe and doesn't need a try except block
+        iam_response = iam.create_access_key(UserName=iam_username)
+        access_key_id = iam_response["AccessKey"]["AccessKeyId"]
+        access_key_secret = iam_response["AccessKey"]["SecretAccessKey"]
+
+        message = dict(
+            text=(
+                "Access key created: \n"
+                + f"- Access Key id: {access_key_id} \n"
+                + f"- Access Key secret: {access_key_secret} "
+                + "Remember **not to share** your access key id or secret"
+            ),
+            toPersonId=activity["sender"],
+        )
+        await webex.post_message_to_webex(message)
+        return
 
 
 async def delete_accounts(activity):

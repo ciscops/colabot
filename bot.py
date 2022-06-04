@@ -33,6 +33,7 @@ help_menu_list = ['**CML delete lab** > delete lab\n',
                   '**CML stop lab** > stop labs of your choice\n',
                   '**Create AWS account** > create AWS COLAB account\n',
                   '**Create VPN account** > create an AnyConnect to COLAB VPN account\n',
+                  '**Create aws key** > create aws access key\n',
                   '**Create accounts** > create base COLAB accounts\n',
                   '**Delete accounts** > delete COLAB accounts\n',
                   '**Reset passwords** > resets all COLAB associated passwords\n',
@@ -209,6 +210,9 @@ class COLABot:
 
             elif self.activity.get('text') == 'create vpn account':
                 await awx.create_vpn_account(self.activity)
+
+            elif self.activity.get("text") == "create aws key":
+                await awx.create_aws_key(self.activity)
 
             elif self.activity.get('text') == 'delete accounts':
                 await awx.delete_accounts(self.activity)
