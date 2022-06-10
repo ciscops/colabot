@@ -52,6 +52,5 @@ jobs:
 
       - name: Apply and rollout
         run: |
-          kubectl config view
           kubectl apply -f colabot-manifest-dev.yaml
           kubectl rollout restart deployment/colabot-dev-1
