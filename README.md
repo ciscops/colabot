@@ -5,7 +5,7 @@ WebEx Teams user self-service bot for CIDR Group
 #### Local
 Build a COLABot image using the Dockerfile.
 
-Ensure you pass in the appropriate environment vars2 required in the config.py file.
+Ensure you pass in the appropriate environment vars3 required in the config.py file.
 
 
 ### Pipeline
