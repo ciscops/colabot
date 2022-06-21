@@ -19,7 +19,7 @@ jobs:
     - run: make check-format
 
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     env:
       REGISTRY: ghcr.io # registry
