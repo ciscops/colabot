@@ -389,21 +389,71 @@ async def aws_key_status(activity):
     return
 
 
-# async def rotate_aws_key(activity):
-#     logging.debug("rotate aws key")
-#     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
-#     iam = boto3.client(
-#         "iam",
-#         region_name=CONFIG.AWS_REGION,
-#         aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID,
-#         aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY,
-#     )
-#
-#     # rotate keys:
-#     # 1) create new key
-#     # 2) expire old key? how do I give a key 10 days to live
-#     # Isn't this the same as reset? is this even needed?
-#     # redundant
+async def rotate_aws_key(activity):
+    logging.debug("rotate aws key")
+    webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
+    iam = boto3.client(
+        "iam",
+        region_name=CONFIG.AWS_REGION,
+        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY,
+    )
+
+    # split the webex username from the domain
+    user_and_domain = activity["sender_email"].split("@")
+    iam_username = user_and_domain[0]
+
+    paginator = iam.get_paginator("list_access_keys")
+    access_keys = []
+
+    try:  # try except incase the iam_user doesn't show
+        for response in paginator.paginate(UserName=iam_username):
+            # is this safe? What happens if the username doesn't match?
+            # docs seem to indicate aws will make a choice if it doesn't have
+            # a username field specified
+            # my guess is that if it can't find the username, it returns none/empty list
+            if len(response) > 0:
+                access_key_id = response["AccessKeyMetadata"][0]["AccessKeyId"]
+                key_created_date = response["AccessKeyMetadata"][0]["CreateDate"]
+                access_keys.append(
+                    {"key_id": access_key_id, "date_created": key_created_date}
+                )
+    except Exception as e:
+        logging.warning(e)
+        print("Cannot find user")
+        return
+
+    # If one key exists, create a second key and message the user
+    if len(access_keys) == 1:
+        await create_key_and_message_user(activity, iam, iam_username, webex)
+        return
+    # If two keys exist, delete the oldest, and create a new key and message user
+    if len(access_keys) == 2:
+        if access_keys[0]["date_created"] > access_keys[1]["date_created"]:
+            access_key_delete = access_keys[1]
+        else:
+            access_key_delete = access_keys[0]
+
+        # Delete oldest key, then create new key    
+        iam.delete_access_key(UserName=iam_username, AccessKeyId=access_key_delete)
+        await create_key_and_message_user(activity, iam, iam_username, webex)
+        return
+
+    text_to_send = (
+        "You have more than 2 aws keys,"
+        + " please delete all your keys with **aws delete key** and then create a new key with **aws create key**"
+    )
+    if len(access_keys) < 1:
+        text_to_send = (
+            "You have no active aws keys,"
+            + " if you would like to create one, use **create aws key**"
+        )
+    message = dict(
+        text=text_to_send,
+        toPersonId=activity["sender"],
+    )
+    await webex.post_message_to_webex(message)
+    return
 
 
 async def delete_accounts(activity):
