@@ -253,7 +253,7 @@ async def create_aws_key(activity):
     paginator = iam.get_paginator("list_access_keys")
     access_key_count = 0
 
-    try: # try except incase the iam_user doesn't show
+    try:  # try except incase the iam_user doesn't show
         for response in paginator.paginate(UserName=iam_username):
             # is this safe? What happens if the username doesn't match?
             # docs seem to indicate aws will make a choice if it doesn't have
@@ -279,22 +279,131 @@ async def create_aws_key(activity):
         return
 
     if access_key_count == 0:
-        # this iam username query is safe and doesn't need a try except block
-        iam_response = iam.create_access_key(UserName=iam_username)
-        access_key_id = iam_response["AccessKey"]["AccessKeyId"]
-        access_key_secret = iam_response["AccessKey"]["SecretAccessKey"]
+        await create_key_and_message_user(activity, iam, iam_username, webex)
 
-        message = dict(
-            text=(
-                "Access key created: \n"
-                + f"- Access Key id: {access_key_id} \n"
-                + f"- Access Key secret: {access_key_secret} "
-                + "Remember **not to share** your access key id or secret"
-            ),
-            toPersonId=activity["sender"],
+
+async def create_key_and_message_user(activity, iam, iam_username, webex):
+    iam_response = iam.create_access_key(UserName=iam_username)
+    access_key_id = iam_response["AccessKey"]["AccessKeyId"]
+    access_key_secret = iam_response["AccessKey"]["SecretAccessKey"]
+
+    message = dict(
+        text=(
+            "Access key created: \n"
+            + f"- Access Key id: {access_key_id} \n"
+            + f"- Access Key secret: {access_key_secret} "
+            + "Remember **not to share** your access key id or secret"
+        ),
+        toPersonId=activity["sender"],
+    )
+    await webex.post_message_to_webex(message)
+    return
+
+
+async def reset_aws_key(activity):
+    logging.debug("reset aws key")
+    webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
+    iam = boto3.client(
+        "iam",
+        region_name=CONFIG.AWS_REGION,
+        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY,
+    )
+
+    # split the webex username from the domain
+    user_and_domain = activity["sender_email"].split("@")
+    iam_username = user_and_domain[0]
+
+    await delete_all_aws_keys(activity, iam, iam_username, webex)
+    await create_key_and_message_user(activity, iam, iam_username, webex)
+    return
+
+
+async def delete_all_aws_keys(activity, iam, iam_username, webex):
+    logging.debug("delete aws key")
+    if webex is None:
+        webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
+
+    if iam is None:
+        iam = boto3.client(
+            "iam",
+            region_name=CONFIG.AWS_REGION,
+            aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY,
         )
-        await webex.post_message_to_webex(message)
+
+    if iam_username is None:
+        user_and_domain = activity["sender_email"].split("@")
+        iam_username = user_and_domain[0]
+
+    paginator = iam.get_paginator("list_access_keys")
+
+    try:
+        for response in paginator.paginate(UserName=iam_username):
+            if len(response) > 0:
+                access_key_id = response["AccessKeyMetadata"][0]["AccessKeyId"]
+                iam.delete_access_key(UserName=iam_username, AccessKeyId=access_key_id)
+    except Exception as e:
+        logging.warning(e)
+        print("Cannot delete key")
         return
+    return
+
+
+async def aws_key_status(activity):
+    logging.debug("show aws key status")
+    webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
+    iam = boto3.client(
+        "iam",
+        region_name=CONFIG.AWS_REGION,
+        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY,
+    )
+
+    user_and_domain = activity["sender_email"].split("@")
+    iam_username = user_and_domain[0]
+    paginator = iam.get_paginator("list_access_keys")
+
+    try:
+        for response in paginator.paginate(UserName=iam_username):
+            if len(response) > 0:
+                access_key_id = response["AccessKeyMetadata"][0]["AccessKeyId"]
+                key_status = response["AccessKeyMetadata"][0]["Status"]
+                key_created_date = response["AccessKeyMetadata"][0]["CreateDate"]
+
+                message = dict(
+                    text=(
+                        f"Access key {access_key_id}: \n"
+                        + f"- Access Key status: {key_status} \n"
+                        + f"- Access Key created date: {key_created_date} "
+                    ),
+                    toPersonId=activity["sender"],
+                )
+                await webex.post_message_to_webex(message)
+
+    except Exception as e:
+        logging.warning(e)
+        print("Cannot find key")
+        return
+
+    return
+
+
+# async def rotate_aws_key(activity):
+#     logging.debug("rotate aws key")
+#     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
+#     iam = boto3.client(
+#         "iam",
+#         region_name=CONFIG.AWS_REGION,
+#         aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID,
+#         aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY,
+#     )
+#
+#     # rotate keys:
+#     # 1) create new key
+#     # 2) expire old key? how do I give a key 10 days to live
+#     # Isn't this the same as reset? is this even needed?
+#     # redundant
 
 
 async def delete_accounts(activity):

@@ -211,8 +211,22 @@ class COLABot:
             elif self.activity.get('text') == 'create vpn account':
                 await awx.create_vpn_account(self.activity)
 
-            elif self.activity.get("text") == "create aws key":
+            elif self.activity.get('text') == "create aws key":
                 await awx.create_aws_key(self.activity)
+
+            elif self.activity.get('text') == 'rotate aws key':
+                await awx.rotate_aws_key(self.activity)
+
+            elif self.activity.get('text') == 'reset aws key':
+                await awx.reset_aws_key(self.activity)
+
+            elif self.activity.get('text') == 'delete aws key':
+                # Because the function delete all aws keys needs to be used inside awx.py
+                # there are three unused fields for iam, iam_username and webex that are set to none here
+                await awx.delete_all_aws_keys(self.activity, None, None, None)
+
+            elif self.activity.get('text') == 'aws key status':
+                await awx.aws_key_status(self.activity)
 
             elif self.activity.get('text') == 'delete accounts':
                 await awx.delete_accounts(self.activity)
