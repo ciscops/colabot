@@ -241,9 +241,9 @@ async def create_aws_key(activity):
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
     iam = boto3.client(
         "iam",
-        region_name=CONFIG.AWS_REGION,
-        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY,
+        region_name=CONFIG.AWS_REGION_COLAB,
+        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
+        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB, #change to colab versions
     )
 
     # split the webex username from the domain
@@ -305,9 +305,9 @@ async def reset_aws_key(activity):
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
     iam = boto3.client(
         "iam",
-        region_name=CONFIG.AWS_REGION,
-        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY,
+        region_name=CONFIG.AWS_REGION_COLAB,
+        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
+        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
     )
 
     # split the webex username from the domain
@@ -327,9 +327,9 @@ async def delete_all_aws_keys(activity, iam, iam_username, webex):
     if iam is None:
         iam = boto3.client(
             "iam",
-            region_name=CONFIG.AWS_REGION,
-            aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY,
+            region_name=CONFIG.AWS_REGION_COLAB,
+            aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
+            aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
         )
 
     if iam_username is None:
@@ -355,9 +355,9 @@ async def aws_key_status(activity):
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
     iam = boto3.client(
         "iam",
-        region_name=CONFIG.AWS_REGION,
-        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY,
+        region_name=CONFIG.AWS_REGION_COLAB,
+        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
+        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
     )
 
     user_and_domain = activity["sender_email"].split("@")
@@ -394,9 +394,9 @@ async def rotate_aws_key(activity):
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
     iam = boto3.client(
         "iam",
-        region_name=CONFIG.AWS_REGION,
-        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY,
+        region_name=CONFIG.AWS_REGION_COLAB,
+        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
+        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
     )
 
     # split the webex username from the domain
@@ -434,7 +434,7 @@ async def rotate_aws_key(activity):
         else:
             access_key_delete = access_keys[0]
 
-        # Delete oldest key, then create new key    
+        # Delete oldest key, then create new key
         iam.delete_access_key(UserName=iam_username, AccessKeyId=access_key_delete)
         await create_key_and_message_user(activity, iam, iam_username, webex)
         return

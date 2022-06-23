@@ -34,3 +34,6 @@ class DefaultConfig:
     AWS_REGION = os.environ.get('AWS_REGION', 'xxxx')
     AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID', 'xxxx')
     AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY', 'xxxx')
+    AWS_REGION_COLAB = os.environ.get('AWS_REGION_COLAB', 'xxxx')
+AWS_ACCESS_KEY_ID_COLAB = os.environ.get('AWS_ACCESS_KEY_ID_COLAB', 'xxxx')
+AWS_SECRET_ACCESS_KEY_COLAB = os.environ.get('AWS_SECRET_ACCESS_KEY_COLAB', 'xxxx')
