@@ -5,3 +5,4 @@ lambda-packages*
 .*.sw?
 .vscode/
 *.zip
+Makefile
