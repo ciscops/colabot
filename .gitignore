@@ -1,2 +1,7 @@
 *.env
 .DS_Store
+lambda_function.py
+lambda-packages*
+.*.sw?
+.vscode/
+*.zip
