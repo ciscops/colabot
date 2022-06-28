@@ -297,7 +297,7 @@ async def create_key_and_message_user(activity, iam, iam_username, webex):
         toPersonId=activity["sender"],
     )
     await webex.post_message_to_webex(message)
-    return
+
 
 async def delete_accounts(activity):
     cml_servers = CONFIG.SERVER_LIST.split(",")
