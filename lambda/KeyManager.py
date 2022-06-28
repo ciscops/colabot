@@ -18,5 +18,5 @@ class KeyManager:
     def rotate_keys(self):
         self.logging.debug("")
 
-    def process_key(self, key, user):
+    def process_key(self):
         self.logging.debug("")
