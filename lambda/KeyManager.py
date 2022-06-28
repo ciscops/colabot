@@ -9,11 +9,12 @@ class KeyManager:
         logging.basicConfig(level=os.environ.get("LOGLEVEL", "DEBUG"))
         self.logging = logging.getLogger()
 
+        self.delete_days = delete_days
         self.group = group
         self.rotate_days = rotate_days
-        self.warn_days = warn_days
-        self.delete_days = delete_days
         self.user = ""
+        self.warn_days = warn_days
+
 
     def rotate_keys(self):
         self.logging.debug("")
