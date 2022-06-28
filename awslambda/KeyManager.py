@@ -1,7 +1,5 @@
 import logging
 import os
-import sys
-import json
 
 class KeyManager:
     def __init__(self, group, rotate_days, warn_days, delete_days):
@@ -17,6 +15,7 @@ class KeyManager:
 
     def rotate_keys(self):
         self.logging.debug("")
+        return ""
 
     def process_key(self):
         self.logging.debug("")

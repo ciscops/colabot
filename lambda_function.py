@@ -3,7 +3,7 @@ import datetime
 import json
 import os
 import sys
-from lambda.KeyManager import KeyManager
+from awslambda.KeyManager import KeyManager
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
@@ -15,7 +15,7 @@ def lambda_handler(event, handle):
     logger.debug(str(handle))
     start_time = datetime.datetime.now()
 
-    if "DAYS_TO_ROTATE" in os.environ and "DAYS_TO_WARN" in os.environ "DAYS_TO_DELETE" in os.environ:
+    if "DAYS_TO_ROTATE" in os.environ and "DAYS_TO_WARN" in os.environ and "DAYS_TO_DELETE" in os.environ:
         rotate_days = os.getenv("DAYS_TO_ROTATE")
         warn_days = os.getenv("DAYS_TO_WARN")
         delete_days = os.getenv("DAYS_TO_DELETE")
