@@ -23,6 +23,12 @@ def lambda_handler(event, handle):
         logging.error("Environment variable(s) DAYS_TO_ROTATE, DAYS_TO_WARN and DAYS_TO_DELETE must be set")
         sys.exit(1)
 
+    if "IAM_GROUP_NAME" in os.environ:
+        iam_group_name = os.getenv("IAM_GROUP_NAME")
+    else:
+        logging.error("Environment variable(s) IAM_GROUP_NAME must be set")
+        sys.exit(1)
+
     key_manager = KeyManager(group = "", rotate_days=rotate_days, warn_days=warn_days, delete_days=delete_days)
     rotation_result = key_manager.rotate_keys()
     logger.debug(rotation_result)
