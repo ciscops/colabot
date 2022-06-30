@@ -1,6 +1,8 @@
 import logging
 import os
+import sys
 import datetime
+import boto3
 
 
 class KeyManager:
@@ -43,14 +45,15 @@ class KeyManager:
             # function  call to dynamodb for username
 
             for access_key in user_access_key_list:
-                rotation_result_flag = self.process_key(access_key, user)
+                rotation_result_flag = self.process_key(access_key)
 
         return rotation_result_flag
 
-    def process_key(self, access_key, user):
+    def process_key(self, access_key):
         key_age = datetime.datetime.today() - access_key.create_date
         key_status = access_key.status
         key_id = access_key.create_date
+        key_last_used = self.client.get_access_key_last_used(AccessKeyId=key_id)
 
         if key_status == "Active":
             if (key_age >= 80):
@@ -60,6 +63,7 @@ class KeyManager:
                     # self.warn_user():
                     # return
                 if (key_age >= 90):
+                    self.logging.debug("")
                     # self.delete_key():
                     # return
 
@@ -67,9 +71,9 @@ class KeyManager:
                 # warns user key is expiring in 90 - age days
                 # return
 
-            key_last_used = self.client.get_access_key_last_used(AccessKeyId=key_id)
             if (key_last_used >= 40):
                 if (key_last_used > 45):
+                    self.logging.debug("")
                     # self.delete_key():
                     # return
                 # self.warn_user()

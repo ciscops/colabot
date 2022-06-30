@@ -30,7 +30,7 @@ def lambda_handler(event, handle):
         sys.exit(1)
 
     key_manager = KeyManager(group = "", rotate_days=rotate_days, warn_days=warn_days, delete_days=delete_days)
-    rotation_result = key_manager.rotate_keys()
+    rotation_result = key_manager.rotate_keys(iam_group_name=iam_group_name)
     logger.debug(rotation_result)
 
     end_time = datetime.datetime.now()
