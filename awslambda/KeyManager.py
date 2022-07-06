@@ -63,7 +63,6 @@ class KeyManager:
 
     def rotate_keys(self):
         self.logging.debug("")
-        rotation_result_flag = True
         iam_group = self.resource.Group(self.group)
         iam_group_users = iam_group.users.all()
 
@@ -84,17 +83,17 @@ class KeyManager:
 
                 if len(user_access_keys) <= 2:
                     for key in user_access_keys:
-                        rotation_result_flag = self.process_key(key, user_email)
+                        self.process_key(key, user_email)
                         # rotation_result_flag = self.process_key(key, user_email, key_status, key_last_used_date, key_created_days)
 
                 if len(user_access_keys) > 2:
                     self.logging.debug("User has too many keys")
-                    #What happens here, do we iterate through all the keys and remove any
-                    #till the user has only 2 keys left?
+                    # What happens here, do we iterate through all the keys and remove any
+                    # till the user has only 2 keys left?
             else:
                 self.logging.debug("Cannot locate email for: %s", name)
 
-        return rotation_result_flag
+        # return rotation_result_flag
 
     def process_key(self, access_key, user_email):
         # key_status, key_last_used_date, key_created_days
@@ -116,16 +115,16 @@ class KeyManager:
                     # self.logging.debug("Key age is 80")
                     # self.create_new_key():
                     # self.warn_user():
-                    return True
+                    return
                 if key_created_days >= 90:
                     # self.logging.debug("key age is >= 90")
                     # self.delete_key():
-                    return True
+                    return
 
                 # self.logging.debug("Key age is between 81 and 89")
                 # self.warn_user(): key >= 80, isn't 80, isnt >= 90 (80 < key < 90)
                 # warns user key is expiring in 90 - age days
-                return True
+                return
 
             if "LastUsedDate" in access_key_last_used["AccessKeyLastUsed"]:
                 key_last_used = access_key_last_used["AccessKeyLastUsed"][
@@ -137,19 +136,21 @@ class KeyManager:
                     if key_last_used_date > 45:
                         # self.logging.debug("key last used > 45")
                         # self.delete_key():
-                        return True
+                        return
 
                     # self.logging.debug("Key was last used between 40 and 45 days")
                     # self.warn_user()
-                    return True
+                    return
 
         self.logging.debug("Key is within acceptable usage timeframes")
-        return True
+        # return
         # condition: return true if everything worked successfully
         # if there was an error, return false
 
     def get_dynamo_user_email(self, user_name):
-        response = self.table.query(KeyConditionExpression=Key("email").eq(user_name + "@cisco.com"))
+        response = self.table.query(
+            KeyConditionExpression=Key("email").eq(user_name + "@cisco.com")
+        )
 
         if len(response["Items"]) > 0:
             return response["Items"][0]["email"]
