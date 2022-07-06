@@ -95,43 +95,40 @@ class KeyManager:
         self.logging.debug("Key status: %s ", key_status)
         self.logging.debug("key is %s days old", key_created_days)
 
-        if key_status == "Active":
-            if key_created_days >= 80:
-                if key_created_days == 80:
-                    # self.logging.debug("Key age is 80")
-                    # self.create_new_key():
-                    # self.warn_user():
-                    return
-                if key_created_days >= 90:
-                    # self.logging.debug("key age is >= 90")
+        if key_status != "Active":
+            return
+
+        if key_created_days >= 80:
+            if key_created_days == 80:
+                # self.logging.debug("Key age is 80")
+                # self.create_new_key():
+                # self.warn_user():
+                return
+            if key_created_days >= 90:
+                # self.logging.debug("key age is >= 90")
+                # self.delete_key():
+                return
+
+            # self.logging.debug("Key age is between 81 and 89")
+            # self.warn_user(): key >= 80, isn't 80, isnt >= 90 (80 < key < 90)
+            # warns user key is expiring in 90 - age days
+            return
+
+        if "LastUsedDate" in access_key_last_used["AccessKeyLastUsed"]:
+            key_last_used = access_key_last_used["AccessKeyLastUsed"]["LastUsedDate"]
+            key_last_used_date = (currentdate - key_last_used.date()).days
+            self.logging.debug("Key was last used %s days ago", key_last_used_date)
+            if key_last_used_date >= 40:
+                if key_last_used_date > 45:
+                    # self.logging.debug("key last used > 45")
                     # self.delete_key():
                     return
 
-                # self.logging.debug("Key age is between 81 and 89")
-                # self.warn_user(): key >= 80, isn't 80, isnt >= 90 (80 < key < 90)
-                # warns user key is expiring in 90 - age days
+                # Key was last used between 40 and 45 days
+                # self.warn_user()
                 return
 
-            if "LastUsedDate" in access_key_last_used["AccessKeyLastUsed"]:
-                key_last_used = access_key_last_used["AccessKeyLastUsed"][
-                    "LastUsedDate"
-                ]
-                key_last_used_date = (currentdate - key_last_used.date()).days
-                self.logging.debug("Key was last used %s days ago", key_last_used_date)
-                if key_last_used_date >= 40:
-                    if key_last_used_date > 45:
-                        # self.logging.debug("key last used > 45")
-                        # self.delete_key():
-                        return
-
-                    # self.logging.debug("Key was last used between 40 and 45 days")
-                    # self.warn_user()
-                    return
-
         self.logging.debug("Key is within acceptable usage timeframes")
-        # return
-        # condition: return true if everything worked successfully
-        # if there was an error, return false
 
     def get_dynamo_user_email(self, user_name):
         response = self.table.query(
