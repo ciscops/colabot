@@ -73,11 +73,12 @@ class KeyManager:
 
             if user_email is not None:
                 self.logging.debug("Checking keys for user: %s", name)
-                if len(user_access_key_list) <= 2:
+                response = self.client.list_access_keys(UserName=name)
+                if len(response['AccessKeyMetadata']) <= 2:
                     for access_key in user_access_key_list:
                         self.process_key(access_key, user_email)
 
-                if len(user_access_key_list) > 2:
+                if len(response['AccessKeyMetadata']) > 2:
                     self.logging.debug("User has too many keys")
                     # What happens here, do we iterate through all the keys and remove any
                     # till the user has only 2 keys left?
