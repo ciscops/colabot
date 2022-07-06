@@ -66,37 +66,23 @@ class KeyManager:
         iam_group = self.resource.Group(self.group)
         iam_group_users = iam_group.users.all()
 
-        # key_status = event['key1']
-        # key_last_used_date = event['key2']
-        # key_created_days = event['key3']
-
         for user in iam_group_users:
             name = user.name
             user_access_key_list = user.access_keys.all()
             user_email = self.get_dynamo_user_email(name)
-            user_access_keys = []
 
             if user_email is not None:
                 self.logging.debug("Checking keys for user: %s", name)
-                for access_key in user_access_key_list:
-                    user_access_keys.append(access_key)
+                if len(user_access_key_list) <= 2:
+                    for access_key in user_access_key_list:
+                        self.process_key(access_key, user_email)
 
-                if len(user_access_keys) <= 2:
-                    for key in user_access_keys:
-                        self.process_key(key, user_email)
-                        # rotation_result_flag = self.process_key(key, user_email, key_status, key_last_used_date, key_created_days)
-
-                if len(user_access_keys) > 2:
+                if len(user_access_key_list) > 2:
                     self.logging.debug("User has too many keys")
                     # What happens here, do we iterate through all the keys and remove any
                     # till the user has only 2 keys left?
-            else:
-                self.logging.debug("Cannot locate email for: %s", name)
-
-        # return rotation_result_flag
 
     def process_key(self, access_key, user_email):
-        # key_status, key_last_used_date, key_created_days
         key_age = access_key.create_date
         currentdate = date.today()
         key_created_days = (currentdate - key_age.date()).days
