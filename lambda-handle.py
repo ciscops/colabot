@@ -29,8 +29,8 @@ def lambda_handler(event, handle):
         logging.error("Environment variable(s) IAM_GROUP_NAME must be set")
         sys.exit(1)
 
-    key_manager = KeyManager(group = "", rotate_days=rotate_days, warn_days=warn_days, delete_days=delete_days)
-    rotation_result = key_manager.rotate_keys(iam_group_name=iam_group_name)
+    key_manager = KeyManager(group = iam_group_name, rotate_days=rotate_days, warn_days=warn_days, delete_days=delete_days)
+    rotation_result = key_manager.rotate_keys()
     logger.debug(rotation_result)
 
     end_time = datetime.datetime.now()

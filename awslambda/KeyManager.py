@@ -1,8 +1,9 @@
 import logging
 import os
 import sys
-import datetime
+from datetime import date
 import boto3
+from boto3.dynamodb.conditions import Key, Attr
 
 
 class KeyManager:
@@ -11,73 +12,153 @@ class KeyManager:
         logging.basicConfig(level=os.environ.get("LOGLEVEL", "DEBUG"))
         self.logging = logging.getLogger()
 
-        if "AWS_ACCESS_KEY_ID_COLABOT" in os.environ and "AWS_SECRET_ACCESS_KEY_COLABOT" in os.environ:
+        if (
+            "AWS_ACCESS_KEY_ID_COLABOT" in os.environ
+            and "AWS_SECRET_ACCESS_KEY_COLABOT" in os.environ
+        ):
             self.access_key_id = os.getenv("AWS_ACCESS_KEY_ID_COLABOT")
             self.access_key_secret = os.getenv("AWS_SECRET_ACCESS_KEY_COLABOT")
         else:
-            logging.error("Environment variable(s) AWS_ACCESS_KEY_ID_COLABOT and AWS_SECRET_ACCESS_KEY_COLABOT must be set")
+            logging.error(
+                "Environment variable(s) AWS_ACCESS_KEY_ID_COLABOT and AWS_SECRET_ACCESS_KEY_COLABOT must be set"
+            )
             sys.exit(1)
 
-        if "WEBEX_BOT_ID_COLABOT" in os.environ and "WEBEX_BOT_ACCESS_KEY_COLABOT" in os.environ:
+        if (
+            "WEBEX_BOT_ID_COLABOT" in os.environ
+            and "WEBEX_BOT_ACCESS_KEY_COLABOT" in os.environ
+        ):
             self.webex_bot_id = os.getenv("WEBEX_BOT_ID_COLABOT")
             self.webex_bot_access_key = os.getenv("WEBEX_BOT_ACCESS_KEY_COLABOT")
         else:
-            logging.error("Environment variable(s) AWS_ACCESS_KEY_ID_COLABOT and AWS_SECRET_ACCESS_KEY_COLABOT must be set")
+            logging.error(
+                "Environment variable(s) AWS_ACCESS_KEY_ID_COLABOT and AWS_SECRET_ACCESS_KEY_COLABOT must be set"
+            )
             sys.exit(1)
 
-        self.client = boto3.client("iam", aws_access_key_id=self.r53_id, aws_secret_access_key=self.r53_key)
+        if "DYNAMODB_TABLE_NAME" in os.environ:
+            self.dynamodb_table_name = os.getenv("DYNAMODB_TABLE_NAME")
+        else:
+            logging.error("Environment variable(s) DYNAMODB_TABLE_NAME must be set")
+            sys.exit(1)
+
+        self.resource = boto3.resource(
+            "iam",
+            aws_access_key_id=self.access_key_id,
+            aws_secret_access_key=self.access_key_secret,
+        )
+        self.client = boto3.client(
+            "iam",
+            aws_access_key_id=self.access_key_id,
+            aws_secret_access_key=self.access_key_secret,
+        )
+
+        self.dynamodb = boto3.resource("dynamodb")
+        self.table = self.dynamodb.Table(self.dynamodb_table_name)
         self.delete_days = delete_days
         self.group = group
         self.rotate_days = rotate_days
         self.user = ""
         self.warn_days = warn_days
 
-    def rotate_keys(self, iam_group_name):
+    def rotate_keys(self):
         self.logging.debug("")
         rotation_result_flag = True
-        iam_group = self.client.Group(iam_group_name)
+        iam_group = self.resource.Group(self.group)
         iam_group_users = iam_group.users.all()
 
+        # key_status = event['key1']
+        # key_last_used_date = event['key2']
+        # key_created_days = event['key3']
+
         for user in iam_group_users:
-            self.logging.debug("Checking keys for user: %s", user.name())
+            name = user.name
             user_access_key_list = user.access_keys.all()
+            user_email = self.get_dynamo_user_email(name)
+            user_access_keys = []
 
-            # function  call to dynamodb for username
+            if user_email is not None:
+                self.logging.debug("Checking keys for user: %s", name)
+                for access_key in user_access_key_list:
+                    user_access_keys.append(access_key)
 
-            for access_key in user_access_key_list:
-                rotation_result_flag = self.process_key(access_key)
+                if len(user_access_keys) <= 2:
+                    for key in user_access_keys:
+                        rotation_result_flag = self.process_key(key, user_email)
+                        # rotation_result_flag = self.process_key(key, user_email, key_status, key_last_used_date, key_created_days)
+
+                if len(user_access_keys) > 2:
+                    self.logging.debug("User has too many keys")
+                    #What happens here, do we iterate through all the keys and remove any
+                    #till the user has only 2 keys left?
+            else:
+                self.logging.debug("Cannot locate email for: %s", name)
 
         return rotation_result_flag
 
-    def process_key(self, access_key):
-        key_age = datetime.datetime.today() - access_key.create_date
+    def process_key(self, access_key, user_email):
+        # key_status, key_last_used_date, key_created_days
+        key_age = access_key.create_date
+        currentdate = date.today()
+        key_created_days = (currentdate - key_age.date()).days
+
         key_status = access_key.status
-        key_id = access_key.create_date
-        key_last_used = self.client.get_access_key_last_used(AccessKeyId=key_id)
+        key_id = access_key.access_key_id
+        access_key_last_used = self.client.get_access_key_last_used(AccessKeyId=key_id)
+
+        self.logging.debug("Email: %s", user_email)
+        self.logging.debug("Key status: %s ", key_status)
+        self.logging.debug("key is %s days old", key_created_days)
 
         if key_status == "Active":
-            if (key_age >= 80):
-                if (key_age == 80):
-                    self.logging.debug("")
+            if key_created_days >= 80:
+                if key_created_days == 80:
+                    # self.logging.debug("Key age is 80")
                     # self.create_new_key():
                     # self.warn_user():
-                    # return
-                if (key_age >= 90):
-                    self.logging.debug("")
+                    return True
+                if key_created_days >= 90:
+                    # self.logging.debug("key age is >= 90")
                     # self.delete_key():
-                    # return
+                    return True
 
+                # self.logging.debug("Key age is between 81 and 89")
                 # self.warn_user(): key >= 80, isn't 80, isnt >= 90 (80 < key < 90)
                 # warns user key is expiring in 90 - age days
-                # return
+                return True
 
-            if (key_last_used >= 40):
-                if (key_last_used > 45):
-                    self.logging.debug("")
-                    # self.delete_key():
-                    # return
-                # self.warn_user()
+            if "LastUsedDate" in access_key_last_used["AccessKeyLastUsed"]:
+                key_last_used = access_key_last_used["AccessKeyLastUsed"][
+                    "LastUsedDate"
+                ]
+                key_last_used_date = (currentdate - key_last_used.date()).days
+                self.logging.debug("Key was last used %s days ago", key_last_used_date)
+                if key_last_used_date >= 40:
+                    if key_last_used_date > 45:
+                        # self.logging.debug("key last used > 45")
+                        # self.delete_key():
+                        return True
 
+                    # self.logging.debug("Key was last used between 40 and 45 days")
+                    # self.warn_user()
+                    return True
+
+        self.logging.debug("Key is within acceptable usage timeframes")
         return True
         # condition: return true if everything worked successfully
         # if there was an error, return false
+
+    def get_dynamo_user_email(self, user_name):
+        response = self.table.query(KeyConditionExpression=Key("email").eq(user_name + "@cisco.com"))
+
+        if len(response["Items"]) > 0:
+            return response["Items"][0]["email"]
+
+        table_scan_data = self.table.scan(
+            FilterExpression=Attr("username").contains(user_name)
+        )
+
+        if len(table_scan_data["Items"]) > 0:
+            return table_scan_data["Items"][0]["email"]
+
+        return None

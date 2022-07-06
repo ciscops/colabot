@@ -67,8 +67,8 @@ lambda-layer-colabot: lambda-packages.zip
 	--compatible-runtimes python3.9
 	$(RM) -rf lambda-packages
 
-lambda-function-colabot.zip: lambda_function.py ## Output all code to zip file
-	zip -r $@ lambda_function.py $(PYDIRS_LAMBDA) # zip all python source code into output.zip
+lambda-function-colabot.zip: lambda-handle.py ## Output all code to zip file
+	zip -r $@ lambda-handle.py $(PYDIRS_LAMBDA) # zip all python source code into output.zip
 
 # Upload layer for colabot lambda function
 lambda-upload-colabot:lambda-function-colabot.zip ## Deploy all code to aws
