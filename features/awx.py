@@ -243,24 +243,18 @@ async def create_aws_key(activity):
         "iam",
         region_name=CONFIG.AWS_REGION_COLAB,
         aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
-        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB, #change to colab versions
+        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
     )
 
-    # split the webex username from the domain
     user_and_domain = activity["sender_email"].split("@")
     iam_username = user_and_domain[0]
 
-    paginator = iam.get_paginator("list_access_keys")
-    access_key_count = 0
-
-    try:  # try except incase the iam_user doesn't show
-        for response in paginator.paginate(UserName=iam_username):
-            # is this safe? What happens if the username doesn't match?
-            # docs seem to indicate aws will make a choice if it doesn't have
-            # a username field specified
-            # my guess is that if it can't find the username, it returns none/empty list
-            if len(response) > 0:
-                access_key_count += 1
+    try:
+        user = iam.User(iam_username)
+        access_key_iterator = user.access_keys.all()
+        access_key_count = 0
+        for _ in access_key_iterator:
+            access_key_count += 1
     except Exception as e:
         logging.warning(e)
         print("Cannot find user")
@@ -279,19 +273,19 @@ async def create_aws_key(activity):
         return
 
     if access_key_count == 0:
-        await create_key_and_message_user(activity, iam, iam_username, webex)
+        await create_key_and_message_user(activity, user, webex)
 
 
-async def create_key_and_message_user(activity, iam, iam_username, webex):
-    iam_response = iam.create_access_key(UserName=iam_username)
-    access_key_id = iam_response["AccessKey"]["AccessKeyId"]
-    access_key_secret = iam_response["AccessKey"]["SecretAccessKey"]
+async def create_key_and_message_user(activity, user, webex):
+    access_key_pair = user.create_access_key_pair()
+    new_access_key_id = access_key_pair.access_key_id
+    new_secret_access_key = access_key_pair.secret_access_key
 
     message = dict(
         text=(
             "Access key created: \n"
-            + f"- Access Key id: {access_key_id} \n"
-            + f"- Access Key secret: {access_key_secret} "
+            + f"- Access Key id: {new_access_key_id} \n"
+            + f"- Access Key secret: {new_secret_access_key} "
             + "Remember **not to share** your access key id or secret"
         ),
         toPersonId=activity["sender"],
