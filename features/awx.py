@@ -551,7 +551,6 @@ async def aws_key_status(activity):
             toPersonId=activity["sender"],
         )
         await webex.post_message_to_webex(message)
-    return
 
 
 async def delete_accounts(activity):
