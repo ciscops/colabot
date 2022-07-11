@@ -21,8 +21,11 @@ botId_regex_pattern = r"1MDFmYzc$"
 content_type = "application/json"
 awx_server_error_message = "Error contacting AWX server. "
 find_user_message = "Cannot find user"
+<<<<<<< HEAD
 PRE_CODE_SNIPPET = "<pre>"
 AFTER_CODE_SNIPPET = "</code></pre>"
+=======
+>>>>>>> 78eb34b (Fixing sonar bugs)
 
 mongo_url = (
     "mongodb://"
@@ -500,7 +503,11 @@ async def delete_aws_key(activity, iam_username, key_list, iam=None, webex=None)
             access_key.delete()
         except Exception as e:
             logging.warning(e)
+<<<<<<< HEAD
             print("Cannot delete key")
+=======
+            print(find_user_message)
+>>>>>>> 78eb34b (Fixing sonar bugs)
             return
 
     message = "The following keys have been deleted:\n" + key_message + AFTER_CODE_SNIPPET
@@ -524,6 +531,7 @@ async def delete_all_aws_keys(activity, user, webex):
             logging.warning(e)
             print("Cannot delete key")
             return
+<<<<<<< HEAD
 
     if key_message != PRE_CODE_SNIPPET:
         message = dict(
@@ -580,6 +588,8 @@ async def aws_key_status(activity):
         )
 
     await webex.post_message_to_webex(message)
+=======
+>>>>>>> 78eb34b (Fixing sonar bugs)
 
 
 async def delete_accounts(activity):
