@@ -305,6 +305,66 @@ async def create_key_and_message_user(activity, user, webex):
     await webex.post_message_to_webex(message)
 
 
+async def reset_aws_key(activity):
+    logging.debug("reset aws key")
+    webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
+    iam = boto3.client(
+        "iam",
+        region_name=CONFIG.AWS_REGION_COLAB,
+        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
+        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
+    )
+
+    # split the webex username from the domain
+    user_and_domain = activity["sender_email"].split("@")
+    iam_username = user_and_domain[0]
+
+    try:
+        user = iam.User(iam_username)
+    except Exception as e:
+        logging.warning(e)
+        print("Cannot find user")
+        return
+
+    await delete_all_aws_keys(activity, user, webex)
+    await create_key_and_message_user(activity, user, webex)
+    return
+
+
+async def delete_all_aws_keys(activity, user, webex):
+    logging.debug("delete aws key")
+    if webex is None:
+        webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
+
+    if user is None:
+        iam = boto3.client(
+            "iam",
+            region_name=CONFIG.AWS_REGION_COLAB,
+            aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
+            aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
+        )
+
+        user_and_domain = activity["sender_email"].split("@")
+        iam_username = user_and_domain[0]
+
+        try:
+            user = iam.User(iam_username)
+        except Exception as e:
+            logging.warning(e)
+            print("Cannot find user")
+            return
+
+    access_key_iterator = user.access_keys.all()
+    for access_key in access_key_iterator:
+        try:
+            access_key.delete()
+        except Exception as e:
+            logging.warning(e)
+            print("Cannot delete key")
+            return
+    return
+
+
 async def delete_accounts(activity):
     cml_servers = CONFIG.SERVER_LIST.split(",")
     if activity.get("text") == "delete accounts":
