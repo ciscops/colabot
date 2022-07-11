@@ -19,6 +19,7 @@ https_header = "https://"
 botId_regex_pattern = r"1MDFmYzc$"
 content_type = "application/json"
 awx_server_error_message = "Error contacting AWX server. "
+find_user_message = "Cannot find user"
 
 mongo_url = (
     "mongodb://"
@@ -258,7 +259,7 @@ async def create_aws_key(activity):
             access_key_list.append(key)
     except Exception as e:
         logging.warning(e)
-        print("Cannot find user")
+        print(find_user_message)
         return
 
     # If the user has active access keys that colabot has not expired, don't create keys
@@ -323,12 +324,11 @@ async def reset_aws_key(activity):
         user = iam.User(iam_username)
     except Exception as e:
         logging.warning(e)
-        print("Cannot find user")
+        print(find_user_message)
         return
 
     await delete_all_aws_keys(activity, user, webex)
     await create_key_and_message_user(activity, user, webex)
-    return
 
 
 async def delete_all_aws_keys(activity, user, webex):
@@ -351,7 +351,7 @@ async def delete_all_aws_keys(activity, user, webex):
             user = iam.User(iam_username)
         except Exception as e:
             logging.warning(e)
-            print("Cannot find user")
+            print(find_user_message)
             return
 
     access_key_iterator = user.access_keys.all()
@@ -362,7 +362,6 @@ async def delete_all_aws_keys(activity, user, webex):
             logging.warning(e)
             print("Cannot delete key")
             return
-    return
 
 
 async def delete_accounts(activity):
