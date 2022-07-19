@@ -39,6 +39,7 @@ jobs:
       - name: Build and push image
         uses: docker/build-push-action@v2
         with:
+          run: docker build --network=host
           context: ./
           file: ./Dockerfile
           push: true
