@@ -46,10 +46,9 @@ jobs:
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} # name of image
 
       - name: Get kubeConfig file from secrets
-        run: |
-          mkdir ${HOME}/.kube
-          echo "${{ secrets.KUBE_CONFIG }}" > ${HOME}/.kube/config
+        run: echo "${{ secrets.KUBE_CONFIG }}" > ${HOME}/.kube/config
       #cat ${HOME}/.kube/config  possibly for debugging, not needed
+      #| mkdir ${HOME}/.kube
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
