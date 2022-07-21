@@ -22,3 +22,5 @@ with open('output-manifest-dev.yaml', 'w') as f:
 
 print(os.listdir())
 print(env_dict['BOT_NAME_DEV'])
+for i in env_dict['BOT_NAME_DEV']:
+    print(i)
