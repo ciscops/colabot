@@ -97,7 +97,7 @@ jobs:
       - name: Apply and rollout
         run: |
           /bin/sh -c 'chmod u+x k8s_check.sh'
-          ./k8s_check
+          ./k8s_check.sh
           rm output-secrets-dev.yaml
           rm output-manifest-dev.yaml
 #kubectl rollout restart deployment/colabot-dev-1
