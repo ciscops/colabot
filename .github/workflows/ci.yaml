@@ -27,7 +27,8 @@ jobs:
 
     steps:
       - name: install jinja2
-        run: sudo apt-get install jinja2 -y
+        run: sudo apt-get install python3-pip
+        run: pip install jinja2
 
       - name: Checkout code
         uses: actions/checkout@v2
