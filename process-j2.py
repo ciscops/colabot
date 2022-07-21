@@ -5,6 +5,7 @@ envars = os.environ
 env_dict = dict()
 for k,v in envars.items():
     env_dict[k] = v
+print(os.getcwd())
 
 with open('colabot-secrets-dev.yaml.j2', 'r') as f:
     template = Template(f.read())
