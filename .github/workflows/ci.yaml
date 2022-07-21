@@ -64,9 +64,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.EKS_AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: test-kubectl
-        run: kubectl get nodes
-
       - name: Convert j2 template to yaml
         run: python3 process-j2.py
         env:
@@ -101,6 +98,3 @@ jobs:
           kubectl rollout restart deployment/colabot-dev-1
           rm output-secrets-dev.yaml
           rm output-manifest-dev.yaml
-
-# /bin/sh -c 'chmod u+x k8s_check.sh'
-# ./k8s_check.sh
