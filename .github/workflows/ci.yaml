@@ -96,10 +96,8 @@ jobs:
 
       - name: Apply and rollout
         run: |
-          kubectl delete -f output-secrets-dev.yaml
-          kubectl delete -f output-manifest-dev.yaml
-          kubectl create -f output-secrets-dev.yaml
-          kubectl create -f output-manifest-dev.yaml
-          kubectl rollout restart deployment/colabot-dev-1
+          /bin/sh -c 'chmod u+x k8s_check.sh'
+          ./k8s_check
           rm output-secrets-dev.yaml
           rm output-manifest-dev.yaml
+#kubectl rollout restart deployment/colabot-dev-1
