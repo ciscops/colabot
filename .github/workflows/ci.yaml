@@ -64,6 +64,9 @@ jobs:
           aws-secret-access-key: ${{ secrets.EKS_AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
+      - name: test-kubectl
+        run: kubectl get nodes
+
       - name: Apply and rollout
         run: |
           python3 process-j2.py
