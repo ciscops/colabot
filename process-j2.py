@@ -7,6 +7,7 @@ for k,v in envars.items():
     env_dict[k] = v
 print(os.getcwd())
 
+
 with open('colabot-secrets-dev.yaml.j2', 'r') as f:
     template = Template(f.read())
 
@@ -18,3 +19,5 @@ with open('colabot-manifest-dev.yaml.j2', 'r') as f:
 
 with open('output-manifest-dev.yaml', 'w') as f:
     f.write(template.render(env_dict))
+
+print(os.listdir())
