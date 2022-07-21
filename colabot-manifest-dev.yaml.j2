@@ -1,0 +1,133 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: colabot-dev-1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: colabot-dev-1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  minReadySeconds: 5
+  template:
+    metadata:
+      labels:
+        app: colabot-dev-1
+    spec:
+      containers:
+        - image: ciscops/colabot-dev:latest
+          name: colabot-dev-1
+          ports:
+            - containerPort: 3000
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            readOnlyRootFilesystem: false
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "750m"
+              memory: "1024Mi"
+          env:
+          - name: ACCESS_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: colabot-dev-1-secret
+                key: access_token
+          - name: BOT_ID
+            value: {{ BOT_ID_DEV }}
+          - name: BOT_NAME
+            value: {{ BOT_NAME_DEV }}
+          - name: AUTHORIZED_ROOMS
+            value: {{ AUTHORIZED_ROOMS_DEV }}
+          - name: WEB_PORT
+            value: '3000'
+          - name: DIALOGUE_TIMEOUT
+            value: '30'
+          - name: PUBLIC_ADDRESS
+            value: {{ PUBLIC_ADDRESS_DEV }}
+          - name: SERVER_LIST
+            value: {{ SERVER_LIST_DEV }}
+          - name: CML_USERNAME
+            value: {{ CML_USERNAME }}
+          - name: CML_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: colabot-dev-1-secret
+                key: cml_password
+          - name: SECRET
+            valueFrom:
+              secretKeyRef:
+                name: colabot-dev-1-secret
+                key: api_secret
+          - name: MONGO_INITDB_ROOT_USERNAME
+            value: {{ MONGO_INITDB_ROOT_USERNAME }}
+          - name: MONGO_INITDB_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: colabot-dev-1-secret
+                key: mongo_initb_root_password
+          - name: MONGO_SERVER
+            value: {{ MONGO_SERVER_DEV }}
+          - name: MONGO_PORT
+            value: '27017'
+          - name: MONGO_DB
+            value: 'colabot'
+          - name: MONGO_COLLECTIONS
+            value: 'labinfo'
+          - name: MONGO_DB_ACTIVITY
+            value: colabot_dialogue_db
+          - name: MONGO_COLLECTIONS_ACTIVITY
+            value: colabot_dialogue_collection
+          - name: AWX_SERVER
+            value: {{ AWX_SERVER }}
+          - name: AWX_USERNAME
+            value: {{ AWX_USERNAME }}
+          - name: AWX_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: colabot-dev-1-secret
+                key: awx_password
+          - name: NLP_SERVER
+            value: {{ NLP_SERVER_DEV }}
+          - name: NLP_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: colabot-dev-1-secret
+                key: nlp_secret
+          - name: VCENTER_SERVER
+            value: {{ VCENTER_SERVER }}
+          - name: ADMINISTRATORS
+            value: {{ ADMINISTRATORS_DEV }}
+          - name: AWS_ACCESS_KEY_ID
+            value: {{ AWS_ACCESS_KEY_ID }}
+          - name: AWS_REGION
+            value: 'us-east-1'
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: colabot-dev-1-secret
+                key: aws_password
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: colabot-dev-1-svc
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 3000
+    name: http
+  selector:
+    app: colabot-dev-1
