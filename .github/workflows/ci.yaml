@@ -21,14 +21,14 @@ jobs:
   deploy:
     runs-on: self-hosted
 
-    - name: install jinja2
-        run: sudo apt-get install jinja2 -y
-
     env:
       REGISTRY: ghcr.io # registry
       IMAGE_NAME: ${{ github.repository }} # "ciscops/colabot-dev"
 
     steps:
+      - name: install jinja2
+        run: sudo apt-get install jinja2 -y
+
       - name: Checkout code
         uses: actions/checkout@v2
 
