@@ -47,10 +47,10 @@ jobs:
 
       - name: Get kubeConfig file from secrets
         run: |
-          mkdir ${HOME}/.kube
+          if [ ! -d ${HOME}/.kube ] ; then
+            mkdir ${HOME}/.kube
+          fi
           echo "${{ secrets.KUBE_CONFIG }}" > ${HOME}/.kube/config
-      #cat ${HOME}/.kube/config  possibly for debugging, not needed
-      #
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
