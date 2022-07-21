@@ -61,5 +61,9 @@ jobs:
 
       - name: Apply and rollout
         run: |
-          kubectl apply -f colabot-manifest-dev.yaml
+          python3 process-j2.py
+          kubectl apply -f output-secrets-dev.yaml
+          kubectl apply -f output-manifest-dev.yaml
           kubectl rollout restart deployment/colabot-dev-1
+          rm output-secrets-dev.yaml
+          rm output-manifest-dev.yaml
