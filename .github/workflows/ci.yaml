@@ -70,8 +70,10 @@ jobs:
       - name: Apply and rollout
         run: |
           python3 process-j2.py
-          kubectl apply -f output-secrets-dev.yaml
-          kubectl apply -f output-manifest-dev.yaml
+          kubectl delete -f output-secrets-dev.yaml
+          kubectl delete -f output-manifest-dev.yaml
+          kubectl create -f output-secrets-dev.yaml
+          kubectl create -f output-manifest-dev.yaml
           kubectl rollout restart deployment/colabot-dev-1
           rm output-secrets-dev.yaml
           rm output-manifest-dev.yaml
