@@ -82,3 +82,17 @@ jobs:
           AWX_PASSWORD: ${{ secrets.AWX_PASSWORD }}
           NLP_SECRET: ${{ secrets.NLP_SECRET }}
           AWS_PASSWORD: ${{ secrets.AWS_PASSWORD }}
+          BOT_ID_DEV: ${{ secrets.BOT_ID_DEV }}
+          BOT_NAME_DEV: ${{ secrets.BOT_NAME_DEV }}
+          AUTHORIZED_ROOMS_DEV: ${{ secrets.AUTHORIZED_ROOMS_DEV }}
+          PUBLIC_ADDRESS_DEV: ${{ secrets.PUBLIC_ADDRESS_DEV }}
+          SERVER_LIST_DEV: ${{ secrets.SERVER_LIST_DEV }}
+          CML_USERNAME: ${{ secrets.CML_USERNAME }}
+          MONGO_INITDB_ROOT_USERNAME: ${{ secrets.MONGO_INITDB_ROOT_USERNAME }}
+          MONGO_SERVER_DEV: ${{ secrets.MONGO_SERVER_DEV }}
+          AWX_SERVER: ${{ secrets.AWX_SERVER }}
+          AWX_USERNAME: ${{ secrets.AWX_USERNAME }}
+          NLP_SERVER_DEV: ${{ secrets.NLP_SERVER_DEV }}
+          VCENTER_SERVER: ${{ secrets.VCENTER_SERVER }}
+          ADMINISTRATORS_DEV: ${{ secrets.ADMINISTRATORS_DEV }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
