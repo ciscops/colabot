@@ -72,3 +72,13 @@ jobs:
           kubectl rollout restart deployment/colabot-dev-1
           rm output-secrets-dev.yaml
           rm output-manifest-dev.yaml
+        env:
+          TLS_CRT_DEV: ${{ secrets.TLS_CRT_DEV }}
+          TLS_KEY_DEV: ${{ secrets.TLS_KEY_DEV }}
+          ACCESS_TOKEN_DEV: ${{ secrets.ACCESS_TOKEN_DEV }}
+          CML_PASSWORD: ${{ secrets.CML_PASSWORD }}
+          API_SECRET: ${{ secrets.API_SECRET }}
+          MONGO_DB_ROOT_PASSWORD: ${{ secrets.MONGO_DB_ROOT_PASSWORD }}
+          AWX_PASSWORD: ${{ secrets.AWX_PASSWORD }}
+          NLP_SECRET: ${{ secrets.NLP_SECRET }}
+          AWS_PASSWORD: ${{ secrets.AWS_PASSWORD }}
