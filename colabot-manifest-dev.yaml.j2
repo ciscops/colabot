@@ -19,10 +19,10 @@ spec:
       labels:
         app: colabot-dev-1
     spec:
+      imagePullSecrets:
+        - name: ghcr-token
       containers:
         - image: ciscops/colabot-dev:latest
-          imagePullSecrets:
-          - name: ghcr-token
           name: colabot-dev-1
           ports:
             - containerPort: 3000
