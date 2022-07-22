@@ -19,6 +19,7 @@ spec:
       labels:
         app: colabot-dev-1
     spec:
+      imagePullPolicy: Always
       imagePullSecrets:
         - name: ghcr-token
       containers:
