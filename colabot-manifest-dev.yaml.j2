@@ -20,7 +20,7 @@ spec:
         app: colabot-dev-1
     spec:
       imagePullSecrets:
-        - name: ghcr-token
+        - name: ghcr-login-secret
       containers:
         - image: ghcr.io/ciscops/colabot-dev:latest
           imagePullPolicy: Always
