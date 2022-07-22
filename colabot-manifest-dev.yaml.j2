@@ -22,8 +22,8 @@ spec:
       imagePullSecrets:
         - name: ghcr-token
       containers:
-        imagePullPolicy: Always
         - image: ciscops/colabot-dev:latest
+          imagePullPolicy: Always
           name: colabot-dev-1
           ports:
             - containerPort: 3000
