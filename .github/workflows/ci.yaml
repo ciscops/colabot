@@ -41,6 +41,9 @@ jobs:
           username: ${{ secrets.GHCR_USERNAME }}
           password: ${{ secrets.GHCR_PASS }} # set up secret token with access rights to packages
 
+      - name: Kube create ghcr secret
+        run: kubectl create secret docker-registry ghcr-login-secret --docker-server=https://ghcr.io --docker-username=${{ secrets.GHCR_USERNAME }} --docker-password=${{ secrets.GHCR_PASS }} --docker-email=${{ secrets.GHCR_EMAIL }}  
+
       - name: Build and push image
         uses: docker/build-push-action@v2
         with:
