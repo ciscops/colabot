@@ -44,14 +44,30 @@ jobs:
       # - name: Kube create ghcr secret
       #   run: kubectl create secret docker-registry ghcr-login-secret --docker-server=https://ghcr.io --docker-username=${{ secrets.GHCR_USERNAME }} --docker-password=${{ secrets.GHCR_PASS }} --docker-email=${{ secrets.GHCR_EMAIL }}
 
-      - name: Build and push image
-        uses: docker/build-push-action@v2
+      # - name: Build and push image
+      #   uses: docker/build-push-action@v2
+      #   with:
+      #     network: host
+      #     context: ./
+      #     file: ./Dockerfile
+      #     push: true
+      #     tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} # name of image
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
           network: host
           context: ./
           file: ./Dockerfile
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} # name of image
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
 
       - name: Get kubeConfig file from secrets
         run: |
