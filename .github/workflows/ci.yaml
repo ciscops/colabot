@@ -24,7 +24,7 @@ jobs:
     env:
       REGISTRY: ghcr.io # registry
       BRANCH: -dev # current branch
-      IMAGE_NAME: ${{ github.repository }} ${{ env.BRANCH }} # "ciscops/colabot-dev"
+      IMAGE_NAME: ${{ github.repository }} ${{ BRANCH }} # "ciscops/colabot-dev"
 
 
     steps:
