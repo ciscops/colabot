@@ -23,7 +23,9 @@ jobs:
 
     env:
       REGISTRY: ghcr.io # registry
-      IMAGE_NAME: ${{ github.repository }} # "ciscops/colabot-dev"
+      BRANCH: -dev # current branch
+      IMAGE_NAME: ${{ github.repository }} ${{ env.BRANCH }} # "ciscops/colabot-dev"
+
 
     steps:
       - name: install jinja2
@@ -112,6 +114,7 @@ jobs:
 
       - name: Apply and rollout
         run: |
+          echo ${{ env.IMAGE_NAME }}
           kubectl apply -f output-secrets-dev.yaml
           kubectl apply -f output-manifest-dev.yaml
           kubectl rollout restart deployment/colabot-dev-1
