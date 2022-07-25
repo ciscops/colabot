@@ -330,7 +330,7 @@ class CML:
                     method="PUT", url=u, headers=headers, ssl=False
                 ) as res:
                     response_content = await res.json()
-                    if res.status == 200:
+                    if res.status == 204:
                         self.status_code = res.status
                         self.result = response_content
                         return True
@@ -361,7 +361,7 @@ class CML:
                     method="DELETE", url=u, headers=headers, ssl=False
                 ) as res:
                     response_content = await res.json()
-                    if res.status == 200:
+                    if res.status == 204:
                         self.status_code = res.status
                         self.result = response_content
                         return True
