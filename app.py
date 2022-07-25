@@ -8,7 +8,7 @@ from bot import COLABot
 
 
 FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-logging.basicConfig(format=FORMAT, level=logging.INFO)
+logging.basicConfig(format=FORMAT, level=logging.DEBUG)
 # logging.basicConfig(filename='logfile.log', level=logging.INFO, format=FORMAT)
 
 BOT = COLABot(webex_bot_token=CONFIG.ACCESS_TOKEN, webex_client_signing_secret=CONFIG.SECRET)
