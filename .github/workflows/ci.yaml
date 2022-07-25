@@ -2,9 +2,6 @@ name: Colabot PY CI
 on:
   pull_request:
     branches: [dev]
-stages:
-  - build_stage
-  - deploy_stage
 jobs:
   linting:
     runs-on: ubuntu-latest
@@ -22,7 +19,6 @@ jobs:
     - run: make check-format
 
   build-image:
-    stage: build_stage
     runs-on: unbuntu-latest
 
     env:
@@ -62,7 +58,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   deploy:
-    stage: deploy_stage
+    needs: build-image
     runs-on: self-hosted
 
     steps:
