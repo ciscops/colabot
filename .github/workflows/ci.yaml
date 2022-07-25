@@ -18,11 +18,12 @@ jobs:
     - run: make pylint
     - run: make check-format
 
-  deploy:
-    runs-on: self-hosted
+  build-image:
+    runs-on: ubuntu-latest
 
     env:
       REGISTRY: ghcr.io # registry
+      BRANCH: dev
       IMAGE_NAME: ${{ github.repository }} # "ciscops/colabot-dev"
 
     steps:
@@ -48,7 +49,15 @@ jobs:
           context: ./
           file: ./Dockerfile
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} # name of image
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{env.BRANCH}}
+
+  deploy:
+    needs: build-image
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
 
       - name: Get kubeConfig file from secrets
         run: |
