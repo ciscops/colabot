@@ -49,13 +49,16 @@ jobs:
           context: ./
           file: ./Dockerfile
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{env.BRANCH}}    
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{env.BRANCH}}
 
   deploy:
     needs: build-image
     runs-on: self-hosted
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
       - name: Get kubeConfig file from secrets
         run: |
           if [ ! -d ${HOME}/.kube ] ; then
