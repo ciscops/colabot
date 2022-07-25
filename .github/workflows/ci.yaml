@@ -23,6 +23,7 @@ jobs:
 
     env:
       REGISTRY: ghcr.io # registry
+      BRANCH: dev
       IMAGE_NAME: ${{ github.repository }} # "ciscops/colabot-dev"
 
     steps:
@@ -41,21 +42,30 @@ jobs:
           username: ${{ secrets.GHCR_USERNAME }}
           password: ${{ secrets.GHCR_PASS }} # set up secret token with access rights to packages
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+      # - name: Extract metadata (tags, labels) for Docker
+      #   id: meta
+      #   uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+      #   with:
+      #     images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+      #
+      # - name: Build and push Docker image
+      #   uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+      #   with:
+      #     network: host
+      #     context: ./
+      #     file: ./Dockerfile
+      #     push: true
+      #     tags: dev
+      #     labels: ${{ steps.meta.outputs.labels }}
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
-        with:
-          network: host
-          context: ./
-          file: ./Dockerfile
-          push: true
-          tags: dev
-          labels: ${{ steps.meta.outputs.labels }}
+       - name: Build and push image
+          uses: docker/build-push-action@v2
+          with:
+            network: host
+            context: ./
+            file: ./Dockerfile
+            push: true
+            tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{env.BRANCH}}
 
   deploy:
     needs: build-image
