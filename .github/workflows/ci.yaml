@@ -43,13 +43,13 @@ jobs:
           password: ${{ secrets.GHCR_PASS }} # set up secret token with access rights to packages
 
       - name: Build and push image
-         uses: docker/build-push-action@v2
-         with:
-           network: host
-           context: ./
-           file: ./Dockerfile
-           push: true
-           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{env.BRANCH}}    
+        uses: docker/build-push-action@v2
+        with:
+          network: host
+          context: ./
+          file: ./Dockerfile
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{env.BRANCH}}    
 
       # - name: Extract metadata (tags, labels) for Docker
       #   id: meta
