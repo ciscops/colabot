@@ -60,6 +60,7 @@ jobs:
   deploy:
     runs-on: self-hosted
 
+    steps:
       - name: Get kubeConfig file from secrets
         run: |
           if [ ! -d ${HOME}/.kube ] ; then
