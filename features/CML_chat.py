@@ -115,7 +115,7 @@ async def list_all_labs(cml_servers, activity):
             message = dict(
                 text="***"
                 + cml_server
-                + "*** Error accessing server "
+                + "*** Error accessing server1 "
                 + str(cml.bearer_token),
                 roomId=activity["roomId"],
                 parentId=activity["parentId"],
