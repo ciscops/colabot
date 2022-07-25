@@ -601,6 +601,7 @@ async def stop_lab_dialogue_1(cml_servers, activity):
 
 async def stop_lab_dialogue_2(cml_servers, activity):
     results_message = ""
+    logging.debug("\n\n FIND ME \n\n")
     user_and_domain = activity["sender_email"].split("@")
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
     for cml_server in cml_servers:
