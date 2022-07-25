@@ -54,13 +54,8 @@ jobs:
           context: ./
           file: ./Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: dev
           labels: ${{ steps.meta.outputs.labels }}
-
-      - name: check tags    
-        run: |
-          echo ${{ steps.meta.outputs.tags }}
-          echo ${{ steps.meta.outputs.labels }}
 
   deploy:
     needs: build-image
