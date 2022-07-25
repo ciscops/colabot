@@ -25,7 +25,7 @@ mongo_url = 'mongodb://' + CONFIG.MONGO_INITDB_ROOT_USERNAME + ':' + CONFIG.MONG
 
 help_menu_list = ['**CML delete lab** > delete lab\n',
                   '**CML list all labs** > list all labs\n',
-                  '**CML list my lab details** > list your labs with details\n',
+                  '**CMLL list my lab details** > list your labs with details\n',
                   '**CML list my labs** > list only your labs\n',
                   '**CML list users** > list users\n',
                   '**CML show IP addresses** > show IP addresses\n',
