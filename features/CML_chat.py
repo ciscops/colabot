@@ -605,6 +605,8 @@ async def stop_lab_dialogue_2(cml_servers, activity):
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
     for cml_server in cml_servers:
         if activity["inputs"].get(cml_server):
+            logging.debug(user_and_domain)
+            logging.debug(activity)
             cml_user = CML(user_and_domain[0], activity["cml_password"], cml_server)
             # If the user is not there, the below won't work
             if not await cml_user.get_token():
