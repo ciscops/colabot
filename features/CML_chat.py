@@ -267,8 +267,8 @@ async def list_my_labs(cml_servers, activity):
             )
         else:
             for user in cml.diagnostics['user_list']:
-                logging.debug(user)
                 if user['username'] == user_and_domain[0]:
+                    logging.debug(user)
                     for lab in user['labs']:
                         created_seconds = int(datetime.fromisoformat(cml.diagnostics["labs"][lab]["created"]).timestamp())
                         labs_flag = True
