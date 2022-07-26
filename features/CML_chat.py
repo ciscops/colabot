@@ -137,8 +137,8 @@ async def list_all_labs(cml_servers, activity):
             continue
         epoch_time_now = int(time.time())
 
-        logging.debug(cml.diagnostics)
-        for k in cml.diagnostics['user_list'].items():
+        #logging.debug(cml.diagnostics)
+        for k in cml.diagnostics['user_list']:
             logging.debug(k)
             labs_flag = False
             lab_string = "\nLabs for account: ***" + k + "***\n\n"
