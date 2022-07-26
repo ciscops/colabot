@@ -283,9 +283,9 @@ async def find_active_labs(server, activity, webex, new_directory):
             await webex.post_message_to_webex(message)
             # continue
         else:
-            for k, v in cml.diagnostics["user_roles"]["labs_by_user"].items():
-                if v and new_directory.get(k):
-                    mentions.append(f"<@personEmail:{new_directory.get(k)}|{k}>")
+            for user in cml.diagnostics["user_list"]:
+                if len(user["labs"]) and new_directory.get(user['username']):
+                    mentions.append(f"<@personEmail:{new_directory.get(user['username'])}|{user['username']}>")
     if mentions:
         message_text = f"The following is an **important message** for users of {server}: \n\n  - {activity['dialogue_data']['text']} \n\n{' '.join(mentions)}"
     else:
