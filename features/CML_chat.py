@@ -137,6 +137,7 @@ async def list_all_labs(cml_servers, activity):
             continue
         epoch_time_now = int(time.time())
 
+        logging.debug(cml.diagnostics)
         for k, v in cml.diagnostics["user_roles"]["labs_by_user"].items():
             logging.debug(k)
             logging.debug(v)
