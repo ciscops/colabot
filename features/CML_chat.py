@@ -221,8 +221,8 @@ async def list_users(cml_servers, activity):
                 + cml.users.get("description", "")
             )
         else:
-            for key in cml.users:
-                server_name += " - " + key + "\n"
+            for user in cml.users:
+                server_name += " - " + user['username'] + "\n"
         results_message += server_name
 
         message = dict(text=results_message, roomId=activity["roomId"], attachments=[])
