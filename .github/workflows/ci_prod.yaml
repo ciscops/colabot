@@ -1,6 +1,6 @@
 name: Colabot PY CI PROD
 on:
-  merge:
+  push:
     branches: [main]
 jobs:
   linting:
