@@ -141,7 +141,7 @@ async def list_all_labs(cml_servers, activity):
         for k in cml.diagnostics['user_list']:
             logging.debug(k)
             labs_flag = False
-            lab_string = "\nLabs for account: ***" + k + "***\n\n"
+            lab_string = "\nLabs for account: ***" + k['username'] + "***\n\n"
             logging.debug("begin: %s", lab_string)
             for i in cml.diagnostics[k]['labs']:
                 logging.debug("This is i: ")
