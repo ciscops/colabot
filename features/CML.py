@@ -55,6 +55,7 @@ class CML:
                     ssl=False,
                 ) as res:
                     response_content = await res.json()
+                    logging.debug(self.cml_username)
                     if res.status == 200:
                         logging.debug("token response is 200")
                         self.status_code = res.status
