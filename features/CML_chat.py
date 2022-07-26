@@ -147,7 +147,7 @@ async def list_all_labs(cml_servers, activity):
                 logging.debug("This is i: ")
                 logging.debug(i)
                 labs_flag = True
-                created_seconds = int(cml.diagnostics["labs"][i]["created"].time())
+                created_seconds = datetime.datetime.strptime(cml.diagnostics["labs"][i]["created"], "%Y:%m:%dT%H:%M:%S.%f%z").time()
                 delta = epoch_time_now - created_seconds
                 days = int(delta // 86400)
                 hours = int(delta // 3600 % 24)
