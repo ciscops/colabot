@@ -1,4 +1,4 @@
-name: Colabot PY CI
+name: Colabot PY CI DEV
 on:
   pull_request:
     branches: [dev]
@@ -24,7 +24,7 @@ jobs:
     env:
       REGISTRY: ghcr.io # registry
       BRANCH: dev
-      IMAGE_NAME: ${{ github.repository }} # "ciscops/colabot-dev"
+      IMAGE_NAME: ${{ github.repository }} # "ciscops/colabot"
 
     steps:
       - name: install jinja2
@@ -76,6 +76,7 @@ jobs:
       - name: Convert j2 template to yaml
         run: python3 process-j2.py
         env:
+          ENVIRONMENT: dev
           TLS_CRT_DEV: ${{ secrets.TLS_CRT_DEV }}
           TLS_KEY_DEV: ${{ secrets.TLS_KEY_DEV }}
           ACCESS_TOKEN_DEV: ${{ secrets.ACCESS_TOKEN_DEV }}
