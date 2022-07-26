@@ -29,6 +29,7 @@ stop_cml_message = "Stop CML lab"
 webex_message_content_type = "application/vnd.microsoft.card.adaptive"
 db_connect_error_message = "Failed to connect to DB"
 
+
 async def cml_chat(activity):
     cml_servers = CONFIG.SERVER_LIST.split(",")
 
@@ -138,17 +139,21 @@ async def list_all_labs(cml_servers, activity):
             continue
         epoch_time_now = int(time.time())
 
-        #logging.debug(cml.diagnostics)
-        for k in cml.diagnostics['user_list']:
+        # logging.debug(cml.diagnostics)
+        for k in cml.diagnostics["user_list"]:
             logging.debug(k)
             labs_flag = False
-            lab_string = "\nLabs for account: ***" + k['username'] + "***\n\n"
+            lab_string = "\nLabs for account: ***" + k["username"] + "***\n\n"
             logging.debug("begin: %s", lab_string)
-            for i in k['labs']:
+            for i in k["labs"]:
                 logging.debug("This is i: ")
                 logging.debug(i)
                 labs_flag = True
-                created_seconds = int(datetime.fromisoformat(cml.diagnostics["labs"][i]["created"]).timestamp())
+                created_seconds = int(
+                    datetime.fromisoformat(
+                        cml.diagnostics["labs"][i]["created"]
+                    ).timestamp()
+                )
                 delta = epoch_time_now - created_seconds
                 days = int(delta // 86400)
                 hours = int(delta // 3600 % 24)
@@ -222,7 +227,7 @@ async def list_users(cml_servers, activity):
             )
         else:
             for user in cml.users:
-                server_name += " - " + user['username'] + "\n"
+                server_name += " - " + user["username"] + "\n"
         results_message += server_name
 
         message = dict(text=results_message, roomId=activity["roomId"], attachments=[])
@@ -266,11 +271,15 @@ async def list_my_labs(cml_servers, activity):
                 + cml.diagnostics.get("description", "")
             )
         else:
-            for user in cml.diagnostics['user_list']:
-                if user['username'] == user_and_domain[0]:
+            for user in cml.diagnostics["user_list"]:
+                if user["username"] == user_and_domain[0]:
                     logging.debug(user)
-                    for lab in user['labs']:
-                        created_seconds = int(datetime.fromisoformat(cml.diagnostics["labs"][lab]["created"]).timestamp())
+                    for lab in user["labs"]:
+                        created_seconds = int(
+                            datetime.fromisoformat(
+                                cml.diagnostics["labs"][lab]["created"]
+                            ).timestamp()
+                        )
                         labs_flag = True
                         delta = epoch_time_now - created_seconds
                         days = int(delta // 86400)
@@ -288,7 +297,9 @@ async def list_my_labs(cml_servers, activity):
                             + " Secs"
                         )
 
-                        server_name += " -  Lab Id: " + lab + " Uptime: " + uptime + "\n"
+                        server_name += (
+                            " -  Lab Id: " + lab + " Uptime: " + uptime + "\n"
+                        )
                     break
         if labs_flag:
             results_message += server_name
@@ -341,19 +352,11 @@ async def show_server_utili(cml_servers, activity):
             )
         else:
             logging.debug("Got the system status for %s", cml_server)
-            logging.debug(cml.system_status)
-            cpu = round(
-                cml.system_status["clusters"]["cluster_1"]["high_level_drivers"][
-                    "compute_1"
-                ]["cpu"]["percent"]
-            )
+
+            cpu = round(cml.system_status["all"]["cpu"]["percent"])
             memory = round(
-                cml.system_status["clusters"]["cluster_1"]["high_level_drivers"][
-                    "compute_1"
-                ]["memory"]["used"]
-                / cml.system_status["clusters"]["cluster_1"]["high_level_drivers"][
-                    "compute_1"
-                ]["memory"]["total"]
+                cml.system_status["all"]["memory"]["used"]
+                / cml.system_status["all"]["memory"]["total"]
                 * 100
             )
 
@@ -398,7 +401,7 @@ async def stop_lab(activity):
     # If group then send a DM with a card
     if activity.get("roomType", "") == "group":
         message = dict(
-            text=stop_cml_message ,
+            text=stop_cml_message,
             toPersonId=activity["sender"],
             attachments=[
                 {
@@ -419,7 +422,7 @@ async def stop_lab(activity):
     # if direct, send a card to the same room
     else:
         message = dict(
-            text=stop_cml_message ,
+            text=stop_cml_message,
             roomId=activity["roomId"],
             attachments=[
                 {
@@ -548,7 +551,7 @@ async def stop_lab_dialogue_1(cml_servers, activity):
         card = template.render(lab_choices=running_labs_for_card)
         card_json = json.loads(card)
         message = dict(
-            text=stop_cml_message ,
+            text=stop_cml_message,
             roomId=activity["roomId"],
             attachments=[
                 {
@@ -677,7 +680,7 @@ async def delete_lab(activity):
     # If group then send a DM with a card
     if activity.get("roomType", "") == "group":
         message = dict(
-            text=stop_cml_message ,
+            text=stop_cml_message,
             toPersonId=activity["sender"],
             attachments=[
                 {
