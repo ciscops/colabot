@@ -266,29 +266,30 @@ async def list_my_labs(cml_servers, activity):
                 + cml.diagnostics.get("description", "")
             )
         else:
-            labs = cml.diagnostics["user_roles"]["labs_by_user"].get(
-                user_and_domain[0], []
-            )
-            for lab in labs:
-                created_seconds = cml.diagnostics["labs"][lab]["created"]
-                labs_flag = True
-                delta = epoch_time_now - created_seconds
-                days = int(delta // 86400)
-                hours = int(delta // 3600 % 24)
-                minutes = int(delta // 60 % 60)
-                seconds = int(delta % 60)
-                uptime = (
-                    str(days)
-                    + " Days, "
-                    + str(hours)
-                    + " Hrs, "
-                    + str(minutes)
-                    + " Mins, "
-                    + str(seconds)
-                    + " Secs"
-                )
+            for user in cml.diagnostics['user_list']:
+                logging.debug(user)
+                if user['username'] == user_and_domain[0]:
+                    for lab in user['labs']:
+                        created_seconds = int(datetime.fromisoformat(cml.diagnostics["labs"][lab]["created"]).timestamp())
+                        labs_flag = True
+                        delta = epoch_time_now - created_seconds
+                        days = int(delta // 86400)
+                        hours = int(delta // 3600 % 24)
+                        minutes = int(delta // 60 % 60)
+                        seconds = int(delta % 60)
+                        uptime = (
+                            str(days)
+                            + " Days, "
+                            + str(hours)
+                            + " Hrs, "
+                            + str(minutes)
+                            + " Mins, "
+                            + str(seconds)
+                            + " Secs"
+                        )
 
-                server_name += " -  Lab Id: " + lab + " Uptime: " + uptime + "\n"
+                        server_name += " -  Lab Id: " + lab + " Uptime: " + uptime + "\n"
+                    break
         if labs_flag:
             results_message += server_name
     if results_message:
