@@ -341,6 +341,7 @@ async def show_server_utili(cml_servers, activity):
             )
         else:
             logging.debug("Got the system status for %s", cml_server)
+            logging.debug(cml.system_status)
             cpu = round(
                 cml.system_status["clusters"]["cluster_1"]["high_level_drivers"][
                     "compute_1"
