@@ -1,0 +1,110 @@
+name: Colabot PY CI PROD
+on:
+  push:
+    branches: [main]
+jobs:
+  linting:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.10.0]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - run: pip install virtualenv
+    - run: make pylint
+    - run: make check-format
+
+  build-image:
+    runs-on: ubuntu-latest
+
+    env:
+      REGISTRY: ghcr.io # registry
+      BRANCH: main
+      IMAGE_NAME: ${{ github.repository }} # "ciscops/colabot"
+
+    steps:
+      - name: install jinja2
+        run: |
+          sudo apt-get install python3-pip
+          pip install jinja2
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Login to GHCR
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.GHCR_USERNAME }}
+          password: ${{ secrets.GHCR_PASS }} # set up secret token with access rights to packages
+
+      - name: Build and push image
+        uses: docker/build-push-action@v2
+        with:
+          network: host
+          context: ./
+          file: ./Dockerfile
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{env.BRANCH}}
+
+  deploy:
+    needs: build-image
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Get kubeConfig file from secrets
+        run: |
+          if [ ! -d ${HOME}/.kube ] ; then
+            mkdir ${HOME}/.kube
+          fi
+          echo "${{ secrets.KUBE_CONFIG }}" > ${HOME}/.kube/config
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.EKS_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.EKS_AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Convert j2 template to yaml
+        run: python3 process-j2.py
+        env:
+          ENVIRONMENT: prod
+          TLS_CRT_PROD: ${{ secrets.TLS_CRT_PROD }}
+          TLS_KEY_PROD: ${{ secrets.TLS_KEY_PROD }}
+          ACCESS_TOKEN_PROD: ${{ secrets.ACCESS_TOKEN_PROD }}
+          CML_PASSWORD: ${{ secrets.CML_PASSWORD }}
+          API_SECRET: ${{ secrets.API_SECRET }}
+          MONGO_DB_ROOT_PASSWORD: ${{ secrets.MONGO_DB_ROOT_PASSWORD }}
+          AWX_PASSWORD: ${{ secrets.AWX_PASSWORD }}
+          NLP_SECRET: ${{ secrets.NLP_SECRET }}
+          AWS_PASSWORD: ${{ secrets.AWS_PASSWORD }}
+          BOT_ID_PROD: ${{ secrets.BOT_ID_PROD }}
+          BOT_NAME_PROD: ${{ secrets.BOT_NAME_PROD }}
+          AUTHORIZED_ROOMS_PROD: ${{ secrets.AUTHORIZED_ROOMS_PROD }}
+          PUBLIC_ADDRESS_PROD: ${{ secrets.PUBLIC_ADDRESS_PROD }}
+          SERVER_LIST_PROD: ${{ secrets.SERVER_LIST_PROD }}
+          CML_USERNAME: ${{ secrets.CML_USERNAME }}
+          MONGO_INITDB_ROOT_USERNAME: ${{ secrets.MONGO_INITDB_ROOT_USERNAME }}
+          MONGO_SERVER_PROD: ${{ secrets.MONGO_SERVER_PROD }}
+          AWX_SERVER: ${{ secrets.AWX_SERVER }}
+          AWX_USERNAME: ${{ secrets.AWX_USERNAME }}
+          NLP_SERVER_PROD: ${{ secrets.NLP_SERVER_PROD }}
+          VCENTER_SERVER: ${{ secrets.VCENTER_SERVER }}
+          ADMINISTRATORS_PROD: ${{ secrets.ADMINISTRATORS_PROD }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+
+      - name: Apply and rollout
+        run: |
+          kubectl apply -f output-secrets-prod.yaml
+          kubectl apply -f output-manifest-prod.yaml
+          kubectl rollout restart deployment/colabot-prod-1
+          rm output-secrets-prod.yaml
+          rm output-manifest-prod.yaml
