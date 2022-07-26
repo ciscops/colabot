@@ -1,5 +1,6 @@
 # """import json
 import time
+from datetime import datetime
 import re
 import copy
 import logging
@@ -27,6 +28,7 @@ server_access_error_message = "Error accessing server "
 stop_cml_message = "Stop CML lab"
 webex_message_content_type = "application/vnd.microsoft.card.adaptive"
 db_connect_error_message = "Failed to connect to DB"
+
 
 async def cml_chat(activity):
     cml_servers = CONFIG.SERVER_LIST.split(",")
@@ -137,17 +139,21 @@ async def list_all_labs(cml_servers, activity):
             continue
         epoch_time_now = int(time.time())
 
-        for k, v in cml.diagnostics["user_roles"]["labs_by_user"].items():
+        # logging.debug(cml.diagnostics)
+        for k in cml.diagnostics["user_list"]:
             logging.debug(k)
-            logging.debug(v)
             labs_flag = False
-            lab_string = "\nLabs for account: ***" + k + "***\n\n"
+            lab_string = "\nLabs for account: ***" + k["username"] + "***\n\n"
             logging.debug("begin: %s", lab_string)
-            for i in v:
+            for i in k["labs"]:
                 logging.debug("This is i: ")
                 logging.debug(i)
                 labs_flag = True
-                created_seconds = cml.diagnostics["labs"][i]["created"]
+                created_seconds = int(
+                    datetime.fromisoformat(
+                        cml.diagnostics["labs"][i]["created"]
+                    ).timestamp()
+                )
                 delta = epoch_time_now - created_seconds
                 days = int(delta // 86400)
                 hours = int(delta // 3600 % 24)
@@ -220,8 +226,8 @@ async def list_users(cml_servers, activity):
                 + cml.users.get("description", "")
             )
         else:
-            for key in cml.users:
-                server_name += " - " + key + "\n"
+            for user in cml.users:
+                server_name += " - " + user["username"] + "\n"
         results_message += server_name
 
         message = dict(text=results_message, roomId=activity["roomId"], attachments=[])
@@ -265,29 +271,36 @@ async def list_my_labs(cml_servers, activity):
                 + cml.diagnostics.get("description", "")
             )
         else:
-            labs = cml.diagnostics["user_roles"]["labs_by_user"].get(
-                user_and_domain[0], []
-            )
-            for lab in labs:
-                created_seconds = cml.diagnostics["labs"][lab]["created"]
-                labs_flag = True
-                delta = epoch_time_now - created_seconds
-                days = int(delta // 86400)
-                hours = int(delta // 3600 % 24)
-                minutes = int(delta // 60 % 60)
-                seconds = int(delta % 60)
-                uptime = (
-                    str(days)
-                    + " Days, "
-                    + str(hours)
-                    + " Hrs, "
-                    + str(minutes)
-                    + " Mins, "
-                    + str(seconds)
-                    + " Secs"
-                )
+            for user in cml.diagnostics["user_list"]:
+                if user["username"] == user_and_domain[0]:
+                    logging.debug(user)
+                    for lab in user["labs"]:
+                        created_seconds = int(
+                            datetime.fromisoformat(
+                                cml.diagnostics["labs"][lab]["created"]
+                            ).timestamp()
+                        )
+                        labs_flag = True
+                        delta = epoch_time_now - created_seconds
+                        days = int(delta // 86400)
+                        hours = int(delta // 3600 % 24)
+                        minutes = int(delta // 60 % 60)
+                        seconds = int(delta % 60)
+                        uptime = (
+                            str(days)
+                            + " Days, "
+                            + str(hours)
+                            + " Hrs, "
+                            + str(minutes)
+                            + " Mins, "
+                            + str(seconds)
+                            + " Secs"
+                        )
 
-                server_name += " -  Lab Id: " + lab + " Uptime: " + uptime + "\n"
+                        server_name += (
+                            " -  Lab Id: " + lab + " Uptime: " + uptime + "\n"
+                        )
+                    break
         if labs_flag:
             results_message += server_name
     if results_message:
@@ -339,18 +352,11 @@ async def show_server_utili(cml_servers, activity):
             )
         else:
             logging.debug("Got the system status for %s", cml_server)
-            cpu = round(
-                cml.system_status["clusters"]["cluster_1"]["high_level_drivers"][
-                    "compute_1"
-                ]["cpu"]["percent"]
-            )
+
+            cpu = round(cml.system_status["all"]["cpu"]["percent"])
             memory = round(
-                cml.system_status["clusters"]["cluster_1"]["high_level_drivers"][
-                    "compute_1"
-                ]["memory"]["used"]
-                / cml.system_status["clusters"]["cluster_1"]["high_level_drivers"][
-                    "compute_1"
-                ]["memory"]["total"]
+                cml.system_status["all"]["memory"]["used"]
+                / cml.system_status["all"]["memory"]["total"]
                 * 100
             )
 
@@ -395,7 +401,7 @@ async def stop_lab(activity):
     # If group then send a DM with a card
     if activity.get("roomType", "") == "group":
         message = dict(
-            text=stop_cml_message ,
+            text=stop_cml_message,
             toPersonId=activity["sender"],
             attachments=[
                 {
@@ -416,7 +422,7 @@ async def stop_lab(activity):
     # if direct, send a card to the same room
     else:
         message = dict(
-            text=stop_cml_message ,
+            text=stop_cml_message,
             roomId=activity["roomId"],
             attachments=[
                 {
@@ -545,7 +551,7 @@ async def stop_lab_dialogue_1(cml_servers, activity):
         card = template.render(lab_choices=running_labs_for_card)
         card_json = json.loads(card)
         message = dict(
-            text=stop_cml_message ,
+            text=stop_cml_message,
             roomId=activity["roomId"],
             attachments=[
                 {
@@ -601,10 +607,13 @@ async def stop_lab_dialogue_1(cml_servers, activity):
 
 async def stop_lab_dialogue_2(cml_servers, activity):
     results_message = ""
+    logging.debug("\n\n FIND ME \n\n")
     user_and_domain = activity["sender_email"].split("@")
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
     for cml_server in cml_servers:
         if activity["inputs"].get(cml_server):
+            logging.debug(user_and_domain)
+            logging.debug(activity)
             cml_user = CML(user_and_domain[0], activity["cml_password"], cml_server)
             # If the user is not there, the below won't work
             if not await cml_user.get_token():
@@ -671,7 +680,7 @@ async def delete_lab(activity):
     # If group then send a DM with a card
     if activity.get("roomType", "") == "group":
         message = dict(
-            text=stop_cml_message ,
+            text=stop_cml_message,
             toPersonId=activity["sender"],
             attachments=[
                 {
