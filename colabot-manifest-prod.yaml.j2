@@ -111,6 +111,15 @@ spec:
               secretKeyRef:
                 name: colabot-prod-1-secret
                 key: aws_password
+          - name: AWS_ACCESS_KEY_ID_COLABOT
+            value: {{ AWS_ACCESS_KEY_ID_COLABOT }}
+          - name: AWS_REGION_COLAB
+            value: {{ AWS_REGION_COLAB }}
+          - name: AWS_SECRET_ACCESS_KEY_COLABOT
+            valueFrom:
+              secretKeyRef:
+                name: colabot-prod-1-secret
+                key: aws_password_colabot
 
 ---
 

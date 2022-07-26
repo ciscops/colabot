@@ -281,15 +281,19 @@ async def create_key_and_message_user(activity, user, webex):
     new_access_key_id = access_key_pair.access_key_id
     new_secret_access_key = access_key_pair.secret_access_key
 
+    key_message = new_access_key_id + new_secret_access_key
+
     message = dict(
         text=(
             "Access key created: \n"
-            + f"- Access Key id: {new_access_key_id} \n"
-            + f"- Access Key secret: {new_secret_access_key} "
+            + f"- Access Key id: test id \n"
+            + f"- Access Key secret: test secret "
             + "Remember **not to share** your access key id or secret"
         ),
         toPersonId=activity["sender"],
     )
+
+    logging.debug("Sending message to %s", activity["sender"])
     await webex.post_message_to_webex(message)
 
 
