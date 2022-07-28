@@ -27,20 +27,11 @@ jobs:
       IMAGE_NAME: ${{ github.repository }} # "ciscops/colabot"
 
     steps:
-      - name: install jinja2
-        run: |
-          sudo apt-get install python3-pip
-          pip install jinja2
-
       - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Login to GHCR
-        uses: docker/login-action@v1
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.GHCR_USERNAME }}
-          password: ${{ secrets.GHCR_PASS }} # set up secret token with access rights to packages
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
 
       - name: Build and push image
         uses: docker/build-push-action@v2
@@ -56,6 +47,11 @@ jobs:
     runs-on: self-hosted
 
     steps:
+      - name: install jinja2
+        run: |
+          sudo apt-get install python3-pip
+          pip install jinja2
+
       - name: Checkout code
         uses: actions/checkout@v2
 
