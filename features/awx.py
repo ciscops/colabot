@@ -239,7 +239,7 @@ async def create_vpn_account(activity):
 async def create_aws_key(activity):
     logging.debug("create aws key")
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
-    iam = boto3.client(
+    iam = boto3.resource(
         "iam",
         region_name=CONFIG.AWS_REGION_COLAB,
         aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
@@ -250,13 +250,11 @@ async def create_aws_key(activity):
     iam_username = user_and_domain[0]
 
     try:
-        for user in iam.User(iam_username):
-            logging.debug(user.name + " comparing against " + iam_username)
-            if user.name == iam_username:
-                access_key_iterator = user.access_keys.all()
-                access_key_count = 0
-                for _ in access_key_iterator:
-                    access_key_count += 1
+        user = iam.User(iam_username)
+        access_key_iterator = user.access_keys.all()
+        access_key_count = 0
+        for _ in access_key_iterator:
+            access_key_count += 1
     except Exception as e:
         logging.warning(e)
         print("Cannot find user")
