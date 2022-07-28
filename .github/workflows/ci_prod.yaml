@@ -27,11 +27,6 @@ jobs:
       IMAGE_NAME: ${{ github.repository }} # "ciscops/colabot"
 
     steps:
-      - name: install jinja2
-        run: |
-          sudo apt-get install python3-pip
-          pip install jinja2
-
       - name: Checkout code
         uses: actions/checkout@v2
 
@@ -56,6 +51,11 @@ jobs:
     runs-on: self-hosted
 
     steps:
+      - name: install jinja2
+        run: |
+          sudo apt-get install python3-pip
+          pip install jinja2
+
       - name: Checkout code
         uses: actions/checkout@v2
 
