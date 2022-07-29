@@ -358,7 +358,7 @@ async def delete_all_aws_keys(activity, user, webex):
     access_key_iterator = user.access_keys.all()
     for access_key in access_key_iterator:
         try:
-            key_message += f"Key: {access_key.access_key_id} has been deleted\n"
+            key_message += f"Key: {access_key.access_key_id}\n"
             access_key.delete()
         except Exception as e:
             logging.warning(e)
