@@ -354,14 +354,26 @@ async def delete_all_aws_keys(activity, user, webex):
             print(find_user_message)
             return
 
+    key_message = "<pre>"
     access_key_iterator = user.access_keys.all()
     for access_key in access_key_iterator:
         try:
+            key_message += f"Key: {access_key.access_key_id} has been deleted\n"
             access_key.delete()
         except Exception as e:
             logging.warning(e)
             print("Cannot delete key")
             return
+
+    message = dict(
+            text=(
+                "The following keys have been deleted:\n"
+                + key_message
+                + "</code></pre>"
+            ),
+            toPersonId=activity["sender"],
+        )
+    await webex.post_message_to_webex(message)
 
 
 async def delete_accounts(activity):

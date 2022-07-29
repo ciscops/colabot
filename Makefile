@@ -1,6 +1,6 @@
 # Makefile
 PYTHON_EXE = python3
-PROJECT_NAME="colabot"
+PROJECT_NAME=colabot
 TOPDIR = $(shell git rev-parse --show-toplevel)
 PYDIRS_CARDS=cards
 PYDIRS_FEATURES=features
@@ -23,7 +23,7 @@ check-format: $(VENV)/bin/activate ## Check code format with black
 	$(VENV_BIN)/black --diff --color .
 
 format: $(VENV_BIN)/activate ## Format code using black
-	$(VENV_BIN)/black $(PYDIRS)
+	$(VENV_BIN)/black *.py $(PYDIRS)
 
 pylint: $(VENV_BIN)/activate ## Run pylint
 	$(VENV_BIN)/pylint --output-format=parseable --fail-under=9.98 --rcfile .pylintrc *.py $(PYDIRS)
