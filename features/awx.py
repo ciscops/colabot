@@ -293,8 +293,8 @@ async def create_key_and_message_user(activity, user, webex):
         text=(
             "Access key created: \n"
             + "<pre>"
-            + f"Access Key id: {new_access_key_id} \n"
-            + f"Access Key secret: {new_secret_access_key} \n"
+            + "Access Key id: " + new_access_key_id + "\n"
+            + "Access Key secret: " + new_secret_access_key + "\n"
             + "</code></pre>"
             + "Remember **not to share** your access key id or secret"
         ),
