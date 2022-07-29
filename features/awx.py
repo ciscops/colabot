@@ -266,7 +266,7 @@ async def create_aws_key(activity):
         for key in access_key_list:
             key_message += f"Key id: {key.access_key_id} | Status: {key.status} | Created: {key.create_date}  "
             key_message += "\n"
-        key_message += "```"
+        
         message = dict(
             text=(
                 "You already have active aws keys: \n"
