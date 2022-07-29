@@ -268,9 +268,9 @@ async def create_aws_key(activity):
 
         message = dict(
             text=(
-                "You already have active aws keys: ```\n"
-                + key_message
-                + "```If you would like to refresh them, use **reset aws keys**"
+                "You already have active aws keys: \n ```"
+                + key_message + "``` \n"
+                + "If you would like to refresh them, use **reset aws keys**"
             ),
             toPersonId=activity["sender"],
         )
