@@ -239,7 +239,7 @@ async def create_vpn_account(activity):
 async def create_aws_key(activity):
     logging.debug("create aws key")
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
-    iam = boto3.client(
+    iam = boto3.resource(
         "iam",
         region_name=CONFIG.AWS_REGION_COLAB,
         aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
@@ -250,7 +250,7 @@ async def create_aws_key(activity):
     iam_username = user_and_domain[0]
     logging.debug(iam_username)
     try:
-        user = iam.User(iam_username)
+        user = iam.user(iam_username)
         access_key_iterator = user.access_keys.all()
         access_key_count = 0
         for _ in access_key_iterator:
