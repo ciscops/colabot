@@ -23,7 +23,7 @@ check-format: $(VENV)/bin/activate ## Check code format with black
 	$(VENV_BIN)/black --diff --color .
 
 format: $(VENV_BIN)/activate ## Format code using black
-	$(VENV_BIN)/black *.py $(PYDIRS)
+	$(VENV_BIN)/black $(PYDIRS)
 
 pylint: $(VENV_BIN)/activate ## Run pylint
 	$(VENV_BIN)/pylint --output-format=parseable --fail-under=9.98 --rcfile .pylintrc *.py $(PYDIRS)

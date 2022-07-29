@@ -294,8 +294,12 @@ async def create_key_and_message_user(activity, user, webex):
         text=(
             "Access key created: \n"
             + "<pre>"
-            + "Access Key id: " + new_access_key_id + "\n"
-            + "Access Key secret: " + new_secret_access_key + "\n"
+            + "Access Key id: "
+            + new_access_key_id
+            + "\n"
+            + "Access Key secret: "
+            + new_secret_access_key
+            + "\n"
             + "</code></pre>"
             + "\nRemember **not to share** your access key id or secret"
         ),
@@ -338,11 +342,11 @@ async def delete_all_aws_keys(activity, user, webex):
 
     if user is None:
         iam = boto3.resource(
-        "iam",
-        region_name=CONFIG.AWS_REGION_COLAB,
-        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
-        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
-    )
+            "iam",
+            region_name=CONFIG.AWS_REGION_COLAB,
+            aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
+            aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
+        )
 
         user_and_domain = activity["sender_email"].split("@")
         iam_username = user_and_domain[0]
@@ -367,20 +371,18 @@ async def delete_all_aws_keys(activity, user, webex):
 
     if key_message != "<pre>":
         message = dict(
-                text=(
-                    "The following keys have been deleted:\n"
-                    + key_message
-                    + "</code></pre>"
-                ),
-                toPersonId=activity["sender"],
-            )
+            text=(
+                "The following keys have been deleted:\n"
+                + key_message
+                + "</code></pre>"
+            ),
+            toPersonId=activity["sender"],
+        )
     else:
         message = dict(
-                text=(
-                    "There were no keys to delete"
-                ),
-                toPersonId=activity["sender"],
-            )
+            text=("There were no keys to delete"),
+            toPersonId=activity["sender"],
+        )
     await webex.post_message_to_webex(message)
 
 
