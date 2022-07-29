@@ -271,7 +271,8 @@ async def create_aws_key(activity):
         message = dict(
             text=(
                 "You already have active aws keys: \n"
-                + key_message + "</code></pre>"
+                + key_message
+                + "</code></pre>"
                 + "\nIf you would like to refresh them, use **reset aws keys**"
             ),
             toPersonId=activity["sender"],
@@ -288,14 +289,12 @@ async def create_key_and_message_user(activity, user, webex):
     new_access_key_id = access_key_pair.access_key_id
     new_secret_access_key = access_key_pair.secret_access_key
 
-    key_message = new_access_key_id + new_secret_access_key
-
     message = dict(
         text=(
             "Access key created: \n"
             + "<pre>"
-            + f"Access Key id: test id \n"
-            + f"Access Key secret: test secret \n"
+            + f"Access Key id: {new_access_key_id} \n"
+            + f"Access Key secret: {new_secret_access_key} \n"
             + "</code></pre>"
             + "Remember **not to share** your access key id or secret"
         ),
