@@ -296,7 +296,7 @@ async def create_key_and_message_user(activity, user, webex):
             + "Access Key id: " + new_access_key_id + "\n"
             + "Access Key secret: " + new_secret_access_key + "\n"
             + "</code></pre>"
-            + "Remember **not to share** your access key id or secret"
+            + "\nRemember **not to share** your access key id or secret"
         ),
         toPersonId=activity["sender"],
     )
