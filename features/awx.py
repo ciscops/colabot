@@ -239,16 +239,21 @@ async def create_vpn_account(activity):
 async def create_aws_key(activity):
     logging.debug("create aws key")
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
-    iam = boto3.client("iam", region_name=CONFIG.AWS_REGION_COLAB, aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB, aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB)
+    iam = boto3.client(
+        "iam",
+        region_name=CONFIG.AWS_REGION_COLAB,
+        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
+        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
+    )
 
     user_and_domain = activity["sender_email"].split("@")
     iam_username = user_and_domain[0]
     logging.debug(iam_username)
     try:
-        user = iam.User(iam_username)
-        access_key_iterator = user.access_keys.all()
+        response = client.list_access_keys(UserName=iam_username)
+
         access_key_count = 0
-        for _ in access_key_iterator:
+        for _ in response["AccessKeyMetadata"]:
             access_key_count += 1
     except Exception as e:
         logging.warning(e)
@@ -268,13 +273,13 @@ async def create_aws_key(activity):
         return
 
     if access_key_count == 0:
-        await create_key_and_message_user(activity, user, webex)
+        await create_key_and_message_user(activity, webex, iam_username)
 
 
-async def create_key_and_message_user(activity, user, webex):
-    access_key_pair = user.create_access_key_pair()
-    new_access_key_id = access_key_pair.access_key_id
-    new_secret_access_key = access_key_pair.secret_access_key
+async def create_key_and_message_user(activity, webex, iam_username):
+    response = client.create_access_key(UserName=iam_username)
+    new_access_key_id = response['AccessKey']['AccessKeyId']
+    new_secret_access_key = response['AccessKey']['SecretAccessKey']
 
     key_message = new_access_key_id + new_secret_access_key
 
