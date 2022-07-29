@@ -250,7 +250,7 @@ async def create_aws_key(activity):
     iam_username = user_and_domain[0]
     logging.debug(iam_username)
     try:
-        user = iam.user(iam_username)
+        user = iam.User(iam_username)
         access_key_iterator = user.access_keys.all()
         access_key_count = 0
         for _ in access_key_iterator:
