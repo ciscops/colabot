@@ -267,7 +267,7 @@ async def create_aws_key(activity):
             key_message += f" Key id: {key.access_key_id} | Status: {key.status} | Created: {key.create_date} \n"
 
         message = dict(
-            markdown=(
+            text=(
                 "You already have active aws keys: \n"
                 f"```{key_message}```"
                 "\nIf you would like to refresh them, use **reset aws keys**"
