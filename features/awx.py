@@ -374,7 +374,14 @@ async def delete_all_aws_keys(activity, user, webex):
                 ),
                 toPersonId=activity["sender"],
             )
-        await webex.post_message_to_webex(message)
+    else:
+        message = dict(
+                text=(
+                    "There were no keys to delete"
+                ),
+                toPersonId=activity["sender"],
+            )
+    await webex.post_message_to_webex(message)
 
 
 async def delete_accounts(activity):
