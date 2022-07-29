@@ -3,9 +3,11 @@
 import logging
 import json
 import re
+from datetime import date
 import aiohttp
 import pymongo
 import urllib3
+import boto3
 from config import DefaultConfig as CONFIG
 from webex import WebExClient
 
@@ -233,6 +235,74 @@ async def create_vpn_account(activity):
             await session.close()
         except Exception as e4:
             logging.warning(e4)
+
+
+async def create_aws_key(activity):
+    logging.debug("create aws key")
+    webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
+    iam = boto3.resource(
+        "iam",
+        region_name=CONFIG.AWS_REGION_COLAB,
+        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
+        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
+    )
+
+    user_and_domain = activity["sender_email"].split("@")
+    iam_username = user_and_domain[0]
+    logging.debug(iam_username)
+    try:
+        user = iam.User(iam_username)
+        access_key_iterator = user.access_keys.all()
+        access_key_list = []
+        for key in access_key_iterator:
+            access_key_list.append(key)
+    except Exception as e:
+        logging.warning(e)
+        print("Cannot find user")
+        return
+
+    # If the user has active access keys that colabot has not expired, don't create keys
+    if len(access_key_list) > 0:
+        key_message = "<pre>"
+        for key in access_key_list:
+            key_created_days = (date.today() - key.create_date.date()).days
+            key_message += f"Key id: {key.access_key_id} | Status: {key.status} | Created: {key_created_days} days ago \n"
+
+        message = dict(
+            text=(
+                "You already have active aws keys: \n"
+                + key_message
+                + "</code></pre>"
+                + "\nIf you would like to refresh them, use **reset aws keys**"
+            ),
+            toPersonId=activity["sender"],
+        )
+        await webex.post_message_to_webex(message)
+        return
+
+    if len(access_key_list) == 0:
+        await create_key_and_message_user(activity, user, webex)
+
+
+async def create_key_and_message_user(activity, user, webex):
+    access_key_pair = user.create_access_key_pair()
+    new_access_key_id = access_key_pair.access_key_id
+    new_secret_access_key = access_key_pair.secret_access_key
+
+    message = dict(
+        text=(
+            "Access key created: \n"
+            + "<pre>"
+            + "Access Key id: " + new_access_key_id + "\n"
+            + "Access Key secret: " + new_secret_access_key + "\n"
+            + "</code></pre>"
+            + "\nRemember **not to share** your access key id or secret"
+        ),
+        toPersonId=activity["sender"],
+    )
+
+    logging.debug("Sending message to %s", activity["sender"])
+    await webex.post_message_to_webex(message)
 
 
 async def delete_accounts(activity):
