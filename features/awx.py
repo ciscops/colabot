@@ -252,27 +252,32 @@ async def create_aws_key(activity):
     try:
         user = iam.User(iam_username)
         access_key_iterator = user.access_keys.all()
-        access_key_count = 0
-        for _ in access_key_iterator:
-            access_key_count += 1
+        access_key_list = []
+        for key in access_key_iterator:
+            access_key_list.append(key)
     except Exception as e:
         logging.warning(e)
         print("Cannot find user")
         return
 
     # If the user has active access keys that colabot has not expired, don't create keys
-    if access_key_count > 0:
+    if len(access_key_list) > 0:
+        key_message = ""
+        for key in access_key_list:
+            key_message += f"Key id: {key.access_key_id} | Status: {key.status} | Created: {key.create_date}"
+
         message = dict(
             text=(
-                "You already have active aws key(s),"
-                + " if you would like to refresh them, use **reset aws keys**"
+                "You already have active aws keys:\n"
+                + key_message
+                + "If you would like to refresh them, use **reset aws keys**"
             ),
             toPersonId=activity["sender"],
         )
         await webex.post_message_to_webex(message)
         return
 
-    if access_key_count == 0:
+    if len(access_key_list) == 0:
         await create_key_and_message_user(activity, user, webex)
 
 
