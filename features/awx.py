@@ -264,13 +264,13 @@ async def create_aws_key(activity):
     if len(access_key_list) > 0:
         key_message = "```"
         for key in access_key_list:
-            key_message += f"Key id: {key.access_key_id} | Status: {key.status} | Created: {key.create_date}  "
+            key_message += f"\nKey id: {key.access_key_id} | Status: {key.status} | Created: {key.create_date}  "
 
         message = dict(
             text=(
-                "You already have active aws keys: "
+                "You already have active aws keys: \n"
                 + key_message + "```"
-                + "If you would like to refresh them, use **reset aws keys**"
+                + "\n If you would like to refresh them, use **reset aws keys**"
             ),
             toPersonId=activity["sender"],
         )
