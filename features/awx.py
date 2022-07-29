@@ -365,15 +365,16 @@ async def delete_all_aws_keys(activity, user, webex):
             print("Cannot delete key")
             return
 
-    message = dict(
-            text=(
-                "The following keys have been deleted:\n"
-                + key_message
-                + "</code></pre>"
-            ),
-            toPersonId=activity["sender"],
-        )
-    await webex.post_message_to_webex(message)
+    if key_message != "<pre>":
+        message = dict(
+                text=(
+                    "The following keys have been deleted:\n"
+                    + key_message
+                    + "</code></pre>"
+                ),
+                toPersonId=activity["sender"],
+            )
+        await webex.post_message_to_webex(message)
 
 
 async def delete_accounts(activity):
