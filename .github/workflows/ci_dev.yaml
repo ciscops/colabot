@@ -74,7 +74,6 @@ jobs:
           aws-region: us-east-1
 
       - name: Convert j2 template to yaml
-        run: python3 process-j2.py
         env:
           ENVIRONMENT: dev
           TLS_CRT_DEV: ${{ secrets.TLS_CRT_DEV }}
@@ -102,7 +101,8 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_REGION_COLAB: ${{ secrets.AWS_REGION_COLAB }}
           AWS_ACCESS_KEY_ID_COLAB: ${{ secrets.AWS_ACCESS_KEY_ID_COLAB }}
-          AWS_PASSWORD_COLABOT: ${{ secrets.AWS_SECRET_ACCESS_KEY_COLAB }}
+          AWS_PASSWORD_COLAB: ${{ secrets.AWS_SECRET_ACCESS_KEY_COLAB }}
+        run: python3 process-j2.py
 
       - name: Apply and rollout
         run: |
