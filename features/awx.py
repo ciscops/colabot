@@ -243,17 +243,17 @@ async def create_aws_key(activity):
         "iam",
         region_name=CONFIG.AWS_REGION_COLAB,
         aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
-        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB
+        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
     )
 
     user_and_domain = activity["sender_email"].split("@")
     iam_username = user_and_domain[0]
     logging.debug(iam_username)
     try:
-        response = iam.list_access_keys(UserName=iam_username)
-
+        user = iam.User(iam_username)
+        access_key_iterator = user.access_keys.all()
         access_key_count = 0
-        for _ in response["AccessKeyMetadata"]:
+        for _ in access_key_iterator:
             access_key_count += 1
     except Exception as e:
         logging.warning(e)
@@ -273,13 +273,13 @@ async def create_aws_key(activity):
         return
 
     if access_key_count == 0:
-        await create_key_and_message_user(activity, webex, iam_username, iam)
+        await create_key_and_message_user(activity, user, webex)
 
 
-async def create_key_and_message_user(activity, webex, iam_username, iam):
-    response = iam.create_access_key(UserName=iam_username)
-    new_access_key_id = response['AccessKey']['AccessKeyId']
-    new_secret_access_key = response['AccessKey']['SecretAccessKey']
+async def create_key_and_message_user(activity, user, webex):
+    access_key_pair = user.create_access_key_pair()
+    new_access_key_id = access_key_pair.access_key_id
+    new_secret_access_key = access_key_pair.secret_access_key
 
     key_message = new_access_key_id + new_secret_access_key
 
