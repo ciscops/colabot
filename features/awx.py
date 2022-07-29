@@ -250,7 +250,7 @@ async def create_aws_key(activity):
     iam_username = user_and_domain[0]
     logging.debug(iam_username)
     try:
-        response = client.list_access_keys(UserName=iam_username)
+        response = iam.list_access_keys(UserName=iam_username)
 
         access_key_count = 0
         for _ in response["AccessKeyMetadata"]:
@@ -273,11 +273,11 @@ async def create_aws_key(activity):
         return
 
     if access_key_count == 0:
-        await create_key_and_message_user(activity, webex, iam_username)
+        await create_key_and_message_user(activity, webex, iam_username, iam)
 
 
-async def create_key_and_message_user(activity, webex, iam_username):
-    response = client.create_access_key(UserName=iam_username)
+async def create_key_and_message_user(activity, webex, iam_username, iam):
+    response = iam.create_access_key(UserName=iam_username)
     new_access_key_id = response['AccessKey']['AccessKeyId']
     new_secret_access_key = response['AccessKey']['SecretAccessKey']
 
