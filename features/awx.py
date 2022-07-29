@@ -3,6 +3,7 @@
 import logging
 import json
 import re
+from datetime import date
 import aiohttp
 import pymongo
 import urllib3
@@ -264,7 +265,8 @@ async def create_aws_key(activity):
     if len(access_key_list) > 0:
         key_message = "<pre>"
         for key in access_key_list:
-            key_message += f"Key id: {key.access_key_id} | Status: {key.status} | Created: {key.create_date} \n"
+            key_created_days = (date.today() - key.create_date.date()).days
+            key_message += f"Key id: {key.access_key_id} | Status: {key.status} | Created: {key_created_days} days ago \n"
 
         message = dict(
             text=(
@@ -291,8 +293,10 @@ async def create_key_and_message_user(activity, user, webex):
     message = dict(
         text=(
             "Access key created: \n"
-            + f"- Access Key id: test id \n"
-            + f"- Access Key secret: test secret "
+            + "<pre>"
+            + f"Access Key id: test id \n"
+            + f"Access Key secret: test secret \n"
+            + "</code></pre>"
             + "Remember **not to share** your access key id or secret"
         ),
         toPersonId=activity["sender"],
