@@ -238,7 +238,7 @@ class COLABot:
                 logging.info("NLP results")
                 logging.info(result_nlp)
                 if (
-                    result_nlp[0][1] - result_nlp[1][1] > 0.12
+                    result_nlp[0][1] - result_nlp[1][1] > 0.1
                 ):  # TODO - need better solution here
                     self.activity["text"] = result_nlp[0][0]
                 # Future - Can add a dialogue to ask user if highest confidence score was what they wanted

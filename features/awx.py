@@ -269,7 +269,7 @@ async def create_aws_key(activity):
         key_message = PRE_CODE_SNIPPET
         for key in access_key_list:
             key_created_days = (date.today() - key.create_date.date()).days
-            key_message += f"Key id: {key.access_key_id} | Status: {key.status} | Created: {key_created_days} days ago \n"
+            key_message += f"Key id: 12345 | Status: Active | Created: 0 days ago \n"
 
         message = dict(
             text=(
@@ -297,10 +297,10 @@ async def create_key_and_message_user(activity, user, webex):
             "Access key created: \n"
             + PRE_CODE_SNIPPET
             + "Access Key id: "
-            + new_access_key_id
+            + "12345"
             + "\n"
             + "Access Key secret: "
-            + new_secret_access_key
+            + "abcdefg"
             + "\n"
             + AFTER_CODE_SNIPPET
             + "\nRemember **not to share** your access key id or secret"
@@ -364,7 +364,7 @@ async def delete_all_aws_keys(activity, user, webex):
     access_key_iterator = user.access_keys.all()
     for access_key in access_key_iterator:
         try:
-            key_message += f"Key: {access_key.access_key_id}\n"
+            key_message += f"Key: 12345\n"
             access_key.delete()
         except Exception as e:
             logging.warning(e)
