@@ -20,6 +20,8 @@ botId_regex_pattern = r"1MDFmYzc$"
 content_type = "application/json"
 awx_server_error_message = "Error contacting AWX server. "
 find_user_message = "Cannot find user"
+PRE_CODE_SNIPPET = "<pre>"
+AFTER_CODE_SNIPPET = "</code></pre>"
 
 mongo_url = (
     "mongodb://"
@@ -264,7 +266,7 @@ async def create_aws_key(activity):
 
     # If the user has active access keys that colabot has not expired, don't create keys
     if len(access_key_list) > 0:
-        key_message = "<pre>"
+        key_message = PRE_CODE_SNIPPET
         for key in access_key_list:
             key_created_days = (date.today() - key.create_date.date()).days
             key_message += f"Key id: {key.access_key_id} | Status: {key.status} | Created: {key_created_days} days ago \n"
@@ -273,7 +275,7 @@ async def create_aws_key(activity):
             text=(
                 "You already have active aws keys: \n"
                 + key_message
-                + "</code></pre>"
+                + AFTER_CODE_SNIPPET
                 + "\nIf you would like to refresh them, use **reset aws keys**"
             ),
             toPersonId=activity["sender"],
@@ -293,14 +295,14 @@ async def create_key_and_message_user(activity, user, webex):
     message = dict(
         text=(
             "Access key created: \n"
-            + "<pre>"
+            + PRE_CODE_SNIPPET
             + "Access Key id: "
             + new_access_key_id
             + "\n"
             + "Access Key secret: "
             + new_secret_access_key
             + "\n"
-            + "</code></pre>"
+            + AFTER_CODE_SNIPPET
             + "\nRemember **not to share** your access key id or secret"
         ),
         toPersonId=activity["sender"],
@@ -358,7 +360,7 @@ async def delete_all_aws_keys(activity, user, webex):
             print(find_user_message)
             return
 
-    key_message = "<pre>"
+    key_message = PRE_CODE_SNIPPET
     access_key_iterator = user.access_keys.all()
     for access_key in access_key_iterator:
         try:
@@ -369,12 +371,12 @@ async def delete_all_aws_keys(activity, user, webex):
             print("Cannot delete key")
             return
 
-    if key_message != "<pre>":
+    if key_message != PRE_CODE_SNIPPET:
         message = dict(
             text=(
                 "The following keys have been deleted:\n"
                 + key_message
-                + "</code></pre>"
+                + AFTER_CODE_SNIPPET
             ),
             toPersonId=activity["sender"],
         )

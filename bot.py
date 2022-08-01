@@ -113,29 +113,28 @@ class COLABot:
             and (self.activity.get("sender") != CONFIG.BOT_ID)
             and (self.activity.get("resource") == "messages")
             and (self.activity.get("event") == "created")
+            and CONFIG.AUTHORIZED_ROOMS
         ):
-            if CONFIG.AUTHORIZED_ROOMS:
-                room_list = CONFIG.AUTHORIZED_ROOMS.split(",")
-                denied = True
-                for r in room_list:
-                    response = await self.webex_client.get_room_memberships(
-                        r, self.activity["sender"]
-                    )
-                    if response.get("items"):
-                        denied = False
-                        break
-                if denied:
-                    logging.warning("Denied Access - user: %s", self.activity["sender"])
-                    return {"status_code": 401}
+            room_list = CONFIG.AUTHORIZED_ROOMS.split(",")
+            denied = True
+            for r in room_list:
+                response = await self.webex_client.get_room_memberships(
+                    r, self.activity["sender"]
+                )
+                if response.get("items"):
+                    denied = False
+                    break
+            if denied:
+                logging.warning("Denied Access - user: %s", self.activity["sender"])
+                return {"status_code": 401}
 
         # Preprocess text
-        if self.activity["description"] == "message_details":
-            if (
-                self.activity.get("roomType", "") == "group"
-            ):  # Remove bot name from text if message was "at mention"
-                self.activity["text"] = self.activity.get("text").replace(
-                    self.activity.get("bot_name") + " ", ""
-                )
+        if (self.activity["description"] == "message_details"
+            and self.activity.get("roomType", "") == "group"):
+            # Remove bot name from text if message was "at mention"
+            self.activity["text"] = self.activity.get("text").replace(
+                self.activity.get("bot_name") + " ", ""
+            )
         if self.activity.get("text"):
             self.activity["original_text"] = self.activity.get("text")
             self.activity["text"] = await self.preprocess(self.activity.get("text"))
