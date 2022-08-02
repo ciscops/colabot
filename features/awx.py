@@ -23,6 +23,7 @@ awx_server_error_message = "Error contacting AWX server. "
 find_user_message = "Cannot find user"
 PRE_CODE_SNIPPET = "<pre>"
 AFTER_CODE_SNIPPET = "</code></pre>"
+WEBEX_CARD_TYPE = json.dumps("application/vnd.microsoft.card.adaptive")
 
 mongo_url = (
     "mongodb://"
@@ -384,7 +385,7 @@ async def send_delete_keys_confirmation_card(activity):
         message = "AWS Delete IAM Keys"
         attachments = [
             {
-                "contentType": "application/vnd.microsoft.card.adaptive",
+                "contentType": WEBEX_CARD_TYPE,
                 "content": card_json,
             }
         ]
@@ -428,7 +429,7 @@ async def delete_aws_key(activity, iam_username, key_id):
 
     message = "The following key has been deleted:\n" + key_message + AFTER_CODE_SNIPPET
 
-    await webex.edit_message(activity["inputs"]["id"], message, activity["inputs"]["roomId"])
+    await webex.edit_message(activity["id"], message, activity["roomId"])
 
 
 async def delete_all_aws_keys(activity, user, webex):
@@ -481,7 +482,7 @@ async def delete_accounts(activity):
                 toPersonId=activity["sender"],
                 attachments=[
                     {
-                        "contentType": "application/vnd.microsoft.card.adaptive",
+                        "contentType": WEBEX_CARD_TYPE,
                         "content": card,
                     }
                 ],
@@ -502,7 +503,7 @@ async def delete_accounts(activity):
                 roomId=activity["roomId"],
                 attachments=[
                     {
-                        "contentType": "application/vnd.microsoft.card.adaptive",
+                        "contentType": WEBEX_CARD_TYPE,
                         "content": card,
                     }
                 ],
