@@ -379,7 +379,7 @@ async def send_delete_keys_confirmation_card(activity):
         # verify this doesn't cause problems
         with open(f"{card_file}", encoding="utf8") as file_:
             template = Template(file_.read())
-        card = template.render(key_choices=json.dumps(key_choices), username=user)
+        card = template.render(key_choices=json.dumps(key_choices), username=json.dumps(user))
         card_json = json.loads(card)
         message = "AWS Delete IAM Keys"
         attachments = [
