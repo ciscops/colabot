@@ -368,7 +368,7 @@ async def send_delete_keys_confirmation_card(activity):
         key_delete_message = f"Key id: {key.access_key_id} | Status: {key.status} | Created: {key_created_days} days ago"
 
         key_choices.append(
-            {"title": f"{key.access_key_id}", "value": f"{key_delete_message}"}
+            {"title": f"Key id: {key.access_key_id}", "value": f"{key_delete_message}"}
         )
 
     if len(key_choices) == 0:
