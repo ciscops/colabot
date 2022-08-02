@@ -365,7 +365,8 @@ async def send_delete_keys_confirmation_card(activity):
     key_choices = []
     for key in access_key_list:
         key_created_days = (date.today() - key.create_date.date()).days
-        key_delete_message = f"Key id: {key.access_key_id} | Status: {key.status} | Created: {key_created_days} days ago"
+        days_to_live = 90 - int(key_created_days)
+        key_delete_message = f"Key id: {key.access_key_id} | Days to Expire: {days_to_live}"
 
         key_choices.append(
             {"title": f"{key_delete_message}", "value": f"{key.access_key_id}"}
@@ -405,6 +406,7 @@ async def handle_delete_aws_keys_card(activity):
 
 async def delete_aws_key(activity, iam_username, key_id):
     logging.debug("delete aws key")
+    logging.debug("ACTIVITY: %s",str(activity))
 
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
 
