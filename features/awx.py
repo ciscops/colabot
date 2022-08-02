@@ -379,7 +379,7 @@ async def send_delete_keys_confirmation_card(activity):
         # verify this doesn't cause problems
         with open(f"{card_file}", encoding="utf8") as file_:
             template = Template(file_.read())
-        card = template.render(key_choices=json.dumps(key_choices))
+        card = template.render(key_choices=json.dumps(key_choices), username=user)
         card_json = json.loads(card)
         message = "AWS Delete IAM Keys"
         attachments = [
@@ -397,40 +397,51 @@ async def handle_delete_aws_keys_card(activity):
     if not activity["inputs"]["isSubmit"]:
         return
     key_id = activity["inputs"]["keyId"]
-    await delete_all_aws_keys(activity,None,None,[key_id])
+    iam_username = activity["inputs"]["username"]
+
+    if key_id != "":
+        await delete_aws_key(activity, iam_username, key_id)
 
 
-async def delete_all_aws_keys(activity, user, webex, keys_to_delete=[]):
+async def delete_aws_key(activity, iam_username, key_id):
     logging.debug("delete aws key")
-    logging.debug("ACTIVITY: %s",str(activity))
+
+    webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
+
+    iam = boto3.resource(
+        "iam",
+        region_name=CONFIG.AWS_REGION_COLAB,
+        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
+        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
+    )
+
+    access_key = iam.AccessKey(iam_username, key_id)
+
+    key_message = PRE_CODE_SNIPPET
+    try:
+        key_message += f"Key: {access_key.access_key_id}\n"
+        access_key.delete()
+    except Exception as e:
+        logging.warning(e)
+        print("Cannot delete key")
+        return
+
+    message = dict(
+        text=(
+            "The following key has been deleted:\n" + key_message + AFTER_CODE_SNIPPET
+        ),
+        toPersonId=activity["sender"],
+    )
+
+    await webex.post_message_to_webex(message)
+
+
+async def delete_all_aws_keys(activity, user, webex):
+    logging.debug("delete all aws key")
     if webex is None:
         webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
 
-    if user is None:
-        iam = boto3.resource(
-            "iam",
-            region_name=CONFIG.AWS_REGION_COLAB,
-            aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
-            aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
-        )
-
-        iam_username = activity["sender"]
-
-        try:
-            user = iam.User(iam_username)
-        except Exception as e:
-            logging.warning(e)
-            print(find_user_message)
-            return
-
-    all_keys = user.access_keys.all()
-    if len(keys_to_delete) == 0:
-        access_key_iterator = all_keys
-    else:
-        access_key_iterator = []
-        for access_key in all_keys:
-            if access_key.access_key_id in keys_to_delete:
-                access_key_iterator.append(access_key)
+    access_key_iterator = user.access_keys.all()
 
     key_message = PRE_CODE_SNIPPET
     for access_key in access_key_iterator:
