@@ -396,7 +396,9 @@ async def send_delete_keys_confirmation_card(activity):
 
 async def handle_delete_aws_keys_card(activity):
     if not activity["inputs"]["isSubmit"]:
-        return
+        webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
+        await webex.delete_message(activity["messageId"])
+
     key_id = activity["inputs"]["keyId"]
     iam_username = activity["inputs"]["username"]
 
