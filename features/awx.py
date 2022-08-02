@@ -368,7 +368,7 @@ async def send_delete_keys_confirmation_card(activity):
         key_delete_message = f"Key id: {key.access_key_id} | Status: {key.status} | Created: {key_created_days} days ago"
 
         key_choices.append(
-            {"title": f"Key id: {key.access_key_id}", "value": f"{key_delete_message}"}
+            {"title": f"{key_delete_message}", "value": f"{key.access_key_id}"}
         )
 
     if len(key_choices) == 0:
@@ -399,14 +399,10 @@ async def handle_delete_aws_keys_card(activity):
 
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
     key_id = activity["inputs"]["keyId"]
-    message = dict(
-        text=key_id,
-        toPersonId=activity["sender"],
-    )
-    await webex.post_message_to_webex(message)
+    await delete_all_aws_keys(activity,None,webex,[key_id])
 
 
-async def delete_all_aws_keys(activity, user, webex):
+async def delete_all_aws_keys(activity, user, webex, keys=[]):
     logging.debug("delete aws key")
     if webex is None:
         webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
@@ -429,8 +425,12 @@ async def delete_all_aws_keys(activity, user, webex):
             print(find_user_message)
             return
 
+    if len(keys) == 0:
+        access_key_iterator = user.access_keys.all()
+    else:
+        access_key_iterator = keys
+
     key_message = PRE_CODE_SNIPPET
-    access_key_iterator = user.access_keys.all()
     for access_key in access_key_iterator:
         try:
             key_message += f"Key: {access_key.access_key_id}\n"
