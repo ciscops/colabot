@@ -228,6 +228,8 @@ class COLABot:
                 await admin_actions.admin_alert_cml_users(self.activity)
             if self.activity["inputs"]["card_feature_index"] == "colab":
                 await awx.delete_accounts(self.activity)
+            if self.activity["inputs"]["card_feature_index"] == "delete_aws_iam_password":
+                await awx.handle_delete_aws_keys_card(self.activity)
             # Add new card activities here
 
         elif self.activity["description"] == "message_details":
@@ -238,7 +240,7 @@ class COLABot:
                 logging.info("NLP results")
                 logging.info(result_nlp)
                 if (
-                    result_nlp[0][1] - result_nlp[1][1] > 0.12
+                    result_nlp[0][1] - result_nlp[1][1] > 0.1
                 ):  # TODO - need better solution here
                     self.activity["text"] = result_nlp[0][0]
                 # Future - Can add a dialogue to ask user if highest confidence score was what they wanted
@@ -277,7 +279,8 @@ class COLABot:
                 # Because the function delete all aws keys needs to be used inside awx.py
                 # there are three unused fields for iam, iam_username and webex that are set to none here
             elif self.activity.get("text") == "delete aws key":
-                await awx.delete_all_aws_keys(self.activity, None, None)
+                #await awx.delete_all_aws_keys(self.activity, None, None)
+                await awx.send_delete_keys_confirmation_card(self.activity)
 
             elif self.activity.get("text") == "aws key status":
                 await awx.aws_key_status(self.activity)

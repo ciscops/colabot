@@ -10,6 +10,7 @@ import urllib3
 import boto3
 from config import DefaultConfig as CONFIG
 from webex import WebExClient
+from jinja2 import Template
 
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -335,6 +336,77 @@ async def reset_aws_key(activity):
 
     await delete_all_aws_keys(activity, user, webex)
     await create_key_and_message_user(activity, user, webex)
+
+async def send_delete_keys_confirmation_card(activity):
+    # send card with cml servers as check boxes
+    webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
+    iam = boto3.resource(
+        "iam",
+        region_name=CONFIG.AWS_REGION_COLAB,
+        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
+        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
+    )
+
+    user_and_domain = activity["sender_email"].split("@")
+    iam_username = user_and_domain[0]
+    logging.debug(iam_username)
+    try:
+        user = iam.User(iam_username)
+        access_key_iterator = user.access_keys.all()
+        access_key_list = []
+        for key in access_key_iterator:
+            access_key_list.append(key)
+    except Exception as e:
+        logging.warning(e)
+        print(find_user_message)
+        return
+
+    key_choices = []
+    for key in access_key_list:
+        key_created_days = (date.today() - key.create_date.date()).days
+        key_delete_message = f"Key id: {key.access_key_id} | Status: {key.status} | Created: {key_created_days} days ago"
+
+        key_choices.append({
+            "title": f"{key.access_key_id}",
+            "value": f"{key_delete_message}"
+        })
+    
+    if len(key_choices) == 0:
+        message = "You do not have any keys to delete. You can create a key with **create aws key**"
+        attachements = []
+    else:
+        card_file = "./cards/aws_iam_delete_password.json"
+        # verify this doesn't cause problems
+        with open(f"{card_file}", encoding="utf8") as file_:
+            template = Template(file_.read())
+        card = template.render(key_choices = key_choices)
+        card_json = json.loads(card)
+        message = "AWS Delete IAM Keys"
+        attachments = [
+            {
+                "contentType": "application/vnd.microsoft.card.adaptive",
+                "content": card_json,
+            }
+        ]
+
+    message = dict(
+                text=message,
+                roomId=activity["roomId"],
+                attachments=attachments
+            )
+    await webex.post_message_to_webex(message)
+
+async def handle_delete_aws_keys_card(activity):
+    if not activity["inputs"]["isSubmit"]:
+        return
+
+    webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
+    key_id = activity["inputs"]["keyId"]
+    message = dict(
+            text=key_id,
+            toPersonId=activity["sender"],
+        )
+    await webex.post_message_to_webex(message)
 
 
 async def delete_all_aws_keys(activity, user, webex):
