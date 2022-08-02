@@ -521,38 +521,6 @@ async def aws_key_status(activity):
     await webex.post_message_to_webex(message)
 
 
-async def aws_key_status(activity):
-    logging.debug("show aws key status")
-    webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
-    iam = boto3.client(
-        "iam",
-        region_name=CONFIG.AWS_REGION_COLAB,
-        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
-        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
-    )
-
-    user_and_domain = activity["sender_email"].split("@")
-    iam_username = user_and_domain[0]
-    try:
-        user = iam.User(iam_username)
-    except Exception as e:
-        logging.warning(e)
-        print(find_user_message)
-        return
-
-    access_key_iterator = user.access_keys.all()
-    for access_key in access_key_iterator:
-        message = dict(
-            text=(
-                f"Access key {access_key.access_key_id}: \n"
-                + f"- Access Key status: {access_key.status} \n"
-                + f"- Access Key created date: {access_key.create_date} "
-            ),
-            toPersonId=activity["sender"],
-        )
-        await webex.post_message_to_webex(message)
-
-
 async def delete_accounts(activity):
     cml_servers = CONFIG.SERVER_LIST.split(",")
     if activity.get("text") == "delete accounts":
