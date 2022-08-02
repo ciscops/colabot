@@ -57,7 +57,7 @@ class WebExClient:
                 logging.info("Exception posting WebEx message")
                 return {}
 
-    def edit_message(self, message_id, message, room_id):
+    async def edit_message(self, message_id, message, room_id):
         URL = f'https://webexapis.com/v1/messages/{message_id}'
 
         headers = {'Authorization': 'Bearer ' + self.webex_bot_token, 'Content-type': 'application/json;charset=utf-8'}
