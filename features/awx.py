@@ -366,7 +366,7 @@ async def send_delete_keys_confirmation_card(activity):
     for key in access_key_list:
         key_created_days = (date.today() - key.create_date.date()).days
         days_to_live = 90 - int(key_created_days)
-        key_delete_message = f"Key id: {key.access_key_id} | Days to Expire: {days_to_live}"
+        key_delete_message = f"Id: {key.access_key_id} | Days to Expire: {days_to_live}"
 
         key_choices.append(
             {"title": f"{key_delete_message}", "value": f"{key.access_key_id}"}
@@ -430,7 +430,7 @@ async def delete_aws_key(activity, iam_username, key_id):
 
     message = "The following key has been deleted:\n" + key_message + AFTER_CODE_SNIPPET
 
-    await webex.edit_message(activity["id"], message, activity["roomId"])
+    await webex.edit_message(activity["messageId"], message, activity["roomId"])
 
 
 async def delete_all_aws_keys(activity, user, webex):
