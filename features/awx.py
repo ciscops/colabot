@@ -337,6 +337,7 @@ async def reset_aws_key(activity):
     await delete_all_aws_keys(activity, user, webex)
     await create_key_and_message_user(activity, user, webex)
 
+
 async def send_delete_keys_confirmation_card(activity):
     # send card with cml servers as check boxes
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
@@ -366,20 +367,19 @@ async def send_delete_keys_confirmation_card(activity):
         key_created_days = (date.today() - key.create_date.date()).days
         key_delete_message = f"Key id: {key.access_key_id} | Status: {key.status} | Created: {key_created_days} days ago"
 
-        key_choices.append({
-            "title": f"{key.access_key_id}",
-            "value": f"{key_delete_message}"
-        })
-    
+        key_choices.append(
+            {"title": f"{key.access_key_id}", "value": f"{key_delete_message}"}
+        )
+
     if len(key_choices) == 0:
         message = "You do not have any keys to delete. You can create a key with **create aws key**"
-        attachements = []
+        attachments = []
     else:
         card_file = "./cards/aws_iam_delete_password.json"
         # verify this doesn't cause problems
         with open(f"{card_file}", encoding="utf8") as file_:
             template = Template(file_.read())
-        card = template.render(key_choices = key_choices)
+        card = template.render(key_choices=key_choices)
         card_json = json.loads(card)
         message = "AWS Delete IAM Keys"
         attachments = [
@@ -389,12 +389,9 @@ async def send_delete_keys_confirmation_card(activity):
             }
         ]
 
-    message = dict(
-                text=message,
-                roomId=activity["roomId"],
-                attachments=attachments
-            )
+    message = dict(text=message, roomId=activity["roomId"], attachments=attachments)
     await webex.post_message_to_webex(message)
+
 
 async def handle_delete_aws_keys_card(activity):
     if not activity["inputs"]["isSubmit"]:
@@ -403,9 +400,9 @@ async def handle_delete_aws_keys_card(activity):
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
     key_id = activity["inputs"]["keyId"]
     message = dict(
-            text=key_id,
-            toPersonId=activity["sender"],
-        )
+        text=key_id,
+        toPersonId=activity["sender"],
+    )
     await webex.post_message_to_webex(message)
 
 
