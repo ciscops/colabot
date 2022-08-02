@@ -340,10 +340,13 @@ async def reset_aws_key(activity):
         return
 
     message = dict(
-            text=("Unable to reset keys: no keys exist. You can create a key with **create aws key**"),
-            toPersonId=activity["sender"],
-        )
+        text=(
+            "Unable to reset keys: no keys exist. You can create a key with **create aws key**"
+        ),
+        toPersonId=activity["sender"],
+    )
     await webex.post_message_to_webex(message=message)
+
 
 async def send_delete_keys_confirmation_card(activity):
     # send card with cml servers as check boxes
@@ -475,6 +478,46 @@ async def delete_all_aws_keys(activity, user, webex):
             text=("There were no keys to delete"),
             toPersonId=activity["sender"],
         )
+    await webex.post_message_to_webex(message)
+
+
+async def aws_key_status(activity):
+    logging.debug("show aws key status")
+    webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
+    iam = boto3.resource(
+        "iam",
+        region_name=CONFIG.AWS_REGION_COLAB,
+        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
+        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
+    )
+
+    user_and_domain = activity["sender_email"].split("@")
+    iam_username = user_and_domain[0]
+    try:
+        user = iam.User(iam_username)
+    except Exception as e:
+        logging.warning(e)
+        print(find_user_message)
+        return
+
+    access_key_iterator = user.access_keys.all()
+    if len(list(access_key_iterator)) != 0:
+        key_message = PRE_CODE_SNIPPET
+        for key in access_key_iterator:
+            key_created_days = (date.today() - key.create_date.date()).days
+            days_to_live = 90 - int(key_created_days)
+            key_message += f"Key id: {key.access_key_id} | Status: {key.status} | Days to live: {days_to_live} \n"
+
+        message = dict(
+            text=("All AWS access keys: \n" + key_message + AFTER_CODE_SNIPPET),
+            toPersonId=activity["sender"],
+        )
+    else:
+        message = dict(
+            text=("No Aws keys exist. You can create a key with **create aws key**"),
+            toPersonId=activity["sender"],
+        )
+
     await webex.post_message_to_webex(message)
 
 
