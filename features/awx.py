@@ -402,6 +402,7 @@ async def handle_delete_aws_keys_card(activity):
 
 async def delete_all_aws_keys(activity, user, webex, keys_to_delete=[]):
     logging.debug("delete aws key")
+    logging.debug("ACTIVITY: %s",str(activity))
     if webex is None:
         webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
 
@@ -413,8 +414,7 @@ async def delete_all_aws_keys(activity, user, webex, keys_to_delete=[]):
             aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
         )
 
-        user_and_domain = activity["sender_email"].split("@")
-        iam_username = user_and_domain[0]
+        iam_username = activity["sender"]
 
         try:
             user = iam.User(iam_username)
