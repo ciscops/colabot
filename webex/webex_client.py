@@ -58,15 +58,20 @@ class WebExClient:
                 return {}
 
     async def edit_message(self, message_id, message, room_id):
-        URL = f'https://webexapis.com/v1/messages/{message_id}'
+        URL = f"https://webexapis.com/v1/messages/{message_id}"
 
-        headers = {'Authorization': 'Bearer ' + self.webex_bot_token, 'Content-type': 'application/json;charset=utf-8'}
-        post_data = {'roomId': room_id, 'markdown': message}
+        headers = {
+            "Authorization": "Bearer " + self.webex_bot_token,
+            "Content-type": "application/json;charset=utf-8",
+        }
+        post_data = {"roomId": room_id, "markdown": message}
         response = requests.put(URL, json=post_data, headers=headers)
         if response.status_code == 200:
             logging.debug("Message updated successfully")
         else:
-            logging.debug("Status code: %s Error message: %s", response.status_code, response.text)
+            logging.debug(
+                "Status code: %s Error message: %s", response.status_code, response.text
+            )
 
     async def get_message_details(self, message_id):
         api_url = "https://api.ciscospark.com/v1/messages/" + message_id
@@ -174,5 +179,3 @@ class WebExClient:
     @staticmethod
     async def create_user_id_list_from_room_membership_content(content):
         return [i.get("personId") for i in content.get("items")]
-
-    

@@ -8,9 +8,9 @@ import aiohttp
 import pymongo
 import urllib3
 import boto3
+from jinja2 import Template
 from config import DefaultConfig as CONFIG
 from webex import WebExClient
-from jinja2 import Template
 
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -335,7 +335,8 @@ async def reset_aws_key(activity):
         return
 
     await delete_all_aws_keys(activity, user, webex)
-    await create_key_and_message_user(activity, user, webex)
+    if len(user.access_keys.all()) != 0:
+        await create_key_and_message_user(activity, user, webex)
 
 
 async def send_delete_keys_confirmation_card(activity):
@@ -380,7 +381,9 @@ async def send_delete_keys_confirmation_card(activity):
         # verify this doesn't cause problems
         with open(f"{card_file}", encoding="utf8") as file_:
             template = Template(file_.read())
-        card = template.render(key_choices=json.dumps(key_choices), username=json.dumps(iam_username))
+        card = template.render(
+            key_choices=json.dumps(key_choices), username=json.dumps(iam_username)
+        )
         card_json = json.loads(card)
         message = "AWS Delete IAM Keys"
         attachments = [
@@ -408,7 +411,7 @@ async def handle_delete_aws_keys_card(activity):
 
 async def delete_aws_key(activity, iam_username, key_id):
     logging.debug("delete aws key")
-    logging.debug("ACTIVITY: %s",str(activity))
+    logging.debug("ACTIVITY: %s", str(activity))
 
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
 
