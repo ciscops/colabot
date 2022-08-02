@@ -334,7 +334,7 @@ async def reset_aws_key(activity):
         print(find_user_message)
         return
 
-    if len(user.access_keys.all()) != 0:
+    if len(list(user.access_keys.all())) != 0:
         await delete_all_aws_keys(activity, user, webex)
         await create_key_and_message_user(activity, user, webex)
         return
