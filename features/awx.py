@@ -334,10 +334,16 @@ async def reset_aws_key(activity):
         print(find_user_message)
         return
 
-    await delete_all_aws_keys(activity, user, webex)
     if len(user.access_keys.all()) != 0:
+        await delete_all_aws_keys(activity, user, webex)
         await create_key_and_message_user(activity, user, webex)
-
+        return
+    
+    message = dict(
+            text=("Unable to reset keys: no keys exist. You can create a key with **create aws key**"),
+            toPersonId=activity["sender"],
+        )
+    await webex.post_message_to_webex(message=message)
 
 async def send_delete_keys_confirmation_card(activity):
     # send card with cml servers as check boxes
