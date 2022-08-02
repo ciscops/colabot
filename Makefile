@@ -1,6 +1,6 @@
 # Makefile
 PYTHON_EXE = python3
-PROJECT_NAME="colabot"
+PROJECT_NAME=colabot
 TOPDIR = $(shell git rev-parse --show-toplevel)
 PYDIRS_CARDS=cards
 PYDIRS_FEATURES=features
