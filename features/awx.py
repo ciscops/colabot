@@ -312,8 +312,76 @@ async def create_key_and_message_user(activity, user, webex):
     logging.debug("Sending message to %s", activity["sender"])
     await webex.post_message_to_webex(message)
 
+async def send_reset_keys_confirmation_card(activity):
+    webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
+    iam = boto3.resource(
+        "iam",
+        region_name=CONFIG.AWS_REGION_COLAB,
+        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
+        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
+    )
 
-async def reset_aws_key(activity):
+    user_and_domain = activity["sender_email"].split("@")
+    iam_username = user_and_domain[0]
+    logging.debug(iam_username)
+    try:
+        user = iam.User(iam_username)
+        access_key_iterator = user.access_keys.all()
+        access_key_list = []
+        for key in access_key_iterator:
+            access_key_list.append(key)
+    except Exception as e:
+        logging.warning(e)
+        print(find_user_message)
+        return
+
+    key_choices = []
+    for key in access_key_list:
+        key_created_days = (date.today() - key.create_date.date()).days
+        days_to_live = 90 - int(key_created_days)
+        key_reset_message = f"Id: {key.access_key_id} | Days to Expire: {days_to_live}"
+
+        key_choices.append(
+            {"title": f"{key_reset_message}", "value": f"{key.access_key_id}"}
+        )
+
+    if len(key_choices) == 0:
+        message = "You do not have any keys to reset. You can create a key with **create aws key**"
+        attachments = []
+    else:
+        card_file = "./cards/aws_iam_reset_password.json"
+        # verify this doesn't cause problems
+        with open(f"{card_file}", encoding="utf8") as file_:
+            template = Template(file_.read())
+        card = template.render(
+            key_choices=json.dumps(key_choices), username=json.dumps(iam_username)
+        )
+        card_json = json.loads(card)
+        message = "AWS Reset IAM Keys"
+        attachments = [
+            {
+                "contentType": "application/vnd.microsoft.card.adaptive",
+                "content": card_json,
+            }
+        ]
+
+    message = dict(text=message, roomId=activity["roomId"], attachments=attachments)
+    await webex.post_message_to_webex(message)
+
+async def handle_reset_aws_keys_card(activity):
+    if not activity["inputs"]["isSubmit"]:
+        webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
+        await webex.delete_message(activity["messageId"])
+
+    logging.debug("Activity text %s", activity)
+
+    key_id = activity["inputs"]["keyId"]
+    iam_username = activity["inputs"]["username"]
+
+    if key_id != "":
+        await reset_aws_key(activity, iam_username, key_id)
+
+async def reset_aws_key(activity, iam_username, key_id):
     logging.debug("reset aws key")
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
     iam = boto3.resource(
@@ -323,29 +391,25 @@ async def reset_aws_key(activity):
         aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
     )
 
-    # split the webex username from the domain
-    user_and_domain = activity["sender_email"].split("@")
-    iam_username = user_and_domain[0]
-
-    try:
-        user = iam.User(iam_username)
-    except Exception as e:
-        logging.warning(e)
-        print(find_user_message)
-        return
-
-    if len(list(user.access_keys.all())) != 0:
-        await delete_all_aws_keys(activity, user, webex)
-        await create_key_and_message_user(activity, user, webex)
-        return
-
-    message = dict(
-        text=(
-            "Unable to reset keys: no keys exist. You can create a key with **create aws key**"
-        ),
-        toPersonId=activity["sender"],
-    )
-    await webex.post_message_to_webex(message=message)
+    # try:
+    #     user = iam.User(iam_username)
+    # except Exception as e:
+    #     logging.warning(e)
+    #     print(find_user_message)
+    #     return
+    #
+    # if len(list(user.access_keys.all())) != 0:
+    #     await delete_all_aws_keys(activity, user, webex)
+    #     await create_key_and_message_user(activity, user, webex)
+    #     return
+    #
+    # message = dict(
+    #     text=(
+    #         "Unable to reset keys: no keys exist. You can create a key with **create aws key**"
+    #     ),
+    #     toPersonId=activity["sender"],
+    # )
+    # await webex.post_message_to_webex(message=message)
 
 
 async def send_delete_keys_confirmation_card(activity):
