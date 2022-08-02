@@ -379,7 +379,7 @@ async def send_delete_keys_confirmation_card(activity):
         # verify this doesn't cause problems
         with open(f"{card_file}", encoding="utf8") as file_:
             template = Template(file_.read())
-        card = template.render(key_choices=json.dumps(key_choices), username=json.dumps(user))
+        card = template.render(key_choices=json.dumps(key_choices), username=json.dumps(iam_username))
         card_json = json.loads(card)
         message = "AWS Delete IAM Keys"
         attachments = [
@@ -426,14 +426,9 @@ async def delete_aws_key(activity, iam_username, key_id):
         print("Cannot delete key")
         return
 
-    message = dict(
-        text=(
-            "The following key has been deleted:\n" + key_message + AFTER_CODE_SNIPPET
-        ),
-        toPersonId=activity["sender"],
-    )
+    message = "The following key has been deleted:\n" + key_message + AFTER_CODE_SNIPPET
 
-    await webex.post_message_to_webex(message)
+    await webex.edit_message(activity["inputs"]["id"], message, activity["inputs"]["roomId"])
 
 
 async def delete_all_aws_keys(activity, user, webex):
