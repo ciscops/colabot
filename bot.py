@@ -361,7 +361,6 @@ class COLABot:
                 "description": "bot_added",
                 "bot_name": CONFIG.BOT_NAME,
                 "webex_bot_token": self.webex_bot_token,
-                "messageId": request_dict["data"]["messageId"]
             }
 
         elif (
@@ -423,6 +422,7 @@ class COLABot:
                 "description": "card_details",
                 "bot_name": CONFIG.BOT_NAME,
                 "webex_bot_token": self.webex_bot_token,
+                "messageId": request_dict["data"]["messageId"],
             }
 
         elif (
