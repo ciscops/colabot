@@ -647,16 +647,6 @@ async def rotate_aws_key(activity):
 
         message = dict(text=message, roomId=activity["roomId"], attachments=attachments)
         await webex.post_message_to_webex(message)
-
-        # # Delete oldest key, then create new key
-        # key_id = access_key_delete.access_key_id
-        # access_key_delete.delete()
-        # message = dict(
-        #     text=f"Access key {key_id} successfully deleted.",
-        #     toPersonId=activity["sender"],
-        # )
-        # await webex.post_message_to_webex(message)
-        # await create_key_and_message_user(activity, user, webex)
         return
 
     text_to_send = (
