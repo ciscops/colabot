@@ -642,7 +642,12 @@ async def rotate_aws_key(activity):
         message = dict(
             text="Confirm rotate keys",
             toPersonId=activity["sender"],
-            attachments=card
+            attachments=[
+                    {
+                        "contentType": "application/vnd.microsoft.card.adaptive",
+                        "content": card,
+                    }
+                ],
         )
         await webex.post_message_to_webex(message)
 
