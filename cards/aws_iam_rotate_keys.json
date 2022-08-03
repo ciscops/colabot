@@ -8,7 +8,7 @@
     "body": [
         {
             "type": "TextBlock",
-            "text": "Are you sure you want to reset your keys?",
+            "text": "Are you sure you want to rotate your keys?",
             "wrap": true
         },
         {

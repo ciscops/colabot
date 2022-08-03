@@ -627,6 +627,7 @@ async def rotate_aws_key(activity):
         key_created_days = (date.today() - access_key_delete.create_date.date()).days
         days_to_live = 90 - int(key_created_days)
         key_text = (
+            "The following key will be deleted:\n"
             f"Id: {access_key_delete.access_key_id} | Days to Expire: {days_to_live}"
         )
 
@@ -671,6 +672,14 @@ async def rotate_aws_key(activity):
 
 async def handle_rotate_keys_card(activity):
     """handles the confirmation card for rotate keys"""
+    await handle_reset_aws_keys_card(activity)
+
+    webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
+
+    iam_username = activity["inputs"]["username"]
+    user = await get_iam_user(iam_username)
+
+    await create_key_and_message_user(activity, user, webex)
 
 
 async def delete_accounts(activity):
@@ -913,3 +922,21 @@ async def bot_delete_accounts(activity):
             await session.close()
         except Exception as e:
             logging.warning(e)
+
+async def get_iam_user(iam_username, iam=None):
+    if iam is None:
+        iam = boto3.resource(
+            "iam",
+            region_name=CONFIG.AWS_REGION_COLAB,
+            aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
+            aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
+        )
+
+    try:
+        user = iam.User(iam_username)
+    except Exception as e:
+        logging.warning(e)
+        print(find_user_message)
+        return
+
+    return user

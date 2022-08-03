@@ -235,6 +235,8 @@ class COLABot:
                 await awx.handle_delete_aws_keys_card(self.activity)
             if self.activity["inputs"]["card_feature_index"] == "reset_aws_iam_password":
                 await awx.handle_reset_aws_keys_card(self.activity)
+            if self.activity["inputs"]["card_feature_index"] == "rotate_aws_iam_password":
+                await awx.handle_rotate_keys_card(self.activity)
             # Add new card activities here
 
         elif self.activity["description"] == "message_details":
@@ -277,16 +279,11 @@ class COLABot:
 
             elif self.activity.get("text") == "rotate aws key":
                 await awx.rotate_aws_key(self.activity)
-                #await awx.check_rotate_aws_keys(self.activity)
 
             elif self.activity.get("text") == "reset aws key":
                 await awx.send_reset_keys_confirmation_card(self.activity)
-                #await awx.reset_aws_key(self.activity)
 
-                # Because the function delete all aws keys needs to be used inside awx.py
-                # there are three unused fields for iam, iam_username and webex that are set to none here
             elif self.activity.get("text") == "delete aws key":
-                #await awx.delete_all_aws_keys(self.activity, None, None)
                 await awx.send_delete_keys_confirmation_card(self.activity)
 
             elif self.activity.get("text") == "aws key status":
