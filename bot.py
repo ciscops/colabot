@@ -44,6 +44,7 @@ help_menu_list = [
     "**Create AWS account** > create AWS COLAB account\n",
     "**Create VPN account** > create an AnyConnect to COLAB VPN account\n",
     "**Create AWS key** > create aws access key\n",
+    "**Rotate AWS key** > rotates keys, deletes oldest key and creates new key\n",
     "**Reset AWS key** > delete key and create new key\n",
     "**Delete AWS key** > deletes access key\n",
     "**AWS key status** > shows the status of all aws access keys\n",
