@@ -21,11 +21,8 @@ botId_regex_pattern = r"1MDFmYzc$"
 content_type = "application/json"
 awx_server_error_message = "Error contacting AWX server. "
 find_user_message = "Cannot find user"
-<<<<<<< HEAD
 PRE_CODE_SNIPPET = "<pre>"
 AFTER_CODE_SNIPPET = "</code></pre>"
-=======
->>>>>>> 78eb34b (Fixing sonar bugs)
 
 mongo_url = (
     "mongodb://"
