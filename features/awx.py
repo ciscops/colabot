@@ -347,7 +347,7 @@ async def send_reset_keys_confirmation_card(activity):
         with open(f"{card_file}", encoding="utf8") as file_:
             template = Template(file_.read())
         card = template.render(
-            key_choices=key_text, username=json.dumps(iam_username)
+            key_choices=json.dumps(key_text), username=json.dumps(iam_username)
         )
         card_json = json.loads(card)
         message = "AWS Reset IAM Keys"
