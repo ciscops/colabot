@@ -312,6 +312,7 @@ async def create_key_and_message_user(activity, user, webex):
     logging.debug("Sending message to %s", activity["sender"])
     await webex.post_message_to_webex(message)
 
+
 async def send_reset_keys_confirmation_card(activity):
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
     iam = boto3.resource(
@@ -349,7 +350,9 @@ async def send_reset_keys_confirmation_card(activity):
         with open(f"{card_file}", encoding="utf8") as file_:
             template = Template(file_.read())
         card = template.render(
-            key_choices=json.dumps(key_text), username=json.dumps(iam_username), keys=json.dumps(keys[:-1])
+            key_choices=json.dumps(key_text),
+            username=json.dumps(iam_username),
+            keys=json.dumps(keys[:-1]),
         )
         card_json = json.loads(card)
         message = "AWS Reset IAM Keys"
@@ -362,6 +365,7 @@ async def send_reset_keys_confirmation_card(activity):
 
     message = dict(text=message, roomId=activity["roomId"], attachments=attachments)
     await webex.post_message_to_webex(message)
+
 
 async def handle_reset_aws_keys_card(activity):
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
@@ -400,7 +404,6 @@ async def reset_aws_key(activity, iam_username, key_list):
         logging.warning(e)
         print(find_user_message)
         return
-
 
     await delete_aws_key(activity, iam_username, key_list, iam, webex)
     await create_key_and_message_user(activity, user, webex)
@@ -503,7 +506,9 @@ async def delete_aws_key(activity, iam_username, key_list, iam=None, webex=None)
             print("Cannot delete key")
             return
 
-    message = "The following keys have been deleted:\n" + key_message + AFTER_CODE_SNIPPET
+    message = (
+        "The following keys have been deleted:\n" + key_message + AFTER_CODE_SNIPPET
+    )
 
     await webex.edit_message(activity["messageId"], message, activity["roomId"])
 
@@ -612,7 +617,6 @@ async def aws_key_status(activity):
             toPersonId=activity["sender"],
         )
         await webex.post_message_to_webex(message)
-    return
 
 
 async def rotate_aws_key(activity):
@@ -646,7 +650,7 @@ async def rotate_aws_key(activity):
         await create_key_and_message_user(activity, user, webex)
         return
     # If two keys exist, delete the oldest, and create a new key and message user
-    elif len(access_keys) == 2:
+    if len(access_keys) == 2:
         if access_keys[0].create_date > access_keys[1].create_date:
             access_key_delete = access_keys[1]
         else:
@@ -654,19 +658,23 @@ async def rotate_aws_key(activity):
 
         key_created_days = (date.today() - access_key_delete.create_date.date()).days
         days_to_live = 90 - int(key_created_days)
-        key_text = f"Id: {access_key_delete.access_key_id} | Days to Expire: {days_to_live}"
+        key_text = (
+            f"Id: {access_key_delete.access_key_id} | Days to Expire: {days_to_live}"
+        )
 
         card_file = "./cards/aws_iam_rotate_keys.json"
         with open(f"{card_file}", encoding="utf8") as file_:
             template = Template(file_.read())
         card = template.render(
-            key_choice=json.dumps(key_text), username=json.dumps(iam_username), key=json.dumps(access_key_delete.access_key_id)
+            key_choice=json.dumps(key_text),
+            username=json.dumps(iam_username),
+            key=json.dumps(access_key_delete.access_key_id),
         )
 
         message = dict(
             text="Confirm rotate keys",
             toPersonId=activity["sender"],
-            attachments=card,
+            
         )
         await webex.post_message_to_webex(message)
 
@@ -690,7 +698,6 @@ async def rotate_aws_key(activity):
         toPersonId=activity["sender"],
     )
     await webex.post_message_to_webex(message)
-    return
 
 
 async def handle_rotate_keys_card(activity):
