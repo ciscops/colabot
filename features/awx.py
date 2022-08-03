@@ -244,26 +244,15 @@ async def create_vpn_account(activity):
 async def create_aws_key(activity):
     logging.debug("create aws key")
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
-    iam = boto3.resource(
-        "iam",
-        region_name=CONFIG.AWS_REGION_COLAB,
-        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
-        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
-    )
 
     user_and_domain = activity["sender_email"].split("@")
     iam_username = user_and_domain[0]
-    logging.debug(iam_username)
-    try:
-        user = iam.User(iam_username)
-        access_key_iterator = user.access_keys.all()
-        access_key_list = []
-        for key in access_key_iterator:
-            access_key_list.append(key)
-    except Exception as e:
-        logging.warning(e)
-        print(find_user_message)
-        return
+    user = await get_iam_user(iam_username)
+
+    access_key_iterator = user.access_keys.all()
+    access_key_list = []
+    for key in access_key_iterator:
+        access_key_list.append(key)
 
     # If the user has active access keys that colabot has not expired, don't create keys
     if len(access_key_list) > 0:
@@ -315,23 +304,11 @@ async def create_key_and_message_user(activity, user, webex):
 
 async def send_reset_keys_confirmation_card(activity):
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
-    iam = boto3.resource(
-        "iam",
-        region_name=CONFIG.AWS_REGION_COLAB,
-        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
-        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
-    )
 
     user_and_domain = activity["sender_email"].split("@")
     iam_username = user_and_domain[0]
-    logging.debug(iam_username)
-    try:
-        user = iam.User(iam_username)
-        access_key_iterator = user.access_keys.all()
-    except Exception as e:
-        logging.warning(e)
-        print(find_user_message)
-        return
+    user = await get_iam_user(iam_username)
+    access_key_iterator = user.access_keys.all()
 
     key_text = "The following keys will be deleted: \n"
     keys = ""
@@ -398,12 +375,7 @@ async def reset_aws_key(activity, iam_username, key_list):
         aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
     )
 
-    try:
-        user = iam.User(iam_username)
-    except Exception as e:
-        logging.warning(e)
-        print(find_user_message)
-        return
+    user = await get_iam_user(iam_username, iam)
 
     await delete_aws_key(activity, iam_username, key_list, iam, webex)
     await create_key_and_message_user(activity, user, webex)
@@ -412,26 +384,15 @@ async def reset_aws_key(activity, iam_username, key_list):
 async def send_delete_keys_confirmation_card(activity):
     # send card with cml servers as check boxes
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
-    iam = boto3.resource(
-        "iam",
-        region_name=CONFIG.AWS_REGION_COLAB,
-        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
-        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
-    )
 
     user_and_domain = activity["sender_email"].split("@")
     iam_username = user_and_domain[0]
-    logging.debug(iam_username)
-    try:
-        user = iam.User(iam_username)
-        access_key_iterator = user.access_keys.all()
-        access_key_list = []
-        for key in access_key_iterator:
-            access_key_list.append(key)
-    except Exception as e:
-        logging.warning(e)
-        print(find_user_message)
-        return
+    user = await get_iam_user(iam_username)
+
+    access_key_iterator = user.access_keys.all()
+    access_key_list = []
+    for key in access_key_iterator:
+        access_key_list.append(key)
 
     key_choices = []
     for key in access_key_list:
@@ -550,21 +511,10 @@ async def delete_all_aws_keys(activity, user, webex):
 async def aws_key_status(activity):
     logging.debug("show aws key status")
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
-    iam = boto3.resource(
-        "iam",
-        region_name=CONFIG.AWS_REGION_COLAB,
-        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
-        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
-    )
 
     user_and_domain = activity["sender_email"].split("@")
     iam_username = user_and_domain[0]
-    try:
-        user = iam.User(iam_username)
-    except Exception as e:
-        logging.warning(e)
-        print(find_user_message)
-        return
+    user = await get_iam_user(iam_username)
 
     access_key_iterator = user.access_keys.all()
     if len(list(access_key_iterator)) != 0:
@@ -590,23 +540,11 @@ async def aws_key_status(activity):
 async def rotate_aws_key(activity):
     logging.debug("rotate aws key")
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
-    iam = boto3.resource(
-        "iam",
-        region_name=CONFIG.AWS_REGION_COLAB,
-        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
-        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
-    )
 
     # split the webex username from the domain
     user_and_domain = activity["sender_email"].split("@")
     iam_username = user_and_domain[0]
-
-    try:
-        user = iam.User(iam_username)
-    except Exception as e:
-        logging.warning(e)
-        print(find_user_message)
-        return
+    user = await get_iam_user(iam_username)
 
     access_keys = []
     access_key_iterator = user.access_keys.all()
@@ -912,6 +850,7 @@ async def bot_delete_accounts(activity):
             await session.close()
         except Exception as e:
             logging.warning(e)
+
 
 async def get_iam_user(iam_username, iam=None):
     if iam is None:
