@@ -396,7 +396,6 @@ async def reset_aws_key(activity, iam_username, key_list):
 
     await delete_aws_key(activity, iam_username, key_list, iam, webex)
     await create_key_and_message_user(activity, user, webex)
-    return
 
 
 async def send_delete_keys_confirmation_card(activity):
