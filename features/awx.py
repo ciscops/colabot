@@ -333,12 +333,12 @@ async def send_reset_keys_confirmation_card(activity):
         return
 
     key_text = "The following keys will be deleted: \n"
-    keys = []
+    keys = ""
     for key in access_key_iterator:
         key_created_days = (date.today() - key.create_date.date()).days
         days_to_live = 90 - int(key_created_days)
         key_text += f"Id: {key.access_key_id} | Days to Expire: {days_to_live}\n"
-        keys.append(key.access_key_id)
+        keys += key.access_key_id + ","
 
     if len(list(access_key_iterator)) == 0:
         message = "You do not have any keys to reset. You can create a key with **create aws key**"
@@ -349,7 +349,7 @@ async def send_reset_keys_confirmation_card(activity):
         with open(f"{card_file}", encoding="utf8") as file_:
             template = Template(file_.read())
         card = template.render(
-            key_choices=json.dumps(key_text), username=json.dumps(iam_username), keys=json.dumps(keys)
+            key_choices=json.dumps(key_text), username=json.dumps(iam_username), keys=json.dumps(keys[:-1])
         )
         card_json = json.loads(card)
         message = "AWS Reset IAM Keys"
@@ -370,7 +370,7 @@ async def handle_reset_aws_keys_card(activity):
 
     logging.debug("Activity text %s", activity)
 
-    card_key_choices = activity["inputs"]["ChoiceId"]
+    card_key_choices = activity["inputs"]["ChoiceId"].split(",")
     iam_username = activity["inputs"]["username"]
 
     if card_key_choices != "No":
