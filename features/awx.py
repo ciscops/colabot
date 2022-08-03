@@ -333,10 +333,12 @@ async def send_reset_keys_confirmation_card(activity):
         return
 
     key_text = "The following keys will be deleted: \n"
+    keys = []
     for key in access_key_iterator:
         key_created_days = (date.today() - key.create_date.date()).days
         days_to_live = 90 - int(key_created_days)
         key_text += f"Id: {key.access_key_id} | Days to Expire: {days_to_live}\n"
+        keys.append(key.access_key_id)
 
     if len(list(access_key_iterator)) == 0:
         message = "You do not have any keys to reset. You can create a key with **create aws key**"
@@ -347,7 +349,7 @@ async def send_reset_keys_confirmation_card(activity):
         with open(f"{card_file}", encoding="utf8") as file_:
             template = Template(file_.read())
         card = template.render(
-            key_choices=json.dumps(key_text), username=json.dumps(iam_username)
+            key_choices=json.dumps(key_text), username=json.dumps(iam_username), keys=json.dumps(keys)
         )
         card_json = json.loads(card)
         message = "AWS Reset IAM Keys"
@@ -368,13 +370,13 @@ async def handle_reset_aws_keys_card(activity):
 
     logging.debug("Activity text %s", activity)
 
-    key_id = activity["inputs"]["keyId"]
+    card_key_choices = activity["inputs"]["ChoiceId"]
     iam_username = activity["inputs"]["username"]
 
-    if key_id != "":
-        await reset_aws_key(activity, iam_username, key_id)
+    if card_key_choices != "No":
+        await reset_aws_key(activity, iam_username, card_key_choices)
 
-async def reset_aws_key(activity, iam_username, key_id):
+async def reset_aws_key(activity, iam_username, key_list):
     logging.debug("reset aws key")
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
     iam = boto3.resource(
@@ -384,25 +386,17 @@ async def reset_aws_key(activity, iam_username, key_id):
         aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
     )
 
-    # try:
-    #     user = iam.User(iam_username)
-    # except Exception as e:
-    #     logging.warning(e)
-    #     print(find_user_message)
-    #     return
-    #
-    # if len(list(user.access_keys.all())) != 0:
-    #     await delete_all_aws_keys(activity, user, webex)
-    #     await create_key_and_message_user(activity, user, webex)
-    #     return
-    #
-    # message = dict(
-    #     text=(
-    #         "Unable to reset keys: no keys exist. You can create a key with **create aws key**"
-    #     ),
-    #     toPersonId=activity["sender"],
-    # )
-    # await webex.post_message_to_webex(message=message)
+    try:
+        user = iam.User(iam_username)
+    except Exception as e:
+        logging.warning(e)
+        print(find_user_message)
+        return
+
+
+    await delete_aws_key(activity, iam_username, key_list, iam, webex)
+    await create_key_and_message_user(activity, user, webex)
+    return
 
 
 async def send_delete_keys_confirmation_card(activity):
@@ -472,34 +466,37 @@ async def handle_delete_aws_keys_card(activity):
     iam_username = activity["inputs"]["username"]
 
     if key_id != "":
-        await delete_aws_key(activity, iam_username, key_id)
+        await delete_aws_key(activity, iam_username, [key_id])
 
 
-async def delete_aws_key(activity, iam_username, key_id):
+async def delete_aws_key(activity, iam_username, key_list, iam=None, webex=None):
     logging.debug("delete aws key")
     logging.debug("ACTIVITY: %s", str(activity))
 
-    webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
+    if webex is None:
+        webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
 
-    iam = boto3.resource(
-        "iam",
-        region_name=CONFIG.AWS_REGION_COLAB,
-        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
-        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
-    )
-
-    access_key = iam.AccessKey(iam_username, key_id)
+    if iam is None:
+        iam = boto3.resource(
+            "iam",
+            region_name=CONFIG.AWS_REGION_COLAB,
+            aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
+            aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
+        )
 
     key_message = PRE_CODE_SNIPPET
-    try:
-        key_message += f"Key: {access_key.access_key_id}\n"
-        access_key.delete()
-    except Exception as e:
-        logging.warning(e)
-        print("Cannot delete key")
-        return
+    for key_id in key_list:
+        access_key = iam.AccessKey(iam_username, key_id)
 
-    message = "The following key has been deleted:\n" + key_message + AFTER_CODE_SNIPPET
+        try:
+            key_message += f"Key: {access_key.access_key_id}\n"
+            access_key.delete()
+        except Exception as e:
+            logging.warning(e)
+            print("Cannot delete key")
+            return
+
+    message = "The following keys have been deleted:\n" + key_message + AFTER_CODE_SNIPPET
 
     await webex.edit_message(activity["messageId"], message, activity["roomId"])
 
