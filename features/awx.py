@@ -631,6 +631,7 @@ async def rotate_aws_key(activity):
         )
 
         card_file = "./cards/aws_iam_rotate_keys.json"
+        # verify this doesn't cause problems
         with open(f"{card_file}", encoding="utf8") as file_:
             template = Template(file_.read())
         card = template.render(
@@ -638,17 +639,12 @@ async def rotate_aws_key(activity):
             username=json.dumps(iam_username),
             key=json.dumps(access_key_delete.access_key_id),
         )
+        card_json = json.loads(card)
 
-        message = dict(
-            text="Confirm rotate keys",
-            toPersonId=activity["sender"],
-            attachments=[
-                    {
-                        "contentType": "application/vnd.microsoft.card.adaptive",
-                        "content": card,
-                    }
-                ],
-        )
+        message = "Confirm rotate keys"
+        attachments = card_json
+
+        message = dict(text=message, roomId=activity["roomId"], attachments=attachments)
         await webex.post_message_to_webex(message)
 
         # # Delete oldest key, then create new key
