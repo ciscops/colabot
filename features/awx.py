@@ -373,7 +373,10 @@ async def handle_reset_aws_keys_card(activity):
     card_key_choices = activity["inputs"]["ChoiceId"]
     iam_username = activity["inputs"]["username"]
 
-    if card_key_choices != "No" and card_key_choices != "":
+    if card_key_choices == "":
+        return
+
+    if card_key_choices != "No":
         card_key_choices = card_key_choices.split(",")
         await reset_aws_key(activity, iam_username, card_key_choices)
         return
