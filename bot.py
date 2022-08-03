@@ -277,6 +277,7 @@ class COLABot:
 
             elif self.activity.get("text") == "rotate aws key":
                 await awx.rotate_aws_key(self.activity)
+                #await awx.check_rotate_aws_keys(self.activity)
 
             elif self.activity.get("text") == "reset aws key":
                 await awx.send_reset_keys_confirmation_card(self.activity)

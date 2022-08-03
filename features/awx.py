@@ -618,7 +618,7 @@ async def aws_key_status(activity):
 async def rotate_aws_key(activity):
     logging.debug("rotate aws key")
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
-    iam = boto3.client(
+    iam = boto3.resource(
         "iam",
         region_name=CONFIG.AWS_REGION_COLAB,
         aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
@@ -646,32 +646,45 @@ async def rotate_aws_key(activity):
         await create_key_and_message_user(activity, user, webex)
         return
     # If two keys exist, delete the oldest, and create a new key and message user
-    if len(access_keys) == 2:
+    elif len(access_keys) == 2:
         if access_keys[0].create_date > access_keys[1].create_date:
             access_key_delete = access_keys[1]
         else:
             access_key_delete = access_keys[0]
 
-        # Delete oldest key, then create new key
-        key_id = access_key_delete.access_key_id
-        access_key_delete.delete()
-        message = dict(
-            text=f"Access key {key_id} successfully deleted.",
-            toPersonId=activity["sender"],
+        key_created_days = (date.today() - access_key_delete.create_date.date()).days
+        days_to_live = 90 - int(key_created_days)
+        key_text = f"Id: {access_key_delete.access_key_id} | Days to Expire: {days_to_live}"
+
+        card_file = "./cards/aws_iam_rotate_keys.json"
+        with open(f"{card_file}", encoding="utf8") as file_:
+            template = Template(file_.read())
+        card = template.render(
+            key_choice=json.dumps(key_text), username=json.dumps(iam_username), key=json.dumps(access_key_delete.access_key_id)
         )
-        await webex.post_message_to_webex(message)
-        await create_key_and_message_user(activity, user, webex)
+
+        # message = dict(
+        #     text="Confirm rotate keys",
+        #     toPersonId=activity["sender"],
+        #     attachments=card,
+        # )
+        # await webex.post_message_to_webex(message)
+
+        # # Delete oldest key, then create new key
+        # key_id = access_key_delete.access_key_id
+        # access_key_delete.delete()
+        # message = dict(
+        #     text=f"Access key {key_id} successfully deleted.",
+        #     toPersonId=activity["sender"],
+        # )
+        # await webex.post_message_to_webex(message)
+        # await create_key_and_message_user(activity, user, webex)
         return
 
     text_to_send = (
-        "You have more than 2 aws keys,"
-        + " please delete all your keys with **aws delete key** and then create a new key with **aws create key**"
+        "You have no active aws keys,"
+        + " if you would like to create one, use **create aws key**"
     )
-    if len(access_keys) < 1:
-        text_to_send = (
-            "You have no active aws keys,"
-            + " if you would like to create one, use **create aws key**"
-        )
     message = dict(
         text=text_to_send,
         toPersonId=activity["sender"],
