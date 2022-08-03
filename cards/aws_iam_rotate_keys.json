@@ -49,7 +49,7 @@
             "title": "Submit",
             "data": {
                 "isSubmit": true,
-                "card_feature_index": "reset_aws_iam_password",
+                "card_feature_index": "rotate_aws_iam_password",
                 "username": {{username}}
             }
         }

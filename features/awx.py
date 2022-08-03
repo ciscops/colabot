@@ -663,12 +663,12 @@ async def rotate_aws_key(activity):
             key_choice=json.dumps(key_text), username=json.dumps(iam_username), key=json.dumps(access_key_delete.access_key_id)
         )
 
-        # message = dict(
-        #     text="Confirm rotate keys",
-        #     toPersonId=activity["sender"],
-        #     attachments=card,
-        # )
-        # await webex.post_message_to_webex(message)
+        message = dict(
+            text="Confirm rotate keys",
+            toPersonId=activity["sender"],
+            attachments=card,
+        )
+        await webex.post_message_to_webex(message)
 
         # # Delete oldest key, then create new key
         # key_id = access_key_delete.access_key_id
@@ -691,6 +691,10 @@ async def rotate_aws_key(activity):
     )
     await webex.post_message_to_webex(message)
     return
+
+
+async def handle_rotate_keys_card(activity):
+    """handles the confirmation card for rotate keys"""
 
 
 async def delete_accounts(activity):
