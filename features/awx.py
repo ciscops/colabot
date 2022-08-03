@@ -364,8 +364,8 @@ async def send_reset_keys_confirmation_card(activity):
     await webex.post_message_to_webex(message)
 
 async def handle_reset_aws_keys_card(activity):
+    webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
     if not activity["inputs"]["isSubmit"]:
-        webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
         await webex.delete_message(activity["messageId"])
 
     logging.debug("Activity text %s", activity)
@@ -376,6 +376,10 @@ async def handle_reset_aws_keys_card(activity):
     if card_key_choices != "No":
         card_key_choices = card_key_choices.split(",")
         await reset_aws_key(activity, iam_username, card_key_choices)
+        return
+        
+    await webex.delete_message(activity["messageId"])
+
 
 async def reset_aws_key(activity, iam_username, key_list):
     logging.debug("reset aws key")
