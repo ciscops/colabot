@@ -44,6 +44,7 @@ help_menu_list = [
     "**Create AWS account** > create AWS COLAB account\n",
     "**Create VPN account** > create an AnyConnect to COLAB VPN account\n",
     "**Create AWS key** > create aws access key\n",
+    "**Rotate AWS key** > rotates keys, deletes oldest key and creates new key\n",
     "**Reset AWS key** > delete key and create new key\n",
     "**Delete AWS key** > deletes access key\n",
     "**AWS key status** > shows the status of all aws access keys\n",
@@ -235,6 +236,8 @@ class COLABot:
                 await awx.handle_delete_aws_keys_card(self.activity)
             if self.activity["inputs"]["card_feature_index"] == "reset_aws_iam_password":
                 await awx.handle_reset_aws_keys_card(self.activity)
+            if self.activity["inputs"]["card_feature_index"] == "rotate_aws_iam_password":
+                await awx.handle_rotate_keys_card(self.activity)
             # Add new card activities here
 
         elif self.activity["description"] == "message_details":
@@ -280,12 +283,8 @@ class COLABot:
 
             elif self.activity.get("text") == "reset aws key":
                 await awx.send_reset_keys_confirmation_card(self.activity)
-                #await awx.reset_aws_key(self.activity)
 
-                # Because the function delete all aws keys needs to be used inside awx.py
-                # there are three unused fields for iam, iam_username and webex that are set to none here
             elif self.activity.get("text") == "delete aws key":
-                #await awx.delete_all_aws_keys(self.activity, None, None)
                 await awx.send_delete_keys_confirmation_card(self.activity)
 
             elif self.activity.get("text") == "aws key status":
