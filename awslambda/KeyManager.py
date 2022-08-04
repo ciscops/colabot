@@ -71,7 +71,6 @@ class KeyManager:
                 for access_key in user_access_key_list:
                     self.process_key(access_key, user_email, user)
 
-
     def process_key(self, access_key, user_email, user):
         key_age = access_key.create_date
         currentdate = date.today()
@@ -87,13 +86,13 @@ class KeyManager:
 
         if key_status != "Active":
             self.delete_key(
-                    user_email=user_email,
-                    key_id=key_id,
-                    expired=True,
-                    unused=False,
-                    key_created_days=key_created_days,
-                    user=user,
-                )
+                user_email=user_email,
+                key_id=key_id,
+                expired=True,
+                unused=False,
+                key_created_days=key_created_days,
+                user=user,
+            )
             return
 
         if key_created_days >= self.rotate_days:
