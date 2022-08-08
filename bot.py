@@ -133,8 +133,10 @@ class COLABot:
                 return {"status_code": 401}
 
         # Preprocess text
-        if (self.activity["description"] == "message_details"
-            and self.activity.get("roomType", "") == "group"):
+        if (
+            self.activity["description"] == "message_details"
+            and self.activity.get("roomType", "") == "group"
+        ):
             # Remove bot name from text if message was "at mention"
             self.activity["text"] = self.activity.get("text").replace(
                 self.activity.get("bot_name") + " ", ""
@@ -232,11 +234,20 @@ class COLABot:
                 await admin_actions.admin_alert_cml_users(self.activity)
             if self.activity["inputs"]["card_feature_index"] == "colab":
                 await awx.delete_accounts(self.activity)
-            if self.activity["inputs"]["card_feature_index"] == "delete_aws_iam_password":
+            if (
+                self.activity["inputs"]["card_feature_index"]
+                == "delete_aws_iam_password"
+            ):
                 await awx.handle_delete_aws_keys_card(self.activity)
-            if self.activity["inputs"]["card_feature_index"] == "reset_aws_iam_password":
+            if (
+                self.activity["inputs"]["card_feature_index"]
+                == "reset_aws_iam_password"
+            ):
                 await awx.handle_reset_aws_keys_card(self.activity)
-            if self.activity["inputs"]["card_feature_index"] == "rotate_aws_iam_password":
+            if (
+                self.activity["inputs"]["card_feature_index"]
+                == "rotate_aws_iam_password"
+            ):
                 await awx.handle_rotate_keys_card(self.activity)
             # Add new card activities here
 
