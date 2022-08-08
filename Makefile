@@ -1,7 +1,8 @@
 # Makefile
 PYTHON_EXE = python3
 PROJECT_NAME="colabot"
-LAMBDA_FUNCTION_ROTATE_KEYS=
+LAMBDA_FUNCTION_ROTATE_KEYS=cpn-colabot-rotate-keys
+LAMBDA_FUNCTION_CML_LABS_MANAGEMENT=kstickne-colabot-manage-CML-labs-dev ##change to cpn-colabaot-manage-CML-labs
 TOPDIR = $(shell git rev-parse --show-toplevel)
 PYDIRS_LAMBDA_IAM=awslambda/iam
 PYDIRS_FEATURES=features
@@ -68,9 +69,9 @@ lambda-packages.zip: lambda-packages ## Output all code to zip file
 lambda-layer-colabot-iam: lambda-packages.zip
 	aws lambda publish-layer-version \
 	--layer-name $(LAMBDA_FUNCTION_ROTATE_KEYS)-layer \
- 	--license-info "MIT" \
- 	--zip-file fileb://lambda-packages.zip \
- 	--compatible-runtimes python3.9
+	--license-info "MIT" \
+	--zip-file fileb://lambda-packages.zip \
+	--compatible-runtimes python3.9
 	$(RM) -rf lambda-packages
 
 lambda-function-colabot-iam.zip: awslambda/lambda_function_iam.py ## Output all code to zip file
