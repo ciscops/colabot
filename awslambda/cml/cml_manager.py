@@ -9,4 +9,4 @@ class CMLManager:
         self.logging = logging.getLogger()
 
     def manage_keys(self):
-        print("managing Keys")
+        print("Managing Keys")

@@ -90,12 +90,12 @@ lambda-layer-colabot-cml: lambda-packages.zip
 	--compatible-runtimes python3.9
 	$(RM) -rf lambda-packages
 
-lambda-function-colabot-iam.zip: awslambda/iam/lambda_function.py ## Output all code to zip file
-	cp awslambda/iam/lambda_function.py lambda_function.py
+lambda-function-colabot-iam.zip: awslambda/lambda_function_iam.py ## Output all code to zip file
+	cp awslambda/lambda_function_iam.py lambda_function.py
 	zip -r $@ lambda_function.py $(PYDIRS_LAMBDA_IAM) # zip all python source code into output.zip
 
-lambda-function-colabot-cml.zip: awslambda/cml/lambda_function.py ## Output all code to zip file
-	cp awslambda/cml/lambda_function.py lambda_function.py
+lambda-function-colabot-cml.zip: awslambda/lambda_function_cml.py ## Output all code to zip file
+	cp awslambda/lambda_function_cml.py lambda_function.py
 	zip -r $@ lambda_function.py $(PYDIRS_LAMBDA_CML) # zip all python source code into output.zip
 
 # Upload layer for colabot lambda iam function
