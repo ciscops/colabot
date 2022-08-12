@@ -1,0 +1,64 @@
+[{"contentType":
+  "application/vnd.microsoft.card.adaptive",
+  "content":
+  {
+    "type": "AdaptiveCard",
+    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+    "version": "1.2",
+    "body": [
+        {
+            "type": "RichTextBlock",
+            "spacing": "None",
+            "inlines": [
+                {
+                    "type": "TextRun",
+                    "text": "Are you still labbing?"
+                }
+            ]
+        },
+        {
+            "type": "Input.ChoiceSet",
+            "id": "LabIds",
+            "style": "expanded",
+            "spacing": "Small",
+            "isMultiSelect": true,
+            "choices": {{lab_choices}},
+            "placeholder": "Placeholder text"
+        },
+        {
+            "type": "Input.ChoiceSet",
+            "id": "isLabbing",
+            "isMultiSelect": false,
+            "style": "expanded",
+            "spacing": "Small",
+            "isRequired": true,
+            "errorMessage": "Please input a valid response",
+            "choices": [
+                {
+                    "title": "Yes to all",
+                    "value": "true"
+                },
+                {
+                    "title": "No to all",
+                    "value": "false"
+                }
+            ]
+        },
+        {
+            "type": "ActionSet",
+            "style": "positive",
+            "actions": [
+                {
+                    "type": "Action.Submit",
+                    "title": "Submit",
+                    "id": "Submit",
+                    "data": {
+                        "type": "labbing"
+                    }
+                }
+            ]
+        }
+    ]
+}
+  
+  }]
