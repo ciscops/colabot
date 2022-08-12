@@ -49,10 +49,7 @@ class CMLManager:
                 database_labs = self.dynamodb.get_cml_user_labs(email)
 
                 # delete any labs not in cml server
-                for lab_id in database_labs:
-                    if lab_id not in cml_labs:
-                        self.logging.debug("DELETE %s Deleting lab from database", email)
-                        self.dynamodb.delete_cml_lab(email, lab_id)
+                self.delete_extra_database_labs(database_labs, cml_labs, email)
 
                 # compares cml labs to last_used date in database
                 labs_to_wipe = []
@@ -74,3 +71,10 @@ class CMLManager:
                 fail_counter += 1
 
         return (success_counter, fail_counter)
+
+    def delete_extra_database_labs(self, database_labs, source_of_truth_labs, email):
+        """Deletes an labs in database that are not in the labs' source of truth"""
+        for lab_id in database_labs:
+            if lab_id not in source_of_truth_labs:
+                self.logging.debug("DELETE %s Deleting lab from database", email)
+                self.dynamodb.delete_cml_lab(email, lab_id)

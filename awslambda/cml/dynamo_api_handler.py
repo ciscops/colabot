@@ -21,6 +21,7 @@ class Dynamoapi:
         self.cml_table = None
         self.dynamodb = None
         self.table_date_format = "%m%d%Y"
+        self.cml_labs_tag = self.cml_labs_tag
 
     def get_dynamo_cml_table(self):
         """
@@ -87,7 +88,7 @@ class Dynamoapi:
             self.cml_table.update_item(
                 Key={"email": email},
                 UpdateExpression="SET #cml_labs= :value",
-                ExpressionAttributeNames={"#cml_labs": "cml_labs"},
+                ExpressionAttributeNames={self.cml_labs_tag: "cml_labs"},
                 ExpressionAttributeValues={":value": {}},
             )
 
@@ -95,7 +96,7 @@ class Dynamoapi:
             self.cml_table.update_item(
                 Key={"email": email},
                 UpdateExpression="set #cml_labs.#lab_id= :lab",
-                ExpressionAttributeNames={"#cml_labs": "cml_labs", "#lab_id": lab_id},
+                ExpressionAttributeNames={self.cml_labs_tag: "cml_labs", "#lab_id": lab_id},
                 ExpressionAttributeValues={":lab": date_string},
             )
         except Exception as e:
@@ -109,7 +110,7 @@ class Dynamoapi:
             self.cml_table.update_item(
                 Key={"email": email},
                 UpdateExpression="remove #cml_labs.#lab_id",
-                ExpressionAttributeNames={"#cml_labs": "cml_labs", "#lab_id": lab_id},
+                ExpressionAttributeNames={self.cml_labs_tag: "cml_labs", "#lab_id": lab_id},
             )
         except Exception as e:
             self.logging.debug("Error: %s", e)
