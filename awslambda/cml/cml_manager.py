@@ -4,6 +4,7 @@ import os
 import json
 from datetime import date
 from jinja2 import Template
+from datetime import datetime
 from webexteamssdk import WebexTeamsAPI
 from awslambda.cml.dynamo_api_handler import Dynamoapi
 from awslambda.cml.cml_api_handler import CMLAPI
