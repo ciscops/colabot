@@ -384,7 +384,7 @@ class CMLManager:
         """Sends the labbing card to the user with labs to be wiped"""
         lab_choices = []
         for lab_id, lab_title, last_used_date in labs_to_wipe:
-            last_seen = (datetime.now() - last_used_date).days
+            last_seen = (date.today() - last_used_date).days
             lab = {
                 "title": f"Lab: {lab_title} | Last seen: {last_seen} days ago",
                 "value": lab_id,
