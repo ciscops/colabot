@@ -383,6 +383,7 @@ class CMLManager:
     def send_labbing_card(self, labs_to_wipe: list, email: str) -> bool:
         """Sends the labbing card to the user with labs to be wiped"""
         lab_choices = []
+        all_lab_ids = ""
         for lab_id, lab_title, last_used_date in labs_to_wipe:
             last_seen = (date.today() - last_used_date).days
             lab = {
@@ -390,6 +391,10 @@ class CMLManager:
                 "value": lab_id,
             }
             lab_choices.append(lab)
+
+            all_lab_ids += f"{lab_id},"
+
+        all_lab_ids = all_lab_ids[:-1]
         self.logging.debug("LAB: %s", str(lab_choices))
 
         card_file = os.path.join(
@@ -398,8 +403,14 @@ class CMLManager:
         self.logging.debug("CARD: %s", str(card_file))
         with open(f"{card_file}", encoding="utf8") as file_:
             template = Template(file_.read())
-        card = template.render(lab_choices=json.dumps(lab_choices))
+        card = template.render(
+            lab_choices=json.dumps(lab_choices),
+            all_lab_ids=json.dumps(all_lab_ids),
+            email=json.dumps(email),
+        )
         card_json = json.loads(card)
+
+        self.logging.debug("CARD %s", str(card_json))
 
         self.webex_api.messages.create(
             toPersonEmail=email, markdown="labbing", attachments=card_json
