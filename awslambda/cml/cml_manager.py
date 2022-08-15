@@ -3,7 +3,6 @@ import sys
 import os
 import json
 from datetime import date
-from datetime import datetime
 from jinja2 import Template
 from webexteamssdk import WebexTeamsAPI
 from awslambda.cml.dynamo_api_handler import Dynamoapi
