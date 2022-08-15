@@ -41,7 +41,8 @@ class CMLManager:
         fail_counter = 0
 
         self.logging.debug("Managing Labs")
-        all_user_emails = self.dynamodb.get_all_cml_users()
+        #all_user_emails = self.dynamodb.get_all_cml_users()
+        all_user_emails = ['kstickne@cisco.com']
         self.cml_api.fill_user_labs_dict()
 
         for email in all_user_emails:
