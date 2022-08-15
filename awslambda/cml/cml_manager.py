@@ -381,7 +381,7 @@ class CMLManager:
         return True
 
     def send_labbing_card(self, labs_to_wipe: list, email: str) -> bool:
-        """sends webex card to user with all labs to be wiped"""
+        """Sends the labbing card to the user with labs to be wiped"""
         lab_choices = []
         for lab_id, lab_title, last_used_date in labs_to_wipe:
             last_seen = (datetime.now() - last_used_date).days
