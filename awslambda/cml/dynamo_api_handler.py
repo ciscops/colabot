@@ -96,7 +96,10 @@ class Dynamoapi:
             self.cml_table.update_item(
                 Key={"email": email},
                 UpdateExpression="set #cml_labs.#lab_id= :lab",
-                ExpressionAttributeNames={self.cml_labs_tag: "cml_labs", "#lab_id": lab_id},
+                ExpressionAttributeNames={
+                    self.cml_labs_tag: "cml_labs",
+                    "#lab_id": lab_id,
+                },
                 ExpressionAttributeValues={":lab": date_string},
             )
         except Exception as e:
@@ -110,7 +113,10 @@ class Dynamoapi:
             self.cml_table.update_item(
                 Key={"email": email},
                 UpdateExpression="remove #cml_labs.#lab_id",
-                ExpressionAttributeNames={self.cml_labs_tag: "cml_labs", "#lab_id": lab_id},
+                ExpressionAttributeNames={
+                    self.cml_labs_tag: "cml_labs",
+                    "#lab_id": lab_id,
+                },
             )
         except Exception as e:
             self.logging.debug("Error: %s", e)

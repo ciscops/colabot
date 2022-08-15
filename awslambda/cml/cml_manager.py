@@ -52,17 +52,7 @@ class CMLManager:
                 self.delete_extra_database_labs(database_labs, cml_labs, email)
 
                 # compares cml labs to last_used date in database
-                labs_to_wipe = []
-                for cml_lab_id, (cml_lab_title, cml_lab_date) in cml_labs.items():
-                    if cml_lab_id not in database_labs:
-                        self.logging.debug("ADD %s adding lab to database", email)
-                        self.dynamodb.add_cml_lab(email, cml_lab_id, cml_lab_date)
-                        database_labs[cml_lab_id] = cml_lab_date
-
-                    last_used_date = database_labs[cml_lab_id]
-                    if (date.today() - last_used_date).days >= self.WARN_DAYS:
-                        self.logging.debug("ADD %s adding lab to be wiped", email)
-                        labs_to_wipe.append((cml_lab_id, cml_lab_title, last_used_date))
+                labs_to_wipe = self.get_labs_to_wipe(database_labs, cml_labs, email)
 
                 self.logging.info("%s LABS_TO_WIPE: %s", email, labs_to_wipe)
                 success_counter += 1
@@ -72,9 +62,29 @@ class CMLManager:
 
         return (success_counter, fail_counter)
 
-    def delete_extra_database_labs(self, database_labs, source_of_truth_labs, email):
+    def get_labs_to_wipe(self, database_labs: dict, cml_labs: dict, email: str) -> list:
+        """Creates a list of labs that need to be wiped and adds labs to the database"""
+        labs_to_wipe = []
+        for cml_lab_id, (cml_lab_title, cml_lab_date) in cml_labs.items():
+            if cml_lab_id not in database_labs:
+                self.logging.debug("ADD %s adding lab to database", email)
+                self.dynamodb.add_cml_lab(email, cml_lab_id, cml_lab_date)
+                database_labs[cml_lab_id] = cml_lab_date
+
+            last_used_date = database_labs[cml_lab_id]
+            if (date.today() - last_used_date).days >= self.WARN_DAYS:
+                self.logging.debug("ADD %s adding lab to be wiped", email)
+                labs_to_wipe.append((cml_lab_id, cml_lab_title, last_used_date))
+
+        return labs_to_wipe
+
+    def delete_extra_database_labs(
+        self, database_labs: dict, cml_labs: dict, email: str
+    ) -> bool:
         """Deletes an labs in database that are not in the labs' source of truth"""
         for lab_id in database_labs:
-            if lab_id not in source_of_truth_labs:
+            if lab_id not in cml_labs:
                 self.logging.debug("DELETE %s Deleting lab from database", email)
                 self.dynamodb.delete_cml_lab(email, lab_id)
+
+        return True
