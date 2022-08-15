@@ -21,7 +21,7 @@ class Dynamoapi:
         self.cml_table = None
         self.dynamodb = None
         self.table_date_format = "%m%d%Y"
-        self.cml_labs_tag = '#cml_labs'
+        self.cml_labs_tag = "#cml_labs"
 
     def get_dynamo_cml_table(self):
         """

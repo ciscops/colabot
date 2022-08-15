@@ -39,7 +39,6 @@ class CMLManager:
         fail_counter = 0
 
         self.logging.debug("Managing Labs")
-        self.cml_api.connect()
         all_user_emails = self.dynamodb.get_all_cml_users()
         self.cml_api.fill_user_labs_dict()
 
