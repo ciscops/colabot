@@ -3,7 +3,6 @@ import sys
 import os
 import json
 from datetime import date
-from datetime import datetime
 from jinja2 import Template
 from webexteamssdk import WebexTeamsAPI
 from awslambda.cml.dynamo_api_handler import Dynamoapi
@@ -61,6 +60,7 @@ class CMLManager:
 
                 # Send card
                 if labs_to_wipe:
+                    self.logging.info("Sending labbing card to %s", email)
                     self.send_labbing_card(labs_to_wipe, email)
 
                 success_counter += 1
@@ -101,7 +101,7 @@ class CMLManager:
         """Sends the labbing card to the user with labs to be wiped"""
         lab_choices = []
         for lab_id, lab_title, last_used_date in labs_to_wipe:
-            last_seen = (datetime.now() - last_used_date).days
+            last_seen = (date.today() - last_used_date).days
             lab = {
                 "title": f"Lab: {lab_title} | Last seen: {last_seen} days ago",
                 "value": lab_id,
