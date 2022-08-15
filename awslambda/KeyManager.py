@@ -170,7 +170,7 @@ class KeyManager:
 
         # This script only runs if two key exist, which presumes 1 key is within expiring and 1 is not given the bot can do what it needs to
         # double check that a static message like this is fine
-        self.logging.debug("Current key is 80 days old, creating new access key")
+        self.logging.debug("Current key is %s days old, creating new access key", str(self.rotate_days))
         self.send_message_to_user(user_email, message)
 
     def delete_key(self, user_email, key_id, expired, unused, key_created_days, user):
@@ -180,10 +180,10 @@ class KeyManager:
         message = ""
         if expired:
             message = f"Access key ({key_id}) \n - Age: {key_created_days} days old \n - Maximum lifespan: {self.delete_days} days \n - Status: **Deleted** \n - Reason: exceeds lifespan"
-            self.logging.debug("Key is 90 days old or older, deleting key")
+            self.logging.debug("Key is %s old or older, deleting key", str(self.delete_days))
         if unused:
             message = f"Access key ({key_id}) \n - Last used: {self.warn_days} days ago \n - Maximum unused lifespan: {self.warn_days} days \n - Status: **Deleted** \n - Reason: key is not used"
-            self.logging.debug("Key has not been used in 45 days, deleting key")
+            self.logging.debug("Key has not been used in %s days, deleting key", str(self.warn_days))
 
         self.send_message_to_user(user_email, message)
 
@@ -192,12 +192,12 @@ class KeyManager:
         if expire:
             message = f"Access key ({key_id}) \n - Age: {days_to_warn} days old \n - Expiration in: {self.delete_days - days_to_warn} days \n - Status: **Warning** \n - Reason: reaching key age limit of {self.delete_days} days \n"
             self.logging.debug(
-                "Key age is between 80-90 days old, warning user of expiration"
+                "Key age is between %s-%s days old, warning user of expiration", str(self.rotate_days), str(self.delete_days)
             )
         if unused:
             message = f"Access key ({key_id}) \n - Last used: {days_to_warn} days ago \n - Expiration in: {self.warn_days - days_to_warn} days \n - Status: **Warning** \n - Reason: reaching key unused limit of {self.warn_days} days \n"
             self.logging.debug(
-                "Key has not been used in 40-45 days, warning user of expiration"
+                "Key has not been used in %s-%s days, warning user of expiration", str(self.warn_days-5), str(self.warn_days)
             )
 
         self.send_message_to_user(user_email, message)
