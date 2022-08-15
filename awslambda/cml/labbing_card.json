@@ -58,7 +58,8 @@
                     "title": "Submit",
                     "id": "Submit",
                     "data": {
-                        "type": "labbing"
+                        "type": "labbing",
+                        "allLabIds": {{all_lab_ids}}
                     }
                 }
             ]
