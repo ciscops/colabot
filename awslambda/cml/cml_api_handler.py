@@ -32,6 +32,7 @@ class CMLAPI:
         self.client = None
         self.created_date_format = "%Y-%m-%dT%H:%M:%S+00:00"
         self.user_and_labs = {}
+        self.long_lived_users = []
 
     def connect(self):
         """starts connection to cml api if there is none"""
@@ -42,11 +43,23 @@ class CMLAPI:
             )
 
     def fill_user_labs_dict(self) -> dict:
-        """gets all user emails and labs from cml"""
+        """gets all user emails and labs from cml as well as seeing if user in long lived labs group"""
         self.connect()
         diagnostics = self.client.get_diagnostics()
         for user in diagnostics["user_list"]:
-            self.user_and_labs[user["username"] + "@cisco.com"] = user["labs"]
+            email = user["username"] + "@cisco.com"
+            self.user_and_labs[email] = user["labs"]
+
+            for group in user["groups"]:
+                if group["id"] == self.long_lived_labs:
+                    self.long_lived_users.append(email)
+
+    def user_in_long_lived_labs(self, email: str) -> bool:
+        """Checks if user is in the long lived labs group"""
+        self.connect()
+        if email in self.long_lived_users:
+            return True
+        return False
 
     def get_user_labs(self, email: str) -> dict:
         """
