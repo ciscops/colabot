@@ -46,6 +46,9 @@ class CMLManager:
 
         for email in all_user_emails:
             try:
+                if self.cml_api.user_in_long_lived_labs(email):
+                    continue
+
                 cml_labs = self.cml_api.get_user_labs(email)
                 database_labs = self.dynamodb.get_cml_user_labs(email)
 
