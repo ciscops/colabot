@@ -31,7 +31,7 @@ class CMLManager:
         self.cml_api = CMLAPI()
         self.webex_api = WebexTeamsAPI()
 
-    def manage_labs(self):
+    def manage_labs(self, user_emails: list) -> tuple:
         """
         Main function for managing cml labs within an acceptable time frame
         1. populates/deletes labs from database
@@ -41,12 +41,14 @@ class CMLManager:
         fail_counter = 0
 
         self.logging.debug("Managing Labs")
-        all_user_emails = self.dynamodb.get_all_cml_users()
         self.cml_api.fill_user_labs_dict()
 
-        for email in all_user_emails:
+        for email in user_emails:
             try:
                 self.logging.info("Checking labs for user %s", email)
+
+                self.cml_api.check_card_timeframe(email) #check if already sent card and if user responded
+
                 if self.cml_api.user_in_long_lived_labs(email):
                     continue
 
