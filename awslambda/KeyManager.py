@@ -8,7 +8,7 @@ from boto3.dynamodb.conditions import Key, Attr
 
 
 class KeyManager:
-    def __init__(self, group, rotate_days, warn_days, delete_days):
+    def __init__(self, group, rotate_days, warn_days, delete_days, key_status, key_last_used, key_created_days):
         # Initialize logging
         logging.basicConfig(level=os.environ.get("LOGLEVEL", "DEBUG"))
         self.logging = logging.getLogger()
@@ -38,23 +38,9 @@ class KeyManager:
             sys.exit(1)
 
         ###MADE UP KEY DATES FOR TESTING
-        if "CREATED_DAYS" in os.environ:
-            self.created_days = os.getenv("CREATED_DAYS")
-        else:
-            logging.error("Environment variable(s) CREATED_DAYS must be set")
-            sys.exit(1)
-
-        if "KEY_LAST_USED" in os.environ:
-            self.key_last_used = os.getenv("KEY_LAST_USED")
-        else:
-            logging.error("Environment variable(s) KEY_LAST_USED must be set")
-            sys.exit(1)
-
-        if "KEY_STATUS" in os.environ:
-            self.key_status = os.getenv("KEY_STATUS")
-        else:
-            logging.error("Environment variable(s) KEY_STATUS must be set")
-            sys.exit(1)
+        self.key_status = key_status
+        self.key_last_used = key_last_used
+        self.created_days = key_created_days
 
         self.resource = boto3.resource(
             "iam",
