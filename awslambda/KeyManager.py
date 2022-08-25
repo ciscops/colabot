@@ -43,11 +43,13 @@ class KeyManager:
         else:
             logging.error("Environment variable(s) CREATED_DAYS must be set")
             sys.exit(1)
+
         if "KEY_LAST_USED" in os.environ:
             self.key_last_used = os.getenv("KEY_LAST_USED")
         else:
             logging.error("Environment variable(s) KEY_LAST_USED must be set")
             sys.exit(1)
+
         if "KEY_STATUS" in os.environ:
             self.key_status = os.getenv("KEY_STATUS")
         else:
@@ -90,7 +92,7 @@ class KeyManager:
 
     def process_key(self, access_key, user_email, user):
         # key_age = access_key.create_date
-        # currentdate = date.today()
+        currentdate = date.today()
         # key_created_days = (currentdate - key_age.date()).days
         key_created_days = self.created_days
 
