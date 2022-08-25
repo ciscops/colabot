@@ -1,9 +1,9 @@
 # Makefile
 PYTHON_EXE = python3
 PROJECT_NAME="colabot"
-LAMBDA_FUNCTION_NAME=""
+LAMBDA_FUNCTION_NAME="cpn-colabot-rotate-keys"
 TOPDIR = $(shell git rev-parse --show-toplevel)
-PYDIRS_LAMBDA=awslambda
+PYDIRS_LAMBDA=awslambda/KeyManager.py
 PYDIRS=$(PYDIRS_LAMBDA)
 VENV = venv_$(PROJECT_NAME)
 VENV_BIN=$(VENV)/bin
