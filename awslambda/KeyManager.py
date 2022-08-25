@@ -37,6 +37,23 @@ class KeyManager:
             logging.error("Environment variable(s) DYNAMODB_TABLE_NAME must be set")
             sys.exit(1)
 
+        ###MADE UP KEY DATES FOR TESTING
+        if "CREATED_DAYS" in os.environ:
+            self.created_days = os.getenv("CREATED_DAYS")
+        else:
+            logging.error("Environment variable(s) CREATED_DAYS must be set")
+            sys.exit(1)
+        if "KEY_LAST_USED" in os.environ:
+            self.key_last_used = os.getenv("KEY_LAST_USED")
+        else:
+            logging.error("Environment variable(s) KEY_LAST_USED must be set")
+            sys.exit(1)
+        if "KEY_STATUS" in os.environ:
+            self.key_status = os.getenv("KEY_STATUS")
+        else:
+            logging.error("Environment variable(s) KEY_STATUS must be set")
+            sys.exit(1)
+
         self.resource = boto3.resource(
             "iam",
             aws_access_key_id=self.access_key_id,
@@ -72,13 +89,16 @@ class KeyManager:
                     self.process_key(access_key, user_email, user)
 
     def process_key(self, access_key, user_email, user):
-        key_age = access_key.create_date
-        currentdate = date.today()
-        key_created_days = (currentdate - key_age.date()).days
+        # key_age = access_key.create_date
+        # currentdate = date.today()
+        # key_created_days = (currentdate - key_age.date()).days
+        key_created_days = self.created_days
 
-        key_status = access_key.status
+        # key_status = access_key.status
+        key_status = self.key_status
         key_id = access_key.access_key_id
-        access_key_last_used = self.client.get_access_key_last_used(AccessKeyId=key_id)
+        # access_key_last_used = self.client.get_access_key_last_used(AccessKeyId=key_id)
+        access_key_last_used = self.key_last_used
 
         self.logging.debug("Email: %s", user_email)
         self.logging.debug("Key status: %s ", key_status)
