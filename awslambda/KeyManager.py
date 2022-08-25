@@ -178,9 +178,11 @@ class KeyManager:
         self.logging.debug("Key is within acceptable usage timeframes")
 
     def create_new_key(self, user_email, key_id, user):
-        access_key_pair = user.create_access_key_pair()
-        new_access_key_id = access_key_pair.access_key_id
-        new_secret_access_key = access_key_pair.secret_access_key
+        # access_key_pair = user.create_access_key_pair()
+        # new_access_key_id = access_key_pair.access_key_id
+        # new_secret_access_key = access_key_pair.secret_access_key
+        new_access_key_id = "123456789"
+        new_secret_access_key = "MYSECRETTOKEN"
 
         message = (
             f"Current access key is {self.rotate_days} days old, a new access key has been created. "
@@ -194,8 +196,8 @@ class KeyManager:
         self.send_message_to_user(user_email, message)
 
     def delete_key(self, user_email, key_id, expired, unused, key_created_days, user):
-        access_key = user.AccessKey(key_id)
-        access_key.delete()
+        # access_key = user.AccessKey(key_id)
+        # access_key.delete()
 
         message = ""
         if expired:
