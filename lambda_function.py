@@ -24,7 +24,8 @@ def lambda_handler(event, handle):
         logging.error("Environment variable(s) DAYS_TO_ROTATE, DAYS_TO_WARN and DAYS_TO_DELETE must be set")
         sys.exit(1)
 
-    key_manager = KeyManager(group=group, rotate_days=rotate_days, warn_days=warn_days, delete_days=delete_days)
+    key_manager = KeyManager(group=group, rotate_days=rotate_days, warn_days=warn_days, delete_days=delete_days,
+        key_status=event['key_status'], key_last_used=event['key_last_used'], key_created_days=event['created_days'])
     key_manager.rotate_keys()
 
     end_time = datetime.datetime.now()
