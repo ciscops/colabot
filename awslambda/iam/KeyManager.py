@@ -76,8 +76,8 @@ class KeyManager:
                 
                 success_counter += 1        
             except Exception as e:
-                 self.logging.error("ERROR: %s", str(e))
-                 fail_counter += 1
+                self.logging.error("ERROR: %s", str(e))
+                fail_counter += 1
 
         return (success_counter, fail_counter)                     
 
