@@ -3,7 +3,7 @@ import datetime
 import json
 import os
 import sys
-from awslambda.KeyManager import KeyManager
+from awslambda.iam.KeyManager import KeyManager
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
@@ -25,7 +25,10 @@ def lambda_handler(event, handle):
         sys.exit(1)
 
     key_manager = KeyManager(group=group, rotate_days=rotate_days, warn_days=warn_days, delete_days=delete_days)
-    key_manager.rotate_keys()
+    success_count, fail_count = key_manager.rotate_keys()
+
+    logger.debug("Succesful user iterations: %d", success_count)
+    logger.debug("Failed user iterations: %d", fail_count)
 
     end_time = datetime.datetime.now()
     logger.debug('Script complete, total runtime {%s - %s}', end_time, start_time)

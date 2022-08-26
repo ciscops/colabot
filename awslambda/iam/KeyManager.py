@@ -57,19 +57,29 @@ class KeyManager:
         self.warn_days = int(warn_days)
 
     def rotate_keys(self):
-        self.logging.debug("")
+        success_counter = 0
+        fail_counter = 0
+
         iam_group = self.resource.Group(self.group)
         iam_group_users = iam_group.users.all()
 
         for user in iam_group_users:
-            name = user.name
-            user_access_key_list = user.access_keys.all()
-            user_email = self.get_dynamo_user_email(name)
+            try:
+                name = user.name
+                user_access_key_list = user.access_keys.all()
+                user_email = self.get_dynamo_user_email(name)
 
-            if user_email is not None:
-                self.logging.debug("Checking keys for user: %s", name)
-                for access_key in user_access_key_list:
-                    self.process_key(access_key, user_email, user)
+                if user_email is not None:
+                    self.logging.debug("Checking keys for user: %s", name)
+                    for access_key in user_access_key_list:
+                        self.process_key(access_key, user_email, user)
+                
+                success_counter += 1        
+            except Exception as e:
+                 self.logging.error("ERROR: %s", str(e))
+                 fail_counter += 1
+
+        return (success_counter, fail_counter)                     
 
     def process_key(self, access_key, user_email, user):
         key_age = access_key.create_date
@@ -82,7 +92,7 @@ class KeyManager:
 
         self.logging.debug("Email: %s", user_email)
         self.logging.debug("Key status: %s ", key_status)
-        self.logging.debug("key is %s days old", key_created_days)
+        self.logging.debug("Key was created %s days ago", key_created_days)
 
         if key_status != "Active":
             self.delete_key(

@@ -1,10 +1,13 @@
 # Makefile
 PYTHON_EXE = python3
 PROJECT_NAME="colabot"
-LAMBDA_FUNCTION_NAME=""
+LAMBDA_FUNCTION_ROTATE_KEYS=cpn-colabot-rotate-keys
 TOPDIR = $(shell git rev-parse --show-toplevel)
-PYDIRS_LAMBDA=awslambda
-PYDIRS=$(PYDIRS_LAMBDA)
+PYDIRS_LAMBDA_IAM=awslambda/iam
+PYDIRS_LAMBDA_CML=awslambda/cml
+PYDIRS_FEATURES=features
+PYDIRS_WEBEX=webex
+PYDIRS=$(PYDIRS_LAMBDA_IAM) $(PYDIRS_LAMBDA_CML) $(PYDIRS_FEATURES) $(PYDIRS_WEBEX)
 VENV = venv_$(PROJECT_NAME)
 VENV_BIN=$(VENV)/bin
 SRC_FILES := $(shell find $(PYDIRS) -name \*.py)
@@ -43,6 +46,10 @@ clean-lambda: ## Clean lambda packages
 	$(RM) lambda-packages.zip
 	$(RM) lambda-function.zip
 
+clean-post-upload: ## Clean lambda packages post upload to lambda
+	$(RM) lambda_function.py	
+	$(RM) lambda-function-colabot-iam.zip
+
 build: deps ## Builds EGG info and project documentation.
 	$(VENV_BIN)/python setup.py egg_info
 
@@ -59,22 +66,28 @@ lambda-packages.zip: lambda-packages ## Output all code to zip file
 	cd lambda-packages && zip -r ../$@ * # zip all python source code into output.zip
 
 # Build lambda layer for colabot lambda function
-lambda-layer-colabot: lambda-packages.zip
+lambda-layer-colabot-iam: lambda-packages.zip
 	aws lambda publish-layer-version \
-	--layer-name $(LAMBDA_FUNCTION_NAME)-layer \
-	--license-info "MIT" \
-	--zip-file fileb://lambda-packages.zip \
-	--compatible-runtimes python3.9
+	--layer-name $(LAMBDA_FUNCTION_ROTATE_KEYS)-layer \
+ 	--license-info "MIT" \
+ 	--zip-file fileb://lambda-packages.zip \
+ 	--compatible-runtimes python3.9
 	$(RM) -rf lambda-packages
 
-lambda-function-colabot.zip: lambda_function.py ## Output all code to zip file
-	zip -r $@ lambda_function.py $(PYDIRS_LAMBDA) # zip all python source code into output.zip
+lambda-function-colabot-iam.zip: awslambda/lambda_function_iam.py ## Output all code to zip file
+	cp awslambda/lambda_function_iam.py lambda_function.py
+	zip -r $@ lambda_function.py $(PYDIRS_LAMBDA_IAM) # zip all python source code into output.zip
 
-# Upload layer for colabot lambda function
-lambda-upload-colabot:lambda-function-colabot.zip ## Deploy all code to aws
+# Upload layer for colabot lambda iam function
+lambda-upload-colabot-iam:lambda-function-colabot-iam.zip ## Deploy all code to aws
 	aws lambda update-function-code \
-	--function-name $(LAMBDA_FUNCTION_NAME) \
-	--zip-file fileb://lambda-function-colabot.zip
+ 	--function-name $(LAMBDA_FUNCTION_ROTATE_KEYS) \
+ 	--zip-file fileb://lambda-function-colabot-iam.zip
+
+upload-iam:
+	make clean clean-lambda
+	make lambda-upload-colabot-iam
+	make clean-post-upload
 
 # Build image, needs to be done once, when initially making image
 # make build-container
