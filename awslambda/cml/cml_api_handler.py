@@ -3,7 +3,7 @@ import os
 import sys
 from datetime import datetime
 import yaml
-from virl2_client import ClientLibrary
+from virl2_client import ClientLibrary, models
 from webexteamssdk import WebexTeamsAPI
 
 
@@ -118,21 +118,8 @@ class CMLAPI:
                 lab = self.client.join_existing_lab(lab_id)
 
                 lab_name = lab.title
-                file = f"/tmp/{lab_name}.yaml"
 
-                yaml_string = lab.download()
-                with open(file, "w", encoding="utf-8") as outfile:
-                    yaml.dump(
-                        yaml.full_load(yaml_string), outfile, default_flow_style=False
-                    )
-
-                self.webex_api.messages.create(
-                    toPersonEmail=email,
-                    markdown=f'YAML Topology file for lab "{lab_name}"',
-                    files=[file],
-                )
-
-                os.remove(file)
+                self.send_lab_topology(lab, email)
 
                 lab.stop()
                 lab.wipe()
@@ -146,5 +133,24 @@ class CMLAPI:
 
         message += "</code></pre>"
         self.webex_api.messages.create(toPersonEmail=email, markdown=message)
+
+        return True
+
+    def send_lab_topology(self, lab: models.lab.Lab, email) -> bool:
+        """Downloads the lab and sends it to the user"""
+        lab_name = lab.title
+        file = f"/tmp/{lab_name}.yaml"
+
+        yaml_string = lab.download()
+        with open(file, "w", encoding="utf-8") as outfile:
+            yaml.dump(yaml.full_load(yaml_string), outfile, default_flow_style=False)
+
+        self.webex_api.messages.create(
+            toPersonEmail=email,
+            markdown=f'YAML Topology file for lab "{lab_name}"',
+            files=[file],
+        )
+
+        os.remove(file)
 
         return True
