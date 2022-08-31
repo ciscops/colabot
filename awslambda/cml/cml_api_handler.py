@@ -151,3 +151,22 @@ class CMLAPI:
             )
 
         return True
+
+    def send_lab_topology(self, lab: models.lab.Lab, email) -> bool:
+        """Downloads the lab and sends it to the user"""
+        lab_name = lab.title
+        file = f"/tmp/{lab_name}.yaml"
+
+        yaml_string = lab.download()
+        with open(file, "w", encoding="utf-8") as outfile:
+            yaml.dump(yaml.full_load(yaml_string), outfile, default_flow_style=False)
+
+        self.webex_api.messages.create(
+            toPersonEmail=email,
+            markdown=f'YAML Topology file for lab "{lab_name}"',
+            files=[file],
+        )
+
+        os.remove(file)
+
+        return True
