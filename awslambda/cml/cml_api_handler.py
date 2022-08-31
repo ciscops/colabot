@@ -2,7 +2,9 @@ import logging
 import os
 import sys
 from datetime import datetime
+import yaml
 from virl2_client import ClientLibrary
+from webexteamssdk import WebexTeamsAPI
 
 
 class CMLAPI:
@@ -29,7 +31,14 @@ class CMLAPI:
             logging.error("Environment variable LONG_LIVED_LABS_GROUP must be set")
             sys.exit(1)
 
+        if "WIPED_LABS_GROUP" in os.environ:
+            self.wiped_labs_group = os.getenv("WIPED_LABS_GROUP")
+        else:
+            logging.error("Environment variable WIPED_LABS_GROUP must be set")
+            sys.exit(1)
+
         self.client = None
+        self.webex_api = WebexTeamsAPI()
         self.created_date_format = "%Y-%m-%dT%H:%M:%S+00:00"
         self.user_and_labs = {}
         self.long_lived_users = []
@@ -98,3 +107,44 @@ class CMLAPI:
                 labs[lab_id] = (title, created_date)
 
         return labs
+
+    def wipe_labs(self, lab_ids: list, email: str) -> bool:
+        """Wipes the labs, sends the user each lab's yaml file, and messages the user"""
+
+        self.connect()
+        message = "The following CML Labs have been wiped:<pre>"
+        for lab_id in lab_ids:
+            try:
+                lab = self.client.join_existing_lab(lab_id)
+
+                lab_name = lab.title
+                file = f"/tmp/{lab_name}.yaml"
+
+                yaml_string = lab.download()
+                with open(file, "w", encoding="utf-8") as outfile:
+                    yaml.dump(
+                        yaml.full_load(yaml_string), outfile, default_flow_style=False
+                    )
+
+                self.webex_api.messages.create(
+                    toPersonEmail=email,
+                    markdown=f'YAML Topology file for lab "{lab_name}"',
+                    files=[file],
+                )
+
+                os.remove(file)
+
+                lab.stop()
+                lab.wipe()
+                lab.update_lab_groups(
+                    [{"id": self.wiped_labs_group, "permission": "read_only"}]
+                )
+
+                message += lab_name + "\n"
+            except Exception:
+                self.logging.error("Error wiping lab %s", lab_name)
+
+        message += "</code></pre>"
+        self.webex_api.messages.create(toPersonEmail=email, markdown=message)
+
+        return True
