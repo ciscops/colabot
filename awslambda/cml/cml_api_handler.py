@@ -4,7 +4,7 @@ import sys
 import tempfile
 from datetime import datetime
 import yaml
-from virl2_client import ClientLibrary
+from virl2_client import ClientLibrary, models
 from webexteamssdk import WebexTeamsAPI
 from awslambda.cml.dynamo_api_handler import Dynamoapi
 
