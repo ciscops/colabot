@@ -14,13 +14,10 @@ def lambda_handler(event, handle):
     start_time = datetime.datetime.now()
 
     cml = CMLManager()
-    # success_count, fail_count = cml.manage_labs()
+    success_count, fail_count = cml.manage_labs()
 
-    # logger.debug("Succesful user iterations: %d", success_count)
-    # logger.debug("Failed user iterations: %d", fail_count)
-    cml.wipe_lab()
-
-
+    logger.debug("Succesful user iterations: %d", success_count)
+    logger.debug("Failed user iterations: %d", fail_count)
 
     end_time = datetime.datetime.now()
     logger.debug('Script complete, total runtime {%s - %s}', end_time, start_time)
