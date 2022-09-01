@@ -31,11 +31,6 @@ class CMLManager:
         self.cml_api = CMLAPI()
         self.webex_api = WebexTeamsAPI()
 
-    def wipe_lab(self):
-        self.cml_api.wipe_labs(
-            ["e41a182a-4dd6-4383-ad33-40749318bd8f"], "kstickne@cisco.com"
-        )
-
     def manage_labs(self):
         """
         Main function for managing cml labs within an acceptable time frame
