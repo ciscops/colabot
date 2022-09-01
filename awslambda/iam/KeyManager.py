@@ -10,7 +10,7 @@ from boto3.dynamodb.conditions import Key, Attr
 class KeyManager:
     def __init__(self, group, rotate_days, warn_days, delete_days):
         # Initialize logging
-        logging.basicConfig(level=os.environ.get("LOGLEVEL", "DEBUG"))
+        logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
         self.logging = logging.getLogger()
 
         if (
@@ -55,6 +55,8 @@ class KeyManager:
         self.group = group
         self.rotate_days = int(rotate_days)
         self.warn_days = int(warn_days)
+        self.temp_key_deleted_counter = 0
+        self.log_indent = "." * 6
 
     def rotate_keys(self):
         success_counter = 0
@@ -70,7 +72,7 @@ class KeyManager:
                 user_email = self.get_dynamo_user_email(name)
 
                 if user_email is not None:
-                    self.logging.debug("Checking keys for user: %s", name)
+                    self.logging.info("Checking keys for user: %s", name)
                     for access_key in user_access_key_list:
                         self.process_key(access_key, user_email, user)
                 
@@ -79,6 +81,7 @@ class KeyManager:
                 self.logging.error("ERROR: %s", str(e))
                 fail_counter += 1
 
+        self.logging.info("Keys deleted %s", self.temp_key_deleted_counter)
         return (success_counter, fail_counter)                     
 
     def process_key(self, access_key, user_email, user):
@@ -90,18 +93,19 @@ class KeyManager:
         key_id = access_key.access_key_id
         access_key_last_used = self.client.get_access_key_last_used(AccessKeyId=key_id)
 
-        self.logging.debug("Email: %s", user_email)
-        self.logging.debug("Key status: %s ", key_status)
-        self.logging.debug("Key was created %s days ago", key_created_days)
+        self.logging.info("%sEmail: %s", self.log_indent, user_email)
+        self.logging.info("%sKey status: %s ", self.log_indent, key_status)
+        self.logging.info("%sKey was created %s days ago", self.log_indent, key_created_days)
 
         if key_status != "Active":
             self.delete_key(
                 user_email=user_email,
                 key_id=key_id,
-                expired=True,
+                expired=False,
                 unused=False,
                 key_created_days=key_created_days,
                 user=user,
+                inactive=True,
             )
             return
 
@@ -139,7 +143,7 @@ class KeyManager:
         if "LastUsedDate" in access_key_last_used["AccessKeyLastUsed"]:
             key_last_used = access_key_last_used["AccessKeyLastUsed"]["LastUsedDate"]
             key_last_used_date = (currentdate - key_last_used.date()).days
-            self.logging.debug("Key was last used %s days ago", key_last_used_date)
+            self.logging.info("%sKey was last used %s days ago", self.log_indent, key_last_used_date)
             if (
                 key_last_used_date >= self.warn_days - 5
             ):  # If key is within 5 days of unused deadline
@@ -165,12 +169,15 @@ class KeyManager:
                 )
                 return
 
-        self.logging.debug("Key is within acceptable usage timeframes")
+        self.logging.info("%sKey is within acceptable usage timeframes", self.log_indent)
 
     def create_new_key(self, user_email, key_id, user):
-        access_key_pair = user.create_access_key_pair()
-        new_access_key_id = access_key_pair.access_key_id
-        new_secret_access_key = access_key_pair.secret_access_key
+        #access_key_pair = user.create_access_key_pair()
+        #new_access_key_id = access_key_pair.access_key_id
+        #new_secret_access_key = access_key_pair.secret_access_key
+
+        new_access_key_id = ""
+        new_secret_access_key = ""
 
         message = (
             f"Current access key is {self.rotate_days} days old, a new access key has been created. "
@@ -178,22 +185,24 @@ class KeyManager:
             + f"\n - New access key **Access key ID** = ({new_access_key_id}) | **Secret access key** = ({new_secret_access_key})"
         )
 
-        # This script only runs if two key exist, which presumes 1 key is within expiring and 1 is not given the bot can do what it needs to
-        # double check that a static message like this is fine
-        self.logging.debug("Current key is %s days old, creating new access key", str(self.rotate_days))
+        self.logging.info("%sCurrent key is %s days old, creating new access key", self.log_indent, str(self.rotate_days),)
         self.send_message_to_user(user_email, message)
 
-    def delete_key(self, user_email, key_id, expired, unused, key_created_days, user):
-        access_key = user.AccessKey(key_id)
-        access_key.delete()
+    def delete_key(self, user_email, key_id, expired, unused, key_created_days, user, inactive=False):
+        #access_key = user.AccessKey(key_id)
+        #access_key.delete()
+        self.temp_key_deleted_counter += 1
 
         message = ""
         if expired:
             message = f"Access key ({key_id}) \n - Age: {key_created_days} days old \n - Maximum lifespan: {self.delete_days} days \n - Status: **Deleted** \n - Reason: exceeds lifespan"
-            self.logging.debug("Key is %s old or older, deleting key", str(self.delete_days))
+            self.logging.info("%sKey is %s old or older, deleting key", self.log_indent, str(self.delete_days))
         if unused:
             message = f"Access key ({key_id}) \n - Last used: {self.warn_days} days ago \n - Maximum unused lifespan: {self.warn_days} days \n - Status: **Deleted** \n - Reason: key is not used"
-            self.logging.debug("Key has not been used in %s days, deleting key", str(self.warn_days))
+            self.logging.info("%sKey has not been used in %s days, deleting key", self.log_indent, str(self.warn_days))
+        if inactive:
+            message = f"Access key ({key_id}) \n - Status: **Deleted** \n - Reason: key was set to inactive"
+            self.logging.info("%sKey was set to inactive, deleting key", self.log_indent)
 
         self.send_message_to_user(user_email, message)
 
@@ -201,20 +210,20 @@ class KeyManager:
         message = ""
         if expire:
             message = f"Access key ({key_id}) \n - Age: {days_to_warn} days old \n - Expiration in: {self.delete_days - days_to_warn} days \n - Status: **Warning** \n - Reason: reaching key age limit of {self.delete_days} days \n"
-            self.logging.debug(
-                "Key age is between %s-%s days old, warning user of expiration", str(self.rotate_days), str(self.delete_days)
+            self.logging.info(
+                "%sKey age is between %s-%s days old, warning user of expiration", self.log_indent, str(self.rotate_days), str(self.delete_days)
             )
         if unused:
             message = f"Access key ({key_id}) \n - Last used: {days_to_warn} days ago \n - Expiration in: {self.warn_days - days_to_warn} days \n - Status: **Warning** \n - Reason: reaching key unused limit of {self.warn_days} days \n"
-            self.logging.debug(
-                "Key has not been used in %s-%s days, warning user of expiration", str(self.warn_days-5), str(self.warn_days)
+            self.logging.info(
+                "%sKey has not been used in %s-%s days, warning user of expiration", self.log_indent, str(self.warn_days-5), str(self.warn_days)
             )
 
         self.send_message_to_user(user_email, message)
 
     def send_message_to_user(self, user_email, message):
-        self.logging.debug("Sending message to %s", user_email)
-        self.api.messages.create(toPersonEmail=user_email, markdown=message)
+        self.logging.info("%sSending message to %s. Message: %s", self.log_indent, user_email, message) #remove the message part
+        #self.api.messages.create(toPersonEmail=user_email, markdown=message)
 
     def get_dynamo_user_email(self, user_name):
         response = self.table.query(

@@ -6,13 +6,13 @@ import sys
 from awslambda.iam.KeyManager import KeyManager
 
 logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 
 def lambda_handler(event, handle):
-    logger.debug('new event received: %s', str(event))
-    logger.debug(str(event))
-    logger.debug(str(handle))
+    logger.info('new event received: %s', str(event))
+    logger.info(str(event))
+    logger.info(str(handle))
     start_time = datetime.datetime.now()
 
     if "DAYS_TO_ROTATE" in os.environ and "DAYS_TO_WARN" in os.environ and "DAYS_TO_DELETE" in os.environ and "IAM_GROUP" in os.environ:
@@ -27,11 +27,11 @@ def lambda_handler(event, handle):
     key_manager = KeyManager(group=group, rotate_days=rotate_days, warn_days=warn_days, delete_days=delete_days)
     success_count, fail_count = key_manager.rotate_keys()
 
-    logger.debug("Succesful user iterations: %d", success_count)
-    logger.debug("Failed user iterations: %d", fail_count)
+    logger.info("Succesful user iterations: %d", success_count)
+    logger.info("Failed user iterations: %d", fail_count)
 
     end_time = datetime.datetime.now()
-    logger.debug('Script complete, total runtime {%s - %s}', end_time, start_time)
+    logger.info('Script complete, total runtime {%s - %s}', end_time, start_time)
     return {
         "statusCode": 200,
         "headers": {
