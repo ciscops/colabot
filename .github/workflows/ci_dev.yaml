@@ -106,7 +106,7 @@ jobs:
 
       - name: Apply and rollout
         run: |
-          echo whoami
+          whoami
           kubectl apply -f output-secrets-dev.yaml
           kubectl apply -f output-manifest-dev.yaml
           kubectl rollout restart deployment/colabot-dev-1
