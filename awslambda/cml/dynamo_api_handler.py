@@ -22,6 +22,7 @@ class Dynamoapi:
         self.dynamodb = None
         self.table_date_format = "%m%d%Y"
         self.cml_labs_tag = "#cml_labs"
+        self.lab_id_tag = "#lab_id"
 
     def get_dynamo_cml_table(self):
         """
@@ -73,10 +74,10 @@ class Dynamoapi:
 
         return labs
 
-    def add_cml_lab(self, email: str, lab_id: str, date: datetime.date):
+    def add_cml_lab(self, email: str, lab_id: str, created_date: datetime.date):
         """Adds a new lab to a user - has to have cml_labs field"""
         self.get_dynamo_cml_table()
-        date_string = datetime.strftime(date, self.table_date_format)
+        date_string = datetime.strftime(created_date, self.table_date_format)
 
         response = self.cml_table.query(
             KeyConditionExpression=Key("email").eq(email),
@@ -98,12 +99,12 @@ class Dynamoapi:
                 UpdateExpression="set #cml_labs.#lab_id= :lab",
                 ExpressionAttributeNames={
                     self.cml_labs_tag: "cml_labs",
-                    "#lab_id": lab_id,
+                    self.lab_id_tag: lab_id,
                 },
                 ExpressionAttributeValues={":lab": date_string},
             )
         except Exception as e:
-            self.logging.debug("Error: %s", e)
+            self.logging.error("Problem adding lab: %s", str(e))
 
     def update_cml_lab_used_date(self, email: str, lab_id: str):
         """Updates the last used date for a lab"""
@@ -116,12 +117,12 @@ class Dynamoapi:
                 UpdateExpression="set #cml_labs.#lab_id= :lab",
                 ExpressionAttributeNames={
                     self.cml_labs_tag: "cml_labs",
-                    "#lab_id": lab_id,
+                    self.lab_id_tag: lab_id,
                 },
                 ExpressionAttributeValues={":lab": date_string},
             )
         except Exception as e:
-            self.logging.debug("Error: %s", e)
+            self.logging.error("Problem updating lab used date: %s", str(e))
 
     def delete_cml_lab(self, email: str, lab_id: str):
         """Adds a new lab to a user - has to have cml_labs field"""
@@ -133,11 +134,11 @@ class Dynamoapi:
                 UpdateExpression="remove #cml_labs.#lab_id",
                 ExpressionAttributeNames={
                     self.cml_labs_tag: "cml_labs",
-                    "#lab_id": lab_id,
+                    self.lab_id_tag: lab_id,
                 },
             )
         except Exception as e:
-            self.logging.debug("Error: %s", e)
+            self.logging.error("Problem deleting lab: %s", str(e))
 
     def get_deleted_labs(self, user_email: str) -> dict:
         """
