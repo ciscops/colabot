@@ -175,3 +175,27 @@ class CMLAPI:
             )
 
         return True
+
+    def delete_labs(self, lab_ids: list, user_email: str) -> bool:
+        """Deletes the given labs from cml and the database"""
+        self.connect()
+
+        message = "The following CML Labs have been deleted<pre>"
+        for lab_id in lab_ids:
+            try:
+                lab = self.client.join_existing_lab(lab_id)
+                if lab.is_active():
+                    self.dynamodb.update_cml_lab_used_date(user_email, lab_id)
+                    continue
+
+                lab_name = lab.title
+                lab.remove()
+                self.dynamodb.delete_cml_lab(user_email, lab_id)
+                message += lab_name + "\n"
+            except Exception:
+                self.logging.error("Error deleting lab %s", lab_name)
+
+        message += "</code></pre>"
+        self.webex_api.messages.create(toPersonEmail=user_email, markdown=message)
+
+        return True

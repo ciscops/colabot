@@ -114,6 +114,24 @@ class Dynamoapi:
         except Exception as e:
             self.logging.error("Problem updating lab used date: %s", str(e))
 
+    def update_cml_lab_used_date(self, email: str, lab_id: str):
+        """Updates the last used date for a lab"""
+        self.get_dynamo_cml_table()
+        date_string = datetime.strftime(date.today(), self.table_date_format)
+
+        try:
+            self.cml_table.update_item(
+                Key={"email": email},
+                UpdateExpression="set #cml_labs.#lab_id= :lab",
+                ExpressionAttributeNames={
+                    self.cml_labs_tag: "cml_labs",
+                    "#lab_id": lab_id,
+                },
+                ExpressionAttributeValues={":lab": date_string},
+            )
+        except Exception as e:
+            self.logging.debug("Error: %s", e)
+
     def delete_cml_lab(self, email: str, lab_id: str):
         """Adds a new lab to a user - has to have cml_labs field"""
         self.get_dynamo_cml_table()
