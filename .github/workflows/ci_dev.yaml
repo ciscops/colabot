@@ -56,10 +56,6 @@ jobs:
           sudo apt-get install python3-pip -y
           pip3 install jinja2
 
-      - name: install unzip
-        run: |
-          sudo apt-get install unzip    
-
       - name: Checkout code
         uses: actions/checkout@v2
 
@@ -76,19 +72,6 @@ jobs:
           aws-access-key-id: ${{ secrets.EKS_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.EKS_AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
-
-      - name: Install AWS cli
-        run: |
-          set -x
-          echo $PATH
-          pwd
-          curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o /tmp/awscliv2.zip
-          ls -latr /tmp
-          unzip --help
-          unzip /tmp/awscliv2.zip -d /tmp/
-          sudo -n -l
-          echo $PATH
-          /tmp/aws/install -i /home/github/.local/aws-cli -b /home/github/.local/bin 
 
       - name: Convert j2 template to yaml
         env:
