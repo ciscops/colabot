@@ -157,17 +157,19 @@ class CMLAPI:
         lab_name = lab.title
         yaml_string = lab.download()
 
-        file = tempfile.NamedTemporaryFile(
-            suffix=".yaml", prefix=f'{lab_name.replace(" ","_")}_'
-        )
-        with open(file.name, "w", encoding="utf-8") as outfile:
+        with open(
+            tempfile.NamedTemporaryFile(
+                suffix=".yaml", prefix=f'{lab_name.replace(" ","_")}_'
+            ).name,
+            "w",
+            encoding="utf-8",
+        ) as outfile:
             yaml.dump(yaml.full_load(yaml_string), outfile, default_flow_style=False)
 
             self.webex_api.messages.create(
                 toPersonEmail=email,
                 markdown=f'YAML Topology file for lab "{lab_name}"',
-                files=[file.name],
+                files=[outfile.name],
             )
-        file.close()
 
         return True
