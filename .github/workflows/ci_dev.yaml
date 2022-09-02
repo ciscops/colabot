@@ -56,6 +56,10 @@ jobs:
           sudo apt-get install python3-pip -y
           pip3 install jinja2
 
+      - name: install unzip
+        run: |
+          sudo apt-get install unzip    
+
       - name: Checkout code
         uses: actions/checkout@v2
 
