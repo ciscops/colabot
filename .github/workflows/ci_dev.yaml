@@ -79,7 +79,7 @@ jobs:
 
       - name: Install AWS cli
         run: |
-          curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o /tmp/awscliv2.zip -y
+          curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o /tmp/awscliv2.zip
           unzip -qq /tmp/awscliv2.zip -d /tmp
           sudo -n -l
           echo $PATH
