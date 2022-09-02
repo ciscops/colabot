@@ -184,6 +184,8 @@ class CMLAPI:
         for lab_id in lab_ids:
             try:
                 lab = self.client.join_existing_lab(lab_id)
+
+                # check to see if lab is running
                 if lab.is_active():
                     self.dynamodb.update_cml_lab_used_date(user_email, lab_id)
                     continue

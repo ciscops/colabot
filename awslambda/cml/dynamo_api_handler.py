@@ -125,12 +125,12 @@ class Dynamoapi:
                 UpdateExpression="set #cml_labs.#lab_id= :lab",
                 ExpressionAttributeNames={
                     self.cml_labs_tag: "cml_labs",
-                    "#lab_id": lab_id,
+                    self.lab_id_tag: lab_id,
                 },
                 ExpressionAttributeValues={":lab": date_string},
             )
         except Exception as e:
-            self.logging.debug("Error: %s", e)
+            self.logging.error("Problem updating lab used date: %s", str(e))
 
     def delete_cml_lab(self, email: str, lab_id: str):
         """Adds a new lab to a user - has to have cml_labs field"""
