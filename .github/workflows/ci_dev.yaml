@@ -53,8 +53,8 @@ jobs:
     steps:
       - name: install jinja2
         run: |  
-          sudo apt-get install python3-pip -y
-          pip install jinja2
+          sudo apt-get install python3-pip3 -y
+          pip3 install jinja2
 
       - name: Checkout code
         uses: actions/checkout@v2
