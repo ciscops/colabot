@@ -79,11 +79,16 @@ jobs:
 
       - name: Install AWS cli
         run: |
+          set -x
+          echo $PATH
+          pwd
           curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o /tmp/awscliv2.zip
-          unzip -qq /tmp/awscliv2.zip -d -y /tmp/\*
+          ls -latr /tmp
+          unzip --help
+          unzip /tmp/awscliv2.zip -d /tmp/
           sudo -n -l
           echo $PATH
-          /tmp/aws/install -i /home/github/.local/aws-cli -b /home/github/.local/bin
+          /tmp/aws/install -i /home/github/.local/aws-cli -b /home/github/.local/bin 
 
       - name: Convert j2 template to yaml
         env:
