@@ -115,7 +115,6 @@ class CMLAPI:
         """Wipes the labs, sends the user each lab's yaml file, and messages the user"""
 
         self.connect()
-        message = "The following CML Labs have been wiped:<pre>"
         for lab_id in lab_ids:
             try:
                 lab = self.client.join_existing_lab(lab_id)
@@ -128,9 +127,6 @@ class CMLAPI:
                 )
             except Exception:
                 self.logging.error("Error wiping lab")
-
-        message += "</code></pre>"
-        self.webex_api.messages.create(toPersonEmail=email, markdown=message)
 
         return True
 
