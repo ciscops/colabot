@@ -1,4 +1,3 @@
-from distutils.log import WARN
 import logging
 import sys
 import os
@@ -21,7 +20,7 @@ class CMLManager:
         else:
             logging.error("Environment variable LAB_WARN_DAYS must be set")
             sys.exit(1)
-        
+
         if "LAB_DELETE_DAYS" in os.environ:
             self.DELETE_DAYS = int(os.getenv("LAB_DELETE_DAYS"))
         else:
@@ -44,15 +43,17 @@ class CMLManager:
 
         # Update database and send labs to be wiped cards
         success_count, fail_count = self.update_labs_in_database(all_user_emails)
+        self.logging.info("Succesful user iterations update send cards: %d", success_count)
+        self.logging.info("Failed user iterations send cards: %d", fail_count)
 
         # Delete labs greater than given wiped period
         success_count, fail_count = self.delete_wiped_labs(all_user_emails)
-
-        # Check all sent card dates - PUT THIS IN UPDATE_LABS???
-        success_count, fail_count = self.check_sent_cards_dates(all_user_emails)
+        self.logging.info("Succesful user iterations delete labs: %d", success_count)
+        self.logging.info("Failed user iterations delete labs: %d", fail_count)
 
         # Warn for labs to be deleted
 
+        return (0,0)
 
     def delete_wiped_labs(self, user_emails: list) -> tuple:
         """Delete labs that have been wiped and over the wiped-to-delete period"""
@@ -67,10 +68,10 @@ class CMLManager:
                     if lab_last_used + self.DELETE_DAYS >= date.today():
                         labs_to_delete.append(lab_id)
 
-                self.cml_api.delete_labs(labs_to_delete)
+                self.cml_api.delete_labs(labs_to_delete, user_email)
                 success_counter += 1
             except Exception as e:
-                self.logging.error("Error deleting lab %s", lab_id)
+                self.logging.error("Error deleting lab %s: %s", lab_id, str(e))
                 fail_counter += 1
 
         return (success_counter, fail_counter)
@@ -103,14 +104,21 @@ class CMLManager:
                 self.delete_extra_database_labs(database_labs, cml_labs, email)
 
                 # compares cml labs to last_used date in database
-                labs_to_wipe = self.get_labs_to_wipe(database_labs, cml_labs, email)
+                labs_to_send_card = self.get_labs_to_send_card(
+                    database_labs, cml_labs, email
+                )
 
-                self.logging.info("%s LABS_TO_WIPE: %s", email, labs_to_wipe)
+                # check any cards already sent to user
+                labs_to_send_card = self.check_sent_cards_dates(
+                    database_labs, cml_labs, labs_to_send_card, email
+                )
+
+                self.logging.info("%s labs_to_send_card: %s", email, labs_to_send_card)
 
                 # Send card
-                if labs_to_wipe:
+                if labs_to_send_card:
                     self.logging.info("Sending labbing card to %s", email)
-                    self.send_labbing_card(labs_to_wipe, email)
+                    self.send_labbing_card(labs_to_send_card, email)
 
                 success_counter += 1
             except Exception as e:
@@ -119,9 +127,11 @@ class CMLManager:
 
         return (success_counter, fail_counter)
 
-    def get_labs_to_wipe(self, database_labs: dict, cml_labs: dict, email: str) -> list:
+    def get_labs_to_send_card(
+        self, database_labs: dict, cml_labs: dict, email: str
+    ) -> list:
         """Creates a list of labs that need to be wiped and adds labs to the database"""
-        labs_to_wipe = []
+        labs_to_send_card = []
         for cml_lab_id, (cml_lab_title, cml_lab_date) in cml_labs.items():
             if cml_lab_id not in database_labs:
                 self.logging.debug("ADD %s adding lab to database", email)
@@ -131,9 +141,9 @@ class CMLManager:
             last_used_date = database_labs[cml_lab_id]
             if (date.today() - last_used_date).days >= self.WARN_DAYS:
                 self.logging.debug("ADD %s adding lab to be wiped", email)
-                labs_to_wipe.append((cml_lab_id, cml_lab_title, last_used_date))
+                labs_to_send_card.append((cml_lab_id, cml_lab_title, last_used_date))
 
-        return labs_to_wipe
+        return labs_to_send_card
 
     def delete_extra_database_labs(
         self, database_labs: dict, cml_labs: dict, email: str
@@ -146,11 +156,11 @@ class CMLManager:
 
         return True
 
-    def send_labbing_card(self, labs_to_wipe: list, email: str) -> bool:
+    def send_labbing_card(self, labs_to_send_card: list, email: str) -> bool:
         """Sends the labbing card to the user with labs to be wiped"""
         lab_choices = []
         all_lab_ids = ""
-        for lab_id, lab_title, last_used_date in labs_to_wipe:
+        for lab_id, lab_title, last_used_date in labs_to_send_card:
             last_seen = (date.today() - last_used_date).days
             lab = {
                 "title": f"Lab: {lab_title} | Last seen: {last_seen} days ago",
@@ -184,14 +194,26 @@ class CMLManager:
 
         return True
 
-    def check_sent_cards_dates(self, user_emails: list) -> tuple:
+    def check_sent_cards_dates(
+        self, database_labs: dict, cml_labs: dict, labs_to_send_card: list, email: str
+    ) -> list:
         """Checks see if a person did not respond to card in time and auto wipes the lab"""
 
-        if card_sent_date > responded_date + self.WIPE_DAYS:
-	        #Check to see if its been 5 days and not responded -> wipe
-            pass
+        labs_to_wipe = []
+        for cml_lab_id, cml_data in cml_labs.items():
+            cml_lab_title = cml_data[0]
+            responded_date = database_labs[cml_lab_id]["card_responded_date"]
+            card_sent_date = database_labs[cml_lab_id]["card_sent_date"]
 
-        elif responded_date + self.WARN_DAYS >= date.today():
-	        #Send new card - or add to list of labs to be wiped (if put in update_labs_database fx)
-            pass
+            if card_sent_date > responded_date + self.WIPE_DAYS:
+                # user not responded to card in time -> wipe labs
+                labs_to_wipe.append(cml_lab_id)
 
+            elif responded_date + self.WARN_DAYS >= date.today():
+                # last response more than the warning period -> add to labbing card
+                last_used_date = database_labs[cml_lab_id]
+                labs_to_send_card.append((cml_lab_id, cml_lab_title, last_used_date))
+
+        self.cml_api.wipe_labs(labs_to_wipe, email)
+
+        return labs_to_send_card
