@@ -125,8 +125,6 @@ class CMLAPI:
                 lab.update_lab_groups(
                     [{"id": self.wiped_labs_group, "permission": "read_only"}]
                 )
-
-                message += lab_name + "\n"
             except Exception:
                 self.logging.error("Error wiping lab %s", lab_name)
 
