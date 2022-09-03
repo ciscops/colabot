@@ -114,10 +114,12 @@ class Dynamoapi:
         except Exception as e:
             self.logging.error("Problem updating lab used date: %s", str(e))
 
-    def update_cml_lab_used_date(self, email: str, lab_id: str):
+    def update_cml_lab_used_date(
+        self, email: str, lab_id: str, update_date: datetime.date = date.today()
+    ):
         """Updates the last used date for a lab"""
         self.get_dynamo_cml_table()
-        date_string = datetime.strftime(date.today(), self.table_date_format)
+        date_string = datetime.strftime(update_date, self.table_date_format)
 
         try:
             self.cml_table.update_item(
