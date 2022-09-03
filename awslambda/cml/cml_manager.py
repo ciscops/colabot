@@ -41,6 +41,12 @@ class CMLManager:
         """Main function for managing cml labs"""
         all_user_emails = self.dynamodb.get_all_cml_users()
 
+        #for user in users:
+        #   grab all labs
+        #   iterate through labs
+        #   perform various checks
+        #   Do all actions
+
         # Update database and send labs to be wiped cards
         success_count, fail_count = self.update_labs_in_database(all_user_emails)
         self.logging.info("Succesful user iterations update send cards: %d", success_count)
@@ -52,7 +58,7 @@ class CMLManager:
         self.logging.info("Failed user iterations delete labs: %d", fail_count)
 
         # Warn for labs to be deleted
-
+        # if wiped, lab_wiped_date + self.DELETE_WARNING_DAYS -> Send card
         return (0,0)
 
     def delete_wiped_labs(self, user_emails: list) -> tuple:
@@ -194,11 +200,11 @@ class CMLManager:
 
         return True
 
-    def check_sent_cards_dates(
+    def check_sent_cards_dates( 
         self, database_labs: dict, cml_labs: dict, labs_to_send_card: list, email: str
     ) -> list:
         """Checks see if a person did not respond to card in time and auto wipes the lab"""
-
+#SPLIT INTO TWO FUNCTION - EACH CHECK EACH INDIVIDUALLY
         labs_to_wipe = []
         for cml_lab_id, cml_data in cml_labs.items():
             cml_lab_title = cml_data[0]
