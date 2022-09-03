@@ -1,4 +1,3 @@
-from distutils.log import WARN
 import logging
 import sys
 import os
@@ -21,7 +20,7 @@ class CMLManager:
         else:
             logging.error("Environment variable LAB_WARN_DAYS must be set")
             sys.exit(1)
-        
+
         if "LAB_DELETE_DAYS" in os.environ:
             self.DELETE_DAYS = int(os.getenv("LAB_DELETE_DAYS"))
         else:
@@ -387,11 +386,11 @@ class CMLManager:
 
         return True
 
-    def send_labbing_card(self, labs_to_wipe: list, email: str) -> bool:
+    def send_labbing_card(self, labs_to_send_card: list, email: str) -> bool:
         """Sends the labbing card to the user with labs to be wiped"""
         lab_choices = []
         all_lab_ids = ""
-        for lab_id, lab_title, last_used_date in labs_to_wipe:
+        for lab_id, lab_title, last_used_date in labs_to_send_card:
             last_seen = (date.today() - last_used_date).days
             lab = {
                 "title": f"Lab: {lab_title} | Last seen: {last_seen} days ago",
@@ -425,14 +424,26 @@ class CMLManager:
 
         return True
 
-    def check_sent_cards_dates(self, user_emails: list) -> tuple:
+    def check_sent_cards_dates(
+        self, database_labs: dict, cml_labs: dict, labs_to_send_card: list, email: str
+    ) -> list:
         """Checks see if a person did not respond to card in time and auto wipes the lab"""
 
-        if card_sent_date > responded_date + self.WIPE_DAYS:
-	        #Check to see if its been 5 days and not responded -> wipe
-            pass
+        labs_to_wipe = []
+        for cml_lab_id, cml_data in cml_labs.items():
+            cml_lab_title = cml_data[0]
+            responded_date = database_labs[cml_lab_id]["card_responded_date"]
+            card_sent_date = database_labs[cml_lab_id]["card_sent_date"]
 
-        elif responded_date + self.WARN_DAYS >= date.today():
-	        #Send new card - or add to list of labs to be wiped (if put in update_labs_database fx)
-            pass
+            if card_sent_date > responded_date + self.WIPE_DAYS:
+                # user not responded to card in time -> wipe labs
+                labs_to_wipe.append(cml_lab_id)
 
+            elif responded_date + self.WARN_DAYS >= date.today():
+                # last response more than the warning period -> add to labbing card
+                last_used_date = database_labs[cml_lab_id]
+                labs_to_send_card.append((cml_lab_id, cml_lab_title, last_used_date))
+
+        self.cml_api.wipe_labs(labs_to_wipe, email)
+
+        return labs_to_send_card
