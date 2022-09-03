@@ -113,17 +113,15 @@ class CMLAPI:
         """Wipes the labs, sends the user each lab's yaml file, and messages the user"""
 
         self.connect()
-        message = "The following CML Labs have been wiped:<pre>"
         for lab_id in lab_ids:
             try:
                 lab = self.client.join_existing_lab(lab_id)
-
                 lab_name = lab.title
-
-                self.send_lab_topology(lab, email)
 
                 lab.stop()
                 lab.wipe()
+                self.logging.info("Stopped and wiped lab")
+                self.send_lab_topology(lab, email)
                 lab.update_lab_groups(
                     [{"id": self.wiped_labs_group, "permission": "read_only"}]
                 )
@@ -132,15 +130,13 @@ class CMLAPI:
             except Exception:
                 self.logging.error("Error wiping lab %s", lab_name)
 
-        message += "</code></pre>"
-        self.webex_api.messages.create(toPersonEmail=email, markdown=message)
-
         return True
 
     def send_lab_topology(self, lab: models.lab.Lab, email) -> bool:
         """Downloads the lab and sends it to the user"""
         lab_name = lab.title
         yaml_string = lab.download()
+        self.logging.info("Sending Topology file to user")
 
         with open(
             tempfile.NamedTemporaryFile(
@@ -153,7 +149,7 @@ class CMLAPI:
 
             self.webex_api.messages.create(
                 toPersonEmail=email,
-                markdown=f'YAML Topology file for lab "{lab_name}"',
+                markdown=f'Your lab "{lab_name}" has been wiped. Attached is the YAML Topology file',
                 files=[outfile.name],
             )
 
