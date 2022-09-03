@@ -14,11 +14,8 @@ def lambda_handler(event, handle):
     logger.debug(str(handle))
     start_time = datetime.datetime.now()
 
-    dynamodb = Dynamoapi()
-
-    all_user_emails = dynamodb.get_all_cml_users()
     cml = CMLManager()
-    success_count, fail_count = cml.manage_labs(all_user_emails)
+    success_count, fail_count = cml.manage_labs()
 
     logger.debug("Succesful user iterations: %d", success_count)
     logger.debug("Failed user iterations: %d", fail_count)

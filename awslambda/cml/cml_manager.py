@@ -1,3 +1,4 @@
+from distutils.log import WARN
 import logging
 import sys
 import os
@@ -19,6 +20,12 @@ class CMLManager:
             self.WARN_DAYS = int(os.getenv("LAB_WARN_DAYS"))
         else:
             logging.error("Environment variable LAB_WARN_DAYS must be set")
+            sys.exit(1)
+        
+        if "LAB_DELETE_DAYS" in os.environ:
+            self.DELETE_DAYS = int(os.getenv("LAB_DELETE_DAYS"))
+        else:
+            logging.error("Environment variable LAB_DELETE_DAYS must be set")
             sys.exit(1)
 
         if "LAB_DELETE_DAYS" in os.environ:
@@ -417,3 +424,15 @@ class CMLManager:
         )
 
         return True
+
+    def check_sent_cards_dates(self, user_emails: list) -> tuple:
+        """Checks see if a person did not respond to card in time and auto wipes the lab"""
+
+        if card_sent_date > responded_date + self.WIPE_DAYS:
+	        #Check to see if its been 5 days and not responded -> wipe
+            pass
+
+        elif responded_date + self.WARN_DAYS >= date.today():
+	        #Send new card - or add to list of labs to be wiped (if put in update_labs_database fx)
+            pass
+
