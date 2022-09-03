@@ -156,6 +156,7 @@ class CMLAPI:
         """Downloads the lab and sends it to the user"""
         lab_name = lab.title
         yaml_string = lab.download()
+        self.logging.info("Sending Topology file to user")
 
         with open(
             tempfile.NamedTemporaryFile(
@@ -168,7 +169,7 @@ class CMLAPI:
 
             self.webex_api.messages.create(
                 toPersonEmail=email,
-                markdown=f'YAML Topology file for lab "{lab_name}"',
+                markdown=f'Your lab "{lab_name}" has been wiped. Attached is the YAML Topology file',
                 files=[outfile.name],
             )
 
