@@ -136,14 +136,14 @@ class CMLAPI:
         self.connect()
 
         for lab_id in lab_ids:
-            try:
-                lab = self.client.join_existing_lab(lab_id)
+            lab = self.client.join_existing_lab(lab_id)
 
-                # check to see if lab is running
-                if lab.is_active():
-                    self.dynamodb.update_cml_lab_used_date(user_email, lab_id)
-                    continue
+            # check to see if lab is running
+            if lab.is_active():
+                self.dynamodb.update_cml_lab_used_date(user_email, lab_id)
+                continue
 
+<<<<<<< HEAD
                 lab_title = lab.title
                 yaml_string = lab.download()
 
@@ -153,6 +153,12 @@ class CMLAPI:
 
             except Exception:
                 self.logging.error("Error deleting lab %s", lab_title)
+=======
+            lab_name = lab.title
+            lab.remove()
+            self.dynamodb.delete_cml_lab(user_email, lab_id)
+            message += lab_name + "\n"
+>>>>>>> added basic logic for all daily activities
 
         return True
 

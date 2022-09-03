@@ -1,3 +1,4 @@
+from distutils.log import WARN
 import logging
 import sys
 import os
@@ -20,6 +21,12 @@ class CMLManager:
         else:
             logging.error("Environment variable LAB_WARN_DAYS must be set")
             sys.exit(1)
+        
+        if "LAB_DELETE_DAYS" in os.environ:
+            self.DELETE_DAYS = int(os.getenv("LAB_DELETE_DAYS"))
+        else:
+            logging.error("Environment variable LAB_DELETE_DAYS must be set")
+            sys.exit(1)
 
         if "WEBEX_TEAMS_ACCESS_TOKEN" in os.environ:
             self.wxt_access_token = os.getenv("WEBEX_TEAMS_ACCESS_TOKEN")
@@ -31,9 +38,46 @@ class CMLManager:
         self.cml_api = CMLAPI()
         self.webex_api = WebexTeamsAPI()
 
-    def manage_labs(self, user_emails: list) -> tuple:
+    def manage_labs(self) -> tuple:
+        """Main function for managing cml labs"""
+        all_user_emails = self.dynamodb.get_all_cml_users()
+
+        # Update database and send labs to be wiped cards
+        success_count, fail_count = self.update_labs_in_database(all_user_emails)
+
+        # Delete labs greater than given wiped period
+        success_count, fail_count = self.delete_wiped_labs(all_user_emails)
+
+        # Check all sent card dates - PUT THIS IN UPDATE_LABS???
+        success_count, fail_count = self.check_sent_cards_dates(all_user_emails)
+
+        # Warn for labs to be deleted
+
+
+    def delete_wiped_labs(self, user_emails: list) -> tuple:
+        """Delete labs that have been wiped and over the wiped-to-delete period"""
+        success_counter = 0
+        fail_counter = 0
+
+        for user_email in user_emails:
+            try:
+                labs_to_delete = []
+                wiped_labs = self.dynamodb.get_wiped_labs(user_email)
+                for lab_id, lab_last_used in wiped_labs:
+                    if lab_last_used + self.DELETE_DAYS >= date.today():
+                        labs_to_delete.append(lab_id)
+
+                self.cml_api.delete_labs(labs_to_delete)
+                success_counter += 1
+            except Exception as e:
+                self.logging.error("Error deleting lab %s", lab_id)
+                fail_counter += 1
+
+        return (success_counter, fail_counter)
+
+    def update_labs_in_database(self, user_emails: list) -> tuple:
         """
-        Main function for managing cml labs within an acceptable time frame
+        Updates all the labs from CML into the database
         1. populates/deletes labs from database
         2. warns users about labs to be wiped
         """
@@ -139,3 +183,15 @@ class CMLManager:
         )
 
         return True
+
+    def check_sent_cards_dates(self, user_emails: list) -> tuple:
+        """Checks see if a person did not respond to card in time and auto wipes the lab"""
+
+        if card_sent_date > responded_date + self.WIPE_DAYS:
+	        #Check to see if its been 5 days and not responded -> wipe
+            pass
+
+        elif responded_date + self.WARN_DAYS >= date.today():
+	        #Send new card - or add to list of labs to be wiped (if put in update_labs_database fx)
+            pass
+

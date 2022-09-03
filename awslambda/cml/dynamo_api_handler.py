@@ -150,7 +150,7 @@ class Dynamoapi:
         except Exception as e:
             self.logging.error("Problem deleting lab: %s", str(e))
 
-    def get_deleted_labs(self, user_email: str) -> dict:
+    def get_wiped_labs(self, user_email: str) -> dict:
         """
         gets all wiped labs
 
