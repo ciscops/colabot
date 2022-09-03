@@ -4,7 +4,7 @@ import sys
 import tempfile
 from datetime import datetime
 import yaml
-from virl2_client import ClientLibrary, models
+from virl2_client import ClientLibrary
 from webexteamssdk import WebexTeamsAPI
 from awslambda.cml.dynamo_api_handler import Dynamoapi
 
@@ -115,6 +115,7 @@ class CMLAPI:
         """Wipes the labs, sends the user each lab's yaml file, and messages the user"""
 
         self.connect()
+        message = "The following CML Labs have been wiped:<pre>"
         for lab_id in lab_ids:
             try:
                 lab = self.client.join_existing_lab(lab_id)
@@ -122,35 +123,14 @@ class CMLAPI:
                 lab.stop()
                 lab.wipe()
                 self.logging.info("Stopped and wiped lab")
-                self.send_lab_topology(lab, email)
                 lab.update_lab_groups(
                     [{"id": self.wiped_labs_group, "permission": "read_only"}]
                 )
             except Exception:
                 self.logging.error("Error wiping lab")
 
-        return True
-
-    def send_lab_topology(self, lab: models.lab.Lab, email) -> bool:
-        """Downloads the lab and sends it to the user"""
-        lab_name = lab.title
-        yaml_string = lab.download()
-        self.logging.info("Sending Topology file to user")
-
-        with open(
-            tempfile.NamedTemporaryFile(
-                suffix=".yaml", prefix=f'{lab_name.replace(" ","_")}_'
-            ).name,
-            "w",
-            encoding="utf-8",
-        ) as outfile:
-            yaml.dump(yaml.full_load(yaml_string), outfile, default_flow_style=False)
-
-            self.webex_api.messages.create(
-                toPersonEmail=email,
-                markdown=f'Your lab "{lab_name}" has been wiped. Attached is the YAML Topology file',
-                files=[outfile.name],
-            )
+        message += "</code></pre>"
+        self.webex_api.messages.create(toPersonEmail=email, markdown=message)
 
         return True
 
@@ -158,7 +138,6 @@ class CMLAPI:
         """Deletes the given labs from cml and the database"""
         self.connect()
 
-        message = "The following CML Labs have been deleted<pre>"
         for lab_id in lab_ids:
             try:
                 lab = self.client.join_existing_lab(lab_id)
@@ -168,14 +147,35 @@ class CMLAPI:
                     self.dynamodb.update_cml_lab_used_date(user_email, lab_id)
                     continue
 
-                lab_name = lab.title
-                lab.remove()
-                self.dynamodb.delete_cml_lab(user_email, lab_id)
-                message += lab_name + "\n"
-            except Exception:
-                self.logging.error("Error deleting lab %s", lab_name)
+                lab_title = lab.title
+                yaml_string = lab.download()
 
-        message += "</code></pre>"
-        self.webex_api.messages.create(toPersonEmail=user_email, markdown=message)
+                lab.remove()
+                self.send_lab_topology(yaml_string, lab_title, user_email)
+                self.dynamodb.delete_cml_lab(user_email, lab_id)
+
+            except Exception:
+                self.logging.error("Error deleting lab %s", lab_title)
+
+        return True
+
+    def send_lab_topology(self, yaml_string: str, lab_title: str, email: str) -> bool:
+        """Downloads the lab and sends it to the user"""
+        self.logging.info("Sending Topology file to user")
+
+        with open(
+            tempfile.NamedTemporaryFile(
+                suffix=".yaml", prefix=f'{lab_title.replace(" ","_")}_'
+            ).name,
+            "w",
+            encoding="utf-8",
+        ) as outfile:
+            yaml.dump(yaml.full_load(yaml_string), outfile, default_flow_style=False)
+
+            self.webex_api.messages.create(
+                toPersonEmail=email,
+                markdown=f'Your lab "{lab_title}" has been deleted. Attached is the YAML Topology file',
+                files=[outfile.name],
+            )
 
         return True
