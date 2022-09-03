@@ -77,7 +77,6 @@ class Dynamoapi:
     def add_cml_lab(self, email: str, lab_id: str, created_date: datetime.date):
         """Adds a new lab to a user - has to have cml_labs field"""
         self.get_dynamo_cml_table()
-        date_string = datetime.strftime(created_date, self.table_date_format)
 
         response = self.cml_table.query(
             KeyConditionExpression=Key("email").eq(email),
@@ -93,23 +92,14 @@ class Dynamoapi:
                 ExpressionAttributeValues={":value": {}},
             )
 
-        try:
-            self.cml_table.update_item(
-                Key={"email": email},
-                UpdateExpression="set #cml_labs.#lab_id= :lab",
-                ExpressionAttributeNames={
-                    self.cml_labs_tag: "cml_labs",
-                    self.lab_id_tag: lab_id,
-                },
-                ExpressionAttributeValues={":lab": date_string},
-            )
-        except Exception as e:
-            self.logging.error("Problem adding lab: %s", str(e))
+        self.update_cml_lab_used_date(email, lab_id, created_date)
 
-    def update_cml_lab_used_date(self, email: str, lab_id: str):
+    def update_cml_lab_used_date(
+        self, email: str, lab_id: str, update_date: datetime.date = date.today()
+    ):
         """Updates the last used date for a lab"""
         self.get_dynamo_cml_table()
-        date_string = datetime.strftime(date.today(), self.table_date_format)
+        date_string = datetime.strftime(update_date, self.table_date_format)
 
         try:
             self.cml_table.update_item(
