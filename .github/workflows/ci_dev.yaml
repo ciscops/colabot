@@ -104,12 +104,9 @@ jobs:
           AWS_PASSWORD_COLAB: ${{ secrets.AWS_SECRET_ACCESS_KEY_COLAB }}
         run: python3 process-j2.py
 
-      - name: Update path
-        run: |
-          export PATH=/home/github/.local/bin/:$PATH
-
       - name: Apply and rollout
         run: |
+          export PATH=/home/github/.local/bin/:$PATH
           whoami
           kubectl apply -f output-secrets-dev.yaml
           kubectl apply -f output-manifest-dev.yaml
