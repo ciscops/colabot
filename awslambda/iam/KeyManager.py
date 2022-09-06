@@ -172,9 +172,9 @@ class KeyManager:
         self.logging.info("%sKey is within acceptable usage timeframes", self.log_indent)
 
     def create_new_key(self, user_email, key_id, user):
-        #access_key_pair = user.create_access_key_pair()
-        #new_access_key_id = access_key_pair.access_key_id
-        #new_secret_access_key = access_key_pair.secret_access_key
+        access_key_pair = user.create_access_key_pair()
+        new_access_key_id = access_key_pair.access_key_id
+        new_secret_access_key = access_key_pair.secret_access_key
 
         new_access_key_id = ""
         new_secret_access_key = ""
@@ -189,8 +189,8 @@ class KeyManager:
         self.send_message_to_user(user_email, message)
 
     def delete_key(self, user_email, key_id, expired, unused, key_created_days, user, inactive=False):
-        #access_key = user.AccessKey(key_id)
-        #access_key.delete()
+        access_key = user.AccessKey(key_id)
+        access_key.delete()
         self.temp_key_deleted_counter += 1
 
         message = ""
@@ -223,7 +223,7 @@ class KeyManager:
 
     def send_message_to_user(self, user_email, message):
         self.logging.info("%sSending message to %s. Message: %s", self.log_indent, user_email, message) #remove the message part
-        #self.api.messages.create(toPersonEmail=user_email, markdown=message)
+        self.api.messages.create(toPersonEmail=user_email, markdown=message)
 
     def get_dynamo_user_email(self, user_name):
         response = self.table.query(

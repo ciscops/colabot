@@ -107,7 +107,6 @@ jobs:
       - name: Apply and rollout
         run: |
           export PATH=/home/github/.local/bin/:$PATH
-          whoami
           kubectl apply -f output-secrets-dev.yaml
           kubectl apply -f output-manifest-dev.yaml
           kubectl rollout restart deployment/colabot-dev-1
