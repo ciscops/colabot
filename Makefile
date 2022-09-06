@@ -1,7 +1,7 @@
 # Makefile
 PYTHON_EXE = python3
 PROJECT_NAME="colabot"
-LAMBDA_FUNCTION_ROTATE_KEYS=cpn-colabot-rotate-keys
+LAMBDA_FUNCTION_ROTATE_KEYS=
 TOPDIR = $(shell git rev-parse --show-toplevel)
 PYDIRS_LAMBDA_IAM=awslambda/iam
 PYDIRS_FEATURES=features
