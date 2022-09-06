@@ -2,3 +2,7 @@
 .DS_Store
 *.zip
 venv_colabot
+lambda_function.py
+lambda-packages*
+.*.sw?
+.vscode/

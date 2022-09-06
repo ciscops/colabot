@@ -52,9 +52,9 @@ jobs:
 
     steps:
       - name: install jinja2
-        run: |
-          sudo apt-get install python3-pip
-          pip install jinja2
+        run: |  
+          sudo apt-get install python3-pip -y
+          sudo pip3 install jinja2
 
       - name: Checkout code
         uses: actions/checkout@v2
@@ -106,6 +106,7 @@ jobs:
 
       - name: Apply and rollout
         run: |
+          export PATH=/home/github/.local/bin/:$PATH
           kubectl apply -f output-secrets-prod.yaml
           kubectl apply -f output-manifest-prod.yaml
           kubectl rollout restart deployment/colabot-prod-1

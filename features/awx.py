@@ -322,7 +322,7 @@ async def send_reset_keys_confirmation_card(activity):
         message = "You do not have any keys to reset. You can create a key with **create aws key**"
         attachments = []
     else:
-        card_file = "./cards/aws_iam_reset_password.json"
+        card_file = "./cards/aws_iam_reset_keys.json"
         # verify this doesn't cause problems
         with open(f"{card_file}", encoding="utf8") as file_:
             template = Template(file_.read())
@@ -408,7 +408,7 @@ async def send_delete_keys_confirmation_card(activity):
         message = "You do not have any keys to delete. You can create a key with **create aws key**"
         attachments = []
     else:
-        card_file = "./cards/aws_iam_delete_password.json"
+        card_file = "./cards/aws_iam_delete_key.json"
         # verify this doesn't cause problems
         with open(f"{card_file}", encoding="utf8") as file_:
             template = Template(file_.read())
@@ -522,7 +522,7 @@ async def aws_key_status(activity):
         for key in access_key_iterator:
             key_created_days = (date.today() - key.create_date.date()).days
             days_to_live = 90 - int(key_created_days)
-            key_message += f"Key id: {key.access_key_id} | Status: {key.status} | Days to live: {days_to_live} \n"
+            key_message += f"Key id: {key.access_key_id} | Status: {key.status} | Days to Expire: {days_to_live} \n"
 
         message = dict(
             text=("All AWS access keys: \n" + key_message + AFTER_CODE_SNIPPET),
