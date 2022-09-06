@@ -176,9 +176,6 @@ class KeyManager:
         new_access_key_id = access_key_pair.access_key_id
         new_secret_access_key = access_key_pair.secret_access_key
 
-        new_access_key_id = ""
-        new_secret_access_key = ""
-
         message = (
             f"Current access key is {self.rotate_days} days old, a new access key has been created. "
             + f"\n - Old access key {key_id} has {self.delete_days - self.rotate_days} days left before it is expired."
