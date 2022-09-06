@@ -59,7 +59,7 @@ jobs:
       - name: Install AWS cli
         run: |
           curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o /tmp/awscliv2.zip
-          unzip -qq /tmp/awscliv2.zip -d /tmp
+          unzip -qq /tmp/awscliv2.zip -d -o /tmp
           sudo -n -l
           /tmp/aws/install -i /home/github/.local/aws-cli -b /home/github/.local/bin
           echo "export PATH=/home/github/.local/bin/:$PATH" >> /home/github/.bashrc
@@ -83,6 +83,7 @@ jobs:
 
       - name: get caller identity
         run: |
+          cd /home/github/.local/bin
           aws sts get-caller-identity    
 
       - name: Convert j2 template to yaml
