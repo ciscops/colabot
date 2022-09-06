@@ -59,7 +59,9 @@ jobs:
       - name: Install AWS cli
         run: |
           curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o /tmp/awscliv2.zip
-          unzip -qq /tmp/awscliv2.zip -d -o /tmp/\*
+          cd /tmp
+          unzip -qq /tmp/awscliv2.zip -d -o
+          cd ..
           sudo -n -l
           /tmp/aws/install -i /home/github/.local/aws-cli -b /home/github/.local/bin
           echo "export PATH=/home/github/.local/bin/:$PATH" >> /home/github/.bashrc
