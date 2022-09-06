@@ -56,15 +56,15 @@ jobs:
           sudo apt-get install python3-pip -y
           sudo pip3 install jinja2
 
-      - name: Install AWS cli
-        run: |
-          curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o /tmp/awscliv2.zip
-          cd /tmp
-          unzip -qq /tmp/awscliv2.zip -d -o
-          cd ..
-          sudo -n -l
-          /tmp/aws/install -i /home/github/.local/aws-cli -b /home/github/.local/bin
-          echo "export PATH=/home/github/.local/bin/:$PATH" >> /home/github/.bashrc
+      # - name: Install AWS cli
+      #   run: |
+      #     curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o /tmp/awscliv2.zip
+      #     cd /tmp
+      #     unzip -qq /tmp/awscliv2.zip -d -o
+      #     cd ..
+      #     sudo -n -l
+      #     /tmp/aws/install -i /home/github/.local/aws-cli -b /home/github/.local/bin
+      #     echo "export PATH=/home/github/.local/bin/:$PATH" >> /home/github/.bashrc
 
       - name: Checkout code
         uses: actions/checkout@v2
@@ -85,7 +85,7 @@ jobs:
 
       - name: get caller identity
         run: |
-          cd /home/github/.local/bin
+          cd /home/github/.local/aws-cli/v2/current/bin
           aws sts get-caller-identity    
 
       - name: Convert j2 template to yaml
