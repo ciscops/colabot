@@ -51,10 +51,7 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      - name: install jinja2
-        run: |  
-          sudo apt-get install python3-pip -y
-          sudo pip3 install jinja2
+     
 
       - name: Checkout code
         uses: actions/checkout@v2
@@ -76,6 +73,11 @@ jobs:
       - name: get caller identity
         run: |
           aws sts get-caller-identity    
+
+      - name: install jinja2
+        run: |  
+          sudo apt-get install python3-pip -y
+          sudo pip3 install jinja2    
 
       - name: Convert j2 template to yaml
         env:
