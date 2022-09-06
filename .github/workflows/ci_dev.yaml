@@ -85,8 +85,8 @@ jobs:
 
       - name: get caller identity
         run: |
-          cd /home/github/.local/aws-cli/v2/current/bin
-          aws sts get-caller-identity    
+          cd /home/github/.local/aws-cli/v2/current/dist
+          ./aws sts get-caller-identity    
 
       - name: Convert j2 template to yaml
         env:
