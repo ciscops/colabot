@@ -70,14 +70,16 @@ jobs:
           aws-secret-access-key: ${{ secrets.EKS_AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: get caller identity
-        run: |
-          aws sts get-caller-identity    
+      
 
       - name: install jinja2
         run: |  
           sudo apt-get install python3-pip -y
           sudo pip3 install jinja2    
+
+      - name: get caller identity
+        run: |
+          aws sts get-caller-identity        
 
       - name: Convert j2 template to yaml
         env:
