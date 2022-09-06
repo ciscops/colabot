@@ -56,16 +56,6 @@ jobs:
           sudo apt-get install python3-pip -y
           sudo pip3 install jinja2
 
-      # - name: Install AWS cli
-      #   run: |
-      #     curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o /tmp/awscliv2.zip
-      #     cd /tmp
-      #     unzip -qq /tmp/awscliv2.zip -d -o
-      #     cd ..
-      #     sudo -n -l
-      #     /tmp/aws/install -i /home/github/.local/aws-cli -b /home/github/.local/bin
-      #     echo "export PATH=/home/github/.local/bin/:$PATH" >> /home/github/.bashrc
-
       - name: Checkout code
         uses: actions/checkout@v2
 
@@ -82,11 +72,6 @@ jobs:
           aws-access-key-id: ${{ secrets.EKS_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.EKS_AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
-
-      - name: get caller identity
-        run: |
-          cd /home/github/.local/aws-cli/v2/current/dist
-          ./aws sts get-caller-identity    
 
       - name: Convert j2 template to yaml
         env:
@@ -118,6 +103,10 @@ jobs:
           AWS_ACCESS_KEY_ID_COLAB: ${{ secrets.AWS_ACCESS_KEY_ID_COLAB }}
           AWS_PASSWORD_COLAB: ${{ secrets.AWS_SECRET_ACCESS_KEY_COLAB }}
         run: python3 process-j2.py
+
+      - name: Update path
+        run: |
+          export PATH=/home/github/.local/bin/:$PATH
 
       - name: Apply and rollout
         run: |
