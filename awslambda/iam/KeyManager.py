@@ -219,7 +219,7 @@ class KeyManager:
         self.send_message_to_user(user_email, message)
 
     def send_message_to_user(self, user_email, message):
-        self.logging.info("%sSending message to %s. Message: %s", self.log_indent, user_email, message) #remove the message part
+        self.logging.info("%sSending message to %s", self.log_indent, user_email) #remove the message part
         self.api.messages.create(toPersonEmail=user_email, markdown=message)
 
     def get_dynamo_user_email(self, user_name):
