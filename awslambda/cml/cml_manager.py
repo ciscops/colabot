@@ -172,7 +172,8 @@ class CMLManager:
             # Send card warning labs to be deleted
             self.send_deletion_card(labs_warning_deleted, user_email)
 
-        return (success_counter, fail_counter)
+            if self.cml_api.user_in_long_lived_labs(user_email):
+                continue
 
     def update_user_database_labs(
         self, user_database_labs: dict, user_cml_labs: dict, user_email: str
@@ -386,11 +387,79 @@ class CMLManager:
 
         return True
 
-    def send_labbing_card(self, labs_to_send_card: list, email: str) -> bool:
+    def lab_to_warn_wiping(
+        self,
+        lab_last_used_date: date,
+        user_responded_date: date,
+    ) -> bool:
+        """Determines if lab within wiping warning period"""
+        if (date.today() - lab_last_used_date).days >= self.WARN_DAYS:
+            return True
+
+        # If card sent AND user responded, see if already past warn days
+        if user_responded_date + self.WARN_DAYS >= date.today():
+            # THIS IS REDUNDANT IF lab_last_used_date is updated to responded_date when user responds
+            return True
+
+        return False
+
+    def lab_to_warn_delete(self, lab_is_wiped: bool, lab_wiped_date: date) -> bool:
+        """Checks if lab within deletion warning period"""
+
+        if lab_is_wiped and lab_wiped_date + self.DELETE_WARNING_DAYS >= date.today():
+            return True
+
+        return False
+
+    def lab_to_wipe(self, card_sent_date: date, user_responded_date: date) -> bool:
+        """Checks see if a person did not respond to card in time and auto wipes the lab"""
+        if user_responded_date == 0:
+            # User never responded
+            return False
+
+        if card_sent_date > user_responded_date + self.WIPE_DAYS:
+            return True
+
+        return False
+
+    def lab_to_delete(self, lab_is_wiped: bool, lab_last_used_date: date) -> bool:
+        """Checks if lab has been wiped and over the wiped-to-delete period"""
+        if not lab_is_wiped:
+            return False
+
+        if lab_last_used_date + self.DELETE_DAYS >= date.today():
+            return True
+
+        return False
+
+    def send_deletion_card(self, labs_to_send: list, user_email: str) -> bool:
+        """Sends the deletion card to the user with the labs to be deleted"""
+        message = "The following labs are scheduled to be deleted. If you would like to keep your lab, please start it."
+        for lab_title, last_used_date in labs_to_send:
+            last_seen = (date.today() - last_used_date).days
+            message += f"\n- Lab: {lab_title} | Last seen: {last_seen} days ago"
+
+        card_file = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), "deletion_card.json"
+        )
+
+        render_variables = {"message": message}
+
+        self.logging.info("Sending warning deletion card")
+        self.send_card(card_file, render_variables, user_email)
+
+        return True
+
+    def send_labbing_card(self, labs_to_send: list, user_email: str) -> bool:
         """Sends the labbing card to the user with labs to be wiped"""
+
+        card_file = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), "labbing_card.json"
+        )
+
         lab_choices = []
         all_lab_ids = ""
-        for lab_id, lab_title, last_used_date in labs_to_send_card:
+        for lab_id, lab_title, last_used_date in labs_to_send:
             last_seen = (date.today() - last_used_date).days
             lab = {
                 "title": f"Lab: {lab_title} | Last seen: {last_seen} days ago",
@@ -401,49 +470,32 @@ class CMLManager:
             all_lab_ids += f"{lab_id},"
 
         all_lab_ids = all_lab_ids[:-1]
-        self.logging.debug("LAB: %s", str(lab_choices))
 
-        card_file = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)), "labbing_card.json"
-        )
-        self.logging.debug("CARD: %s", str(card_file))
-        with open(f"{card_file}", encoding="utf8") as file_:
-            template = Template(file_.read())
-        card = template.render(
-            lab_choices=json.dumps(lab_choices),
-            all_lab_ids=json.dumps(all_lab_ids),
-            email=json.dumps(email),
-        )
-        card_json = json.loads(card)
-
-        self.logging.debug("CARD %s", str(card_json))
-
-        self.webex_api.messages.create(
-            toPersonEmail=email, markdown="labbing", attachments=card_json
-        )
+        render_variables = {
+            "lab_choices": json.dumps(lab_choices),
+            "all_lab_ids": json.dumps(all_lab_ids),
+            "user_email": json.dumps(user_email),
+        }
+        self.logging.info("Sending labbing card")
+        self.send_card(card_file, render_variables, user_email)
 
         return True
 
-    def check_sent_cards_dates( 
-        self, database_labs: dict, cml_labs: dict, labs_to_send_card: list, email: str
-    ) -> list:
-        """Checks see if a person did not respond to card in time and auto wipes the lab"""
-#SPLIT INTO TWO FUNCTION - EACH CHECK EACH INDIVIDUALLY
-        labs_to_wipe = []
-        for cml_lab_id, cml_data in cml_labs.items():
-            cml_lab_title = cml_data[0]
-            responded_date = database_labs[cml_lab_id]["card_responded_date"]
-            card_sent_date = database_labs[cml_lab_id]["card_sent_date"]
+    def send_card(
+        self, card_file: str, render_variables: dict, user_email: str
+    ) -> bool:
+        """Sends the card_file to the user with the rendered_variables"""
 
-            if card_sent_date > responded_date + self.WIPE_DAYS:
-                # user not responded to card in time -> wipe labs
-                labs_to_wipe.append(cml_lab_id)
+        self.logging.info("CARD: %s", str(card_file))
+        with open(f"{card_file}", encoding="utf8") as file_:
+            template = Template(file_.read())
+        card = template.render(render_variables)
+        card_json = json.loads(card)
 
-            elif responded_date + self.WARN_DAYS >= date.today():
-                # last response more than the warning period -> add to labbing card
-                last_used_date = database_labs[cml_lab_id]
-                labs_to_send_card.append((cml_lab_id, cml_lab_title, last_used_date))
+        self.logging.info("CARD %s", str(card_json))
 
-        self.cml_api.wipe_labs(labs_to_wipe, email)
+        self.webex_api.messages.create(
+            toPersonEmail=user_email, markdown="Labbing", attachments=card_json
+        )
 
-        return labs_to_send_card
+        return True
