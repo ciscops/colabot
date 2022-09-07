@@ -149,24 +149,3 @@ class Dynamoapi:
             )
         except Exception as e:
             self.logging.error("Problem deleting lab: %s", str(e))
-
-    def get_wiped_labs(self, user_email: str) -> dict:
-        """
-        gets all wiped labs
-
-        return: dictionary pair of lab (id) and wiped date (data) {lab_id: last_used}
-        """
-        self.get_dynamo_cml_table()
-
-        response = self.cml_table.query(
-            KeyConditionExpression=Key("email").eq(user_email)
-        )
-
-        table_labs = response["Items"][0]["cml_labs"]
-        labs = {}
-        for lab_id, lab_wiped_date in table_labs.items():
-            labs[lab_id] = (
-                datetime.strptime(lab_wiped_date, self.table_date_format)
-            ).date()
-
-        return labs
