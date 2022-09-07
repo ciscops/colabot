@@ -1,0 +1,59 @@
+[
+    {
+        "contentType": "application/vnd.microsoft.card.adaptive",
+        "content":{
+    "type": "AdaptiveCard",
+    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+    "version": "1.2",
+    "body": [
+        {
+            "type": "TextBlock",
+            "text": "Are you sure you want to rotate your keys?",
+            "wrap": true
+        },
+        {
+            "type": "TextBlock",
+            "id": "KeyId",
+            "text": {{key_choice}},
+            "wrap": true
+        },
+        {
+            "type": "Input.ChoiceSet",
+            "id": "ChoiceId",
+            "style": "expanded",
+            "choices": [
+                {
+                    "title": "Yes",
+                    "value": {{key}}
+                },
+                {
+                    "title": "No",
+                    "value": "No"
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "type": "Action.Submit",
+            "id": "cancel",
+            "title": "Cancel",
+            "data": {
+                "isSubmit": false,
+                "card_feature_index": "reset_aws_iam_password"
+            }
+        },
+        {
+            "type": "Action.Submit",
+            "id": "submit",
+            "title": "Submit",
+            "data": {
+                "isSubmit": true,
+                "card_feature_index": "rotate_aws_iam_password",
+                "username": {{username}}
+            }
+        }
+    ]
+}
+    }
+]
