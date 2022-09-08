@@ -51,20 +51,25 @@ class CMLAPI:
         if self.client is None:
             url = "https://cpn-rtp-cml-stable1.ciscops.net/"
             self.client = ClientLibrary(
-                url, self.cml_username, self.cml_password, ssl_verify=False
+                url, self.cml_username, self.cml_password, ssl_verify=False, raise_for_auth_failure=True
             )
+        self.logging.info("CONNECTED")
 
     def fill_user_labs_dict(self) -> dict:
         """gets all user emails and labs from cml as well as seeing if user in long lived labs group"""
         self.connect()
+        self.logging.info("Getting diagnostics")
         diagnostics = self.client.get_diagnostics()
-        for user in diagnostics["user_list"]:
+        #for user in diagnostics["user_list"]:
+        self.logging.debug("iterating through users")
+        for user in diagnostics['user_list']:
+            if user['username'] != 'kstickne':
+                continue
             email = user["username"] + "@cisco.com"
             self.user_and_labs[email] = user["labs"]
 
-            for group in user["groups"]:
-                if group["id"] == self.long_lived_labs:
-                    self.long_lived_users.append(email)
+            if self.long_lived_labs in user["groups"]:
+                self.long_lived_users.append(email)
 
     def user_in_long_lived_labs(self, email: str) -> bool:
         """Checks if user is in the long lived labs group"""
