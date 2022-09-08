@@ -77,7 +77,10 @@ class CMLManager:
         self.logging.info("Managing Labs")
 
         self.cml_api.fill_user_labs_dict()
-        all_user_emails = self.dynamodb.get_all_cml_users()
+        #all_user_emails = self.dynamodb.get_all_cml_users()
+        all_user_emails = ['kstickne@cisco.com']
+
+        self.logging.info("Starting users")
 
         self.logging.info("Starting users")
 
@@ -161,10 +164,12 @@ class CMLManager:
             self.logging.info("DELETE: %s", str(labs_to_delete))
 
             # Delete labs
-            self.cml_api.delete_labs(labs_to_delete, user_email)
+            if labs_to_delete:
+                self.cml_api.delete_labs(labs_to_delete, user_email)
 
             # Wipe labs
-            self.cml_api.wipe_labs(labs_to_wipe, user_email)
+            if labs_to_wipe:
+                self.cml_api.wipe_labs(labs_to_wipe, user_email)
 
             # Send card warning labs to be wiped
             self.send_labbing_card(labs_warning_wiped, user_email)
@@ -397,8 +402,9 @@ class CMLManager:
             return True
 
         # If card sent AND user responded, see if already past warn days
-        if user_responded_date + self.WARN_DAYS >= date.today():
+        if isinstance(user_responded_date, date) and (user_responded_date + self.WARN_DAYS >= date.today()):
             # THIS IS REDUNDANT IF lab_last_used_date is updated to responded_date when user responds
+            ##WIAT, LOGIC DOESN'T ADD UP WITH CHECK ON LINE 146 above if statement above true
             return True
 
         return False
@@ -417,7 +423,7 @@ class CMLManager:
             # User never responded
             return False
 
-        if card_sent_date > user_responded_date + self.WIPE_DAYS:
+        if isinstance(user_responded_date, date) and card_sent_date > user_responded_date + self.WIPE_DAYS:
             return True
 
         return False

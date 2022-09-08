@@ -22,6 +22,14 @@ class Dynamoapi:
         self.dynamodb = None
         self.cml_labs_tag = "#cml_labs"
         self.lab_id_tag = "#lab_id"
+        self.table_lab_keys = [
+            "lab_title",
+            "lab_last_used_date",
+            "lab_is_wiped",
+            "lab_wiped_date",
+            "card_sent_date",
+            "card_responded_date",
+        ]
 
     def get_dynamo_cml_table(self):
         """
@@ -83,6 +91,8 @@ class Dynamoapi:
         """Adds a new lab to a user"""
         self.get_dynamo_cml_table()
         date_string = str(int(datetime.timestamp(created_date)))
+
+        date_string = datetime.strftime(created_date, self.table_date_format)
 
         response = self.cml_table.query(
             KeyConditionExpression=Key("email").eq(email),
