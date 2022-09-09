@@ -77,26 +77,22 @@ class Dynamoapi:
         for lab_id in table_labs:
             for key, val in table_labs[lab_id].items():
                 try:
-                    #SOME MAY NEED TIME, NOT JUST DATE
-                    d = datetime.strptime(val, self.table_date_format).date()
-                    table_labs[lab_id][key] = d
-                except:
+                    # SOME MAY NEED TIME, NOT JUST DATE
+                    # time_ = datetime.fromtimestamp(int(val))
+                    date_ = datetime.strptime(val, self.table_date_format).date()
+                    table_labs[lab_id][key] = date_
+                except Exception:
                     pass
-
-        # self.logging.info("%s", table_labs)
-        # labs = {}
-        # for lab_id, lab_created_date in table_labs.items():
-        #     labs[lab_id] = (
-        #         datetime.strptime(lab_created_date, self.table_date_format).date(),
-        #         table_labs["created_"],
-        #     )
 
         return table_labs
 
-    def add_cml_lab(self, email: str, lab_id: str, lab_title: str, created_date: datetime.date):
+    def add_cml_lab(
+        self, email: str, lab_id: str, lab_title: str, created_date: datetime.date
+    ):
         """Adds a new lab to a user - has to have cml_labs field"""
         self.get_dynamo_cml_table()
 
+        # date_string = str(int(datetime.timestamp()))
         date_string = datetime.strftime(created_date, self.table_date_format)
 
         response = self.cml_table.query(
@@ -120,20 +116,22 @@ class Dynamoapi:
             ExpressionAttributeNames={self.cml_labs_tag: "cml_labs", "#lab_id": lab_id},
             ExpressionAttributeValues={
                 ":value": {
-                "lab_title": lab_title,
-                "lab_last_used_date": date_string,
-                "lab_is_wiped": False,
-                "lab_wiped_date": {},
-                "card_sent_date": {},
-                "card_responded_date": {}
-                }}
-            )
+                    "lab_title": lab_title,
+                    "lab_last_used_date": date_string,
+                    "lab_is_wiped": False,
+                    "lab_wiped_date": "",
+                    "card_sent_date": "",
+                    "card_responded_date": "",
+                }
+            },
+        )
 
     def update_cml_lab_used_date(
         self, email: str, lab_id: str, update_date: datetime.date = date.today()
     ):
         """Updates the last used date for a lab"""
         self.get_dynamo_cml_table()
+        # date_string = str(int(datetime.timestamp()))
         date_string = datetime.strftime(update_date, self.table_date_format)
 
         try:

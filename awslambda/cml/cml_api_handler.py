@@ -51,7 +51,11 @@ class CMLAPI:
         if self.client is None:
             url = "https://cpn-rtp-cml-stable1.ciscops.net/"
             self.client = ClientLibrary(
-                url, self.cml_username, self.cml_password, ssl_verify=False, raise_for_auth_failure=True
+                url,
+                self.cml_username,
+                self.cml_password,
+                ssl_verify=False,
+                raise_for_auth_failure=True,
             )
         self.logging.info("CONNECTED")
 
@@ -60,10 +64,10 @@ class CMLAPI:
         self.connect()
         self.logging.info("Getting diagnostics")
         diagnostics = self.client.get_diagnostics()
-        #for user in diagnostics["user_list"]:
+        # for user in diagnostics["user_list"]:
         self.logging.debug("iterating through users")
-        for user in diagnostics['user_list']:
-            if user['username'] != 'kstickne':
+        for user in diagnostics["user_list"]:
+            if user["username"] != "kstickne":
                 continue
             email = user["username"] + "@cisco.com"
             self.user_and_labs[email] = user["labs"]
@@ -118,6 +122,9 @@ class CMLAPI:
 
     def wipe_labs(self, lab_ids: list, email: str) -> bool:
         """Wipes the labs, sends the user each lab's yaml file, and messages the user"""
+
+        if not lab_ids:
+            return False
 
         self.connect()
         message = "The following CML Labs have been wiped:<pre>"
