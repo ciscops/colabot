@@ -92,6 +92,7 @@ class Dynamoapi:
         self.get_dynamo_cml_table()
         date_string = str(int(datetime.timestamp(created_date)))
 
+        # date_string = str(int(datetime.timestamp()))
         date_string = datetime.strftime(created_date, self.table_date_format)
 
         response = self.cml_table.query(
@@ -188,6 +189,7 @@ class Dynamoapi:
     ):
         """Updates the last used date for a lab"""
         self.get_dynamo_cml_table()
+        # date_string = str(int(datetime.timestamp()))
         date_string = datetime.strftime(update_date, self.table_date_format)
 
         try:
