@@ -59,7 +59,7 @@
                     "id": "Submit",
                     "data": {
                         "type": "labbing",
-                        "email": {{email}},
+                        "email": {{user_email}},
                         "allLabIds": {{all_lab_ids}}
                     }
                 }

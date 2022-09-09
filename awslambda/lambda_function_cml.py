@@ -2,7 +2,6 @@ import logging
 import datetime
 import json
 from awslambda.cml.cml_manager import CMLManager
-from awslambda.cml.dynamo_api_handler import Dynamoapi
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
