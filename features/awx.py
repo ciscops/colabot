@@ -609,6 +609,9 @@ async def handle_rotate_keys_card(activity):
 
     await create_key_and_message_user(activity, user, webex)
 
+async def handle_labbing_card(activity):
+    """handles the are cml lab check in card"""
+    logging.debug(activity['inputs'])
 
 async def delete_accounts(activity):
     cml_servers = CONFIG.SERVER_LIST.split(",")
