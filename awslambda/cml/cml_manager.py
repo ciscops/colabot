@@ -27,12 +27,6 @@ class CMLManager:
             logging.error("Environment variable LAB_DELETE_DAYS must be set")
             sys.exit(1)
 
-        if "LAB_DELETE_DAYS" in os.environ:
-            self.DELETE_DAYS = int(os.getenv("LAB_DELETE_DAYS"))
-        else:
-            logging.error("Environment variable LAB_DELETE_DAYS must be set")
-            sys.exit(1)
-
         if "LAB_DELETE_WARNING_DAYS" in os.environ:
             self.DELETE_WARNING_DAYS = int(os.getenv("LAB_DELETE_WARNING_DAYS"))
         else:
@@ -168,14 +162,24 @@ class CMLManager:
                     self.logging.info("Adding lab to be deleted")
                     labs_to_delete.append(lab_id)
 
-            # Delete labs
-            self.cml_api.delete_labs(labs_to_delete, user_email)
+                # check see if lab within wiped period
+                elif self.lab_to_warn_delete(lab_is_wiped, lab_wiped_date):
+                    self.logging.info("Adding lab to warning for being wiped")
+                    labs_warning_deleted.append((lab_title, lab_last_used_date))
 
-            # Wipe labs
-            self.cml_api.wipe_labs(labs_to_wipe, user_email)
+            self.logging.info("WARN WIPE: %s", str(labs_warning_wiped))
+            self.logging.info("WIPE: %s", str(labs_to_wipe))
+            self.logging.info("WARN DELETE: %s", str(labs_warning_deleted))
+            self.logging.info("DELETE: %s", str(labs_to_delete))
 
-            # Send card warning labs to be wiped
-            self.send_labbing_card(labs_warning_wiped, user_email)
+            # # Delete labs
+            # self.cml_api.delete_labs(labs_to_delete, user_email)
+
+            # # Wipe labs
+            # self.cml_api.wipe_labs(labs_to_wipe, user_email)
+
+            # # Send card warning labs to be wiped
+            # self.send_labbing_card(labs_warning_wiped, user_email)
 
             # Send card warning labs to be deleted
             self.send_deletion_card(labs_warning_deleted, user_email)
@@ -402,6 +406,9 @@ class CMLManager:
     ) -> bool:
         """Determines if lab within wiping warning period"""
 
+        if lab_is_wiped:
+            return False
+
         if (date.today() - lab_last_used_date).days >= self.WARN_DAYS:
             return True
 
@@ -410,21 +417,23 @@ class CMLManager:
     def lab_to_warn_delete(self, lab_is_wiped: bool, lab_wiped_date: date) -> bool:
         """Checks if lab within deletion warning period"""
 
-        if (
-            lab_is_wiped
-            and (date.today() - lab_wiped_date).days >= self.DELETE_WARNING_DAYS
-        ):
+        if not lab_is_wiped or not isinstance(lab_wiped_date, date):
+            return False
+
+        if (date.today() - lab_wiped_date).days >= self.DELETE_WARNING_DAYS:
             return True
 
         return False
 
-    def lab_to_wipe(self, card_sent_date: date, user_responded_date: date) -> bool:
+    def lab_to_wipe(
+        self, card_sent_date: date, user_responded_date: date, lab_is_wiped: bool
+    ) -> bool:
         """Checks see if a person did not respond to card in time and auto wipes the lab"""
 
-        if isinstance(user_responded_date, date):
+        if isinstance(user_responded_date, date) or lab_is_wiped:
             return False
 
-        if date.today() - card_sent_date >= self.CARD_RESPOND_DAYS:
+        if (date.today() - card_sent_date).days >= self.CARD_RESPOND_DAYS:
             return True
 
         ###below works if keep the user_responded_date
@@ -444,7 +453,7 @@ class CMLManager:
             return False
 
         # Checks if lab is over the wiped-to-delete period
-        if lab_last_used_date + self.DELETE_DAYS >= date.today():
+        if (date.today() - lab_last_used_date).days >= self.DELETE_DAYS:
             return True
 
         return False
