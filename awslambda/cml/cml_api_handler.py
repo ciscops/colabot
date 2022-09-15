@@ -116,7 +116,6 @@ class CMLAPI:
         for lab_id in lab_ids:
             try:
                 lab = self.client.join_existing_lab(lab_id)
-                lab_name = lab.title
 
                 lab.stop()
                 lab.wipe()
