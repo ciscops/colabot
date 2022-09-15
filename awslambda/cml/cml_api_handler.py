@@ -126,7 +126,7 @@ class CMLAPI:
                     [{"id": self.wiped_labs_group, "permission": "read_only"}]
                 )
             except Exception:
-                self.logging.error("Error wiping lab %s", lab_name)
+                self.logging.error("Error wiping lab")
 
         return True
 
