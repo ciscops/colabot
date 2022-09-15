@@ -611,6 +611,7 @@ async def handle_rotate_keys_card(activity):
 
 async def handle_labbing_card(activity):
     """handles the are cml lab check in card"""
+    
     logging.debug(activity['inputs'])
 
 async def delete_accounts(activity):
