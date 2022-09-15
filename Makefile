@@ -5,16 +5,10 @@ LAMBDA_FUNCTION_ROTATE_KEYS=cpn-colabot-rotate-keys
 LAMBDA_FUNCTION_CML_LABS_MANAGEMENT=kstickne-colabot-manage-CML-labs-dev ##change to cpn-colabaot-manage-CML-labs
 TOPDIR = $(shell git rev-parse --show-toplevel)
 PYDIRS_LAMBDA_IAM=awslambda/iam
-<<<<<<< HEAD
-PYDIRS_FEATURES=features
-PYDIRS_WEBEX=webex
-PYDIRS=$(PYDIRS_LAMBDA_IAM) $(PYDIRS_FEATURES) $(PYDIRS_WEBEX)
-=======
 PYDIRS_LAMBDA_CML=awslambda/cml
 PYDIRS_FEATURES=features
 PYDIRS_WEBEX=webex
 PYDIRS=$(PYDIRS_LAMBDA_IAM) $(PYDIRS_LAMBDA_CML) $(PYDIRS_FEATURES) $(PYDIRS_WEBEX)
->>>>>>> added lambda fx for cml
 VENV = venv_$(PROJECT_NAME)
 VENV_BIN=$(VENV)/bin
 SRC_FILES := $(shell find $(PYDIRS) -name \*.py)
