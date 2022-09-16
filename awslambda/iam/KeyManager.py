@@ -75,14 +75,14 @@ class KeyManager:
                     self.logging.info("Checking keys for user: %s", name)
                     for access_key in user_access_key_list:
                         self.process_key(access_key, user_email, user)
-                
-                success_counter += 1        
+
+                success_counter += 1
             except Exception as e:
                 self.logging.error("ERROR: %s", str(e))
                 fail_counter += 1
 
         self.logging.info("Keys deleted %s", self.temp_key_deleted_counter)
-        return (success_counter, fail_counter)                     
+        return (success_counter, fail_counter)
 
     def process_key(self, access_key, user_email, user):
         key_age = access_key.create_date
@@ -95,7 +95,9 @@ class KeyManager:
 
         self.logging.info("%sEmail: %s", self.log_indent, user_email)
         self.logging.info("%sKey status: %s ", self.log_indent, key_status)
-        self.logging.info("%sKey was created %s days ago", self.log_indent, key_created_days)
+        self.logging.info(
+            "%sKey was created %s days ago", self.log_indent, key_created_days
+        )
 
         if key_status != "Active":
             self.delete_key(
@@ -143,7 +145,9 @@ class KeyManager:
         if "LastUsedDate" in access_key_last_used["AccessKeyLastUsed"]:
             key_last_used = access_key_last_used["AccessKeyLastUsed"]["LastUsedDate"]
             key_last_used_date = (currentdate - key_last_used.date()).days
-            self.logging.info("%sKey was last used %s days ago", self.log_indent, key_last_used_date)
+            self.logging.info(
+                "%sKey was last used %s days ago", self.log_indent, key_last_used_date
+            )
             if (
                 key_last_used_date >= self.warn_days - 5
             ):  # If key is within 5 days of unused deadline
@@ -169,7 +173,9 @@ class KeyManager:
                 )
                 return
 
-        self.logging.info("%sKey is within acceptable usage timeframes", self.log_indent)
+        self.logging.info(
+            "%sKey is within acceptable usage timeframes", self.log_indent
+        )
 
     def create_new_key(self, user_email, key_id, user):
         access_key_pair = user.create_access_key_pair()
@@ -182,10 +188,23 @@ class KeyManager:
             + f"\n - New access key **Access key ID** = ({new_access_key_id}) | **Secret access key** = ({new_secret_access_key})"
         )
 
-        self.logging.info("%sCurrent key is %s days old, creating new access key", self.log_indent, str(self.rotate_days),)
+        self.logging.info(
+            "%sCurrent key is %s days old, creating new access key",
+            self.log_indent,
+            str(self.rotate_days),
+        )
         self.send_message_to_user(user_email, message)
 
-    def delete_key(self, user_email, key_id, expired, unused, key_created_days, user, inactive=False):
+    def delete_key(
+        self,
+        user_email,
+        key_id,
+        expired,
+        unused,
+        key_created_days,
+        user,
+        inactive=False,
+    ):
         access_key = user.AccessKey(key_id)
         access_key.delete()
         self.temp_key_deleted_counter += 1
@@ -193,13 +212,23 @@ class KeyManager:
         message = ""
         if expired:
             message = f"Access key ({key_id}) \n - Age: {key_created_days} days old \n - Maximum lifespan: {self.delete_days} days \n - Status: **Deleted** \n - Reason: exceeds lifespan"
-            self.logging.info("%sKey is %s old or older, deleting key", self.log_indent, str(self.delete_days))
+            self.logging.info(
+                "%sKey is %s old or older, deleting key",
+                self.log_indent,
+                str(self.delete_days),
+            )
         if unused:
             message = f"Access key ({key_id}) \n - Last used: {self.warn_days} days ago \n - Maximum unused lifespan: {self.warn_days} days \n - Status: **Deleted** \n - Reason: key is not used"
-            self.logging.info("%sKey has not been used in %s days, deleting key", self.log_indent, str(self.warn_days))
+            self.logging.info(
+                "%sKey has not been used in %s days, deleting key",
+                self.log_indent,
+                str(self.warn_days),
+            )
         if inactive:
             message = f"Access key ({key_id}) \n - Status: **Deleted** \n - Reason: key was set to inactive"
-            self.logging.info("%sKey was set to inactive, deleting key", self.log_indent)
+            self.logging.info(
+                "%sKey was set to inactive, deleting key", self.log_indent
+            )
 
         self.send_message_to_user(user_email, message)
 
@@ -208,18 +237,26 @@ class KeyManager:
         if expire:
             message = f"Access key ({key_id}) \n - Age: {days_to_warn} days old \n - Expiration in: {self.delete_days - days_to_warn} days \n - Status: **Warning** \n - Reason: reaching key age limit of {self.delete_days} days \n"
             self.logging.info(
-                "%sKey age is between %s-%s days old, warning user of expiration", self.log_indent, str(self.rotate_days), str(self.delete_days)
+                "%sKey age is between %s-%s days old, warning user of expiration",
+                self.log_indent,
+                str(self.rotate_days),
+                str(self.delete_days),
             )
         if unused:
             message = f"Access key ({key_id}) \n - Last used: {days_to_warn} days ago \n - Expiration in: {self.warn_days - days_to_warn} days \n - Status: **Warning** \n - Reason: reaching key unused limit of {self.warn_days} days \n"
             self.logging.info(
-                "%sKey has not been used in %s-%s days, warning user of expiration", self.log_indent, str(self.warn_days-5), str(self.warn_days)
+                "%sKey has not been used in %s-%s days, warning user of expiration",
+                self.log_indent,
+                str(self.warn_days - 5),
+                str(self.warn_days),
             )
 
         self.send_message_to_user(user_email, message)
 
     def send_message_to_user(self, user_email, message):
-        self.logging.info("%sSending message to %s", self.log_indent, user_email) #remove the message part
+        self.logging.info(
+            "%sSending message to %s", self.log_indent, user_email
+        )  # remove the message part
         self.api.messages.create(toPersonEmail=user_email, markdown=message)
 
     def get_dynamo_user_email(self, user_name):
