@@ -658,6 +658,7 @@ async def handle_labbing_card(activity):
 async def wipe_and_delete_labs(activity, labs, user_email, table):
     """Wipes the labs, sends the user each lab's yaml file, and messages the user"""
     cml_servers = CONFIG.SERVER_LIST.split(",")
+    logging.debug("servers: " + cml_servers)
     cml_server = cml_servers[1]
     user_and_domain = activity["sender_email"].split("@")
     cml_user = CML(user_and_domain[0], activity["cml_password"], cml_server)
