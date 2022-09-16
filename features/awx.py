@@ -9,6 +9,7 @@ import aiohttp
 import pymongo
 import urllib3
 import boto3
+from boto3.dynamodb.conditions import Key, Attr
 import yaml
 from virl2_client import ClientLibrary
 from jinja2 import Template
@@ -660,13 +661,23 @@ async def wipe_and_delete_labs(activity, labs, user_email, table):
     cml_server = CONFIG.SERVER_LIST.split(",")[0]
     logging.debug("CML Server is: %s", cml_server)
     user_and_domain = user_email.split("@")
-    cml_user = CML(user_and_domain[0], activity["cml_password"], cml_server)
+    cml_password = await get_cml_password(user_email, table)
+    cml_user = CML(user_and_domain[0], cml_password, cml_server)
 
     for lab_id in labs:
         cml_user.wipe_lab(lab_id)
         await download_and_send_lab_toplogy(activity, lab_id, cml_server, user_email)
         await delete_lab_from_dynamo(user_email, lab_id, table)
         cml_user.delete_lab(lab_id)
+
+
+async def get_cml_password(user_email, table):
+    """Gets the user's cml password"""
+    response = table.query(
+        KeyConditionExpression=Key("email").eq(user_email)
+    )
+
+    return response["Items"][0]['password']
 
 
 async def update_used_labs_in_dynamo(labs, user_email, table):
