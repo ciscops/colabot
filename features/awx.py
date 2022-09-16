@@ -620,7 +620,7 @@ async def handle_labbing_card(activity):
     selected_labs = activity["inputs"]["labIds"]
     all_labs = activity["inputs"]["allLabIds"]
     user_email = activity["inputs"]["email"]
-    labs_not_selected = (all_labs).symmetric_difference(selected_labs)
+    labs_not_selected = (set(all_labs)).symmetric_difference(set(selected_labs))
 
     dynamodb = boto3.resource(
         "dynamodb",
@@ -653,7 +653,6 @@ async def handle_labbing_card(activity):
     if card_type == "all":
         logging.debug("all selected, keep all")
         update_used_labs_in_dynamo(selected_labs, user_email, table)
-        return
 
 
 async def wipe_and_delete_labs(activity, labs, user_email, table):
