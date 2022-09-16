@@ -61,7 +61,7 @@
                         "type": "labbing",
                         "email": {{user_email}},
                         "card_feature_index": "cml_labbing_card",
-                        "allLabIds": {{all_lab_ids}},
+                        "allLabIds": {{all_lab_ids}}
                     }
                 }
             ]

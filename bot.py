@@ -249,11 +249,8 @@ class COLABot:
                 == "rotate_aws_iam_password"
             ):
                 await awx.handle_rotate_keys_card(self.activity)
-            if (
-                self.activity["inputs"]["card_feature_index"]
-                == "cml_labbing_card"
-            ):
-                await awx.handle_labbing_card(self.activity) 
+            if self.activity["inputs"]["card_feature_index"] == "cml_labbing_card":
+                await awx.handle_labbing_card(self.activity)
             # Add new card activities here
 
         elif self.activity["description"] == "message_details":
