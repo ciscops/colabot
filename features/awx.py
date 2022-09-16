@@ -3,14 +3,18 @@
 import logging
 import json
 import re
+import tempfile
 from datetime import date
 import aiohttp
 import pymongo
 import urllib3
 import boto3
+import yaml
+from virl2_client import ClientLibrary
 from jinja2 import Template
 from config import DefaultConfig as CONFIG
 from webex import WebExClient
+from .CML import CML
 
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -609,10 +613,109 @@ async def handle_rotate_keys_card(activity):
 
     await create_key_and_message_user(activity, user, webex)
 
+
 async def handle_labbing_card(activity):
     """handles the are cml lab check in card"""
-    
-    logging.debug(activity['inputs'])
+    card_type = activity["inputs"]["isLabbing"]
+    selected_labs = activity["inputs"]["labIds"]
+    all_labs = activity["inputs"]["allLabIds"]
+    labs_not_selected = (all_labs).symmetric_difference(selected_labs)
+
+    # if cardType is selection, keep all selected labs, and wipe the other labs
+    if card_type == "selection":
+        if len(selected_labs) == 0:
+            logging.debug("No labs selected, wiping all labs")
+            # use all_labs
+            return
+
+        logging.debug("Labs selected, wiping unselected labs")
+        # use labs_not_selected
+        return
+
+    # if cardType is none, wipe all labs
+    if card_type == "none":
+        logging.debug("None button selected, wiping all labs")
+        # use all_labs
+        return
+
+    # if cardType is all, keep all labs
+    if card_type == "all":
+        logging.debug("all selected, keep all")
+        return
+
+
+async def wipe_labs(activity, labs_to_wipe, user_email):
+    """Wipes the labs, sends the user each lab's yaml file, and messages the user"""
+    cml_servers = CONFIG.SERVER_LIST.split(",")
+    cml_server = cml_servers[1]
+    user_and_domain = activity["sender_email"].split("@")
+    cml_user = CML(user_and_domain[0], activity["cml_password"], cml_server)
+
+    for lab_id in labs_to_wipe:
+        cml_user.wipe_lab(lab_id)
+        download_and_send_lab_toplogy(activity, lab_id, cml_server, user_email)
+        delete_lab_from_dynamo(user_email, lab_id)
+
+
+async def delete_lab_from_dynamo(user_email, lab_id):
+    """Deletes the lab from the dynamoDB table"""
+    dynamodb = boto3.resource(
+        "dynamodb",
+        region_name=CONFIG.AWS_REGION,
+        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY,
+    )
+
+    table = dynamodb.Table(
+        "colab_directory_dev"
+    )  # TODO remove dev extension when pushing to prod
+
+    try:
+        table.update_item(
+            Key={"email": user_email},
+            UpdateExpression="remove #cml_labs.#lab_id",
+            ExpressionAttributeNames={
+                "#cml_labs": "cml_labs",
+                "#lab_id": lab_id,
+            },
+        )
+    except Exception as e:
+        logging.error("Problem deleting lab: %s", str(e))
+
+
+async def download_and_send_lab_toplogy(activity, lab_id, cml_server, user_email):
+    """Downloads the lab-to-be-wiped topology and sends it to the user"""
+    webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
+    url = "https://" + cml_server + "/"
+    client = ClientLibrary(
+        url,
+        CONFIG.CML_USERNAME,
+        CONFIG.CML_PASSWORD,
+        ssl_verify=False,
+        raise_for_auth_failure=True,
+    )
+
+    lab = client.join_existing_lab(lab_id)
+    lab_title = lab.title
+    yaml_string = lab.download()
+
+    with open(
+        tempfile.NamedTemporaryFile(
+            suffix=".yaml", prefix=f'{lab_title.replace(" ","_")}_'
+        ).name,
+        "w",
+        encoding="utf-8",
+    ) as outfile:
+        yaml.dump(yaml.full_load(yaml_string), outfile, default_flow_style=False)
+
+        message = dict(
+            toPersonEmail=user_email,
+            markdown=f'Your lab "{lab_title}" has been deleted. Attached is the YAML Topology file',
+            files=[outfile.name],
+        )
+
+        await webex.post_message_to_webex(message)
+
 
 async def delete_accounts(activity):
     cml_servers = CONFIG.SERVER_LIST.split(",")
