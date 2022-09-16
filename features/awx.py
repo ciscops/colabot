@@ -637,22 +637,22 @@ async def handle_labbing_card(activity):
     if card_type == "selection":
         if len(selected_labs) == 0:
             logging.debug("No labs selected, wiping all labs")
-            wipe_and_delete_labs(activity, all_labs, user_email, table)
+            await wipe_and_delete_labs(activity, all_labs, user_email, table)
             return
 
         logging.debug("Labs selected, wiping unselected labs")
-        wipe_and_delete_labs(activity, labs_not_selected, user_email, table)
-        update_used_labs_in_dynamo(selected_labs, user_email, table)
+        await wipe_and_delete_labs(activity, labs_not_selected, user_email, table)
+        await update_used_labs_in_dynamo(selected_labs, user_email, table)
         return
 
     if card_type == "none":
         logging.debug("None button selected, wiping all labs")
-        wipe_and_delete_labs(activity, all_labs, user_email, table)
+        await wipe_and_delete_labs(activity, all_labs, user_email, table)
         return
 
     if card_type == "all":
         logging.debug("all selected, keep all")
-        update_used_labs_in_dynamo(selected_labs, user_email, table)
+        await update_used_labs_in_dynamo(selected_labs, user_email, table)
 
 
 async def wipe_and_delete_labs(activity, labs, user_email, table):
@@ -664,8 +664,8 @@ async def wipe_and_delete_labs(activity, labs, user_email, table):
 
     for lab_id in labs:
         cml_user.wipe_lab(lab_id)
-        download_and_send_lab_toplogy(activity, lab_id, cml_server, user_email)
-        delete_lab_from_dynamo(user_email, lab_id, table)
+        await download_and_send_lab_toplogy(activity, lab_id, cml_server, user_email)
+        await delete_lab_from_dynamo(user_email, lab_id, table)
         cml_user.delete_lab(lab_id)
 
 
