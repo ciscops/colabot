@@ -195,12 +195,16 @@ class Dynamoapi:
         try:
             self.cml_table.update_item(
                 Key={"email": email},
-                UpdateExpression="set #cml_labs.#lab_id= :lab",
-                ExpressionAttributeNames={
-                    self.cml_labs_tag: "cml_labs",
-                    self.lab_id_tag: lab_id,
+                UpdateExpression="SET #cml_labs.#lab_id= :value",
+                ExpressionAttributeNames={self.cml_labs_tag: "cml_labs", "#lab_id": lab_id},
+                ExpressionAttributeValues={
+                    ":value": {
+                        "lab_is_wiped": False,
+                        "lab_wiped_date": "",
+                        "card_sent_date": "",
+                        "user_responded_date": date_string,
+                    }
                 },
-                ExpressionAttributeValues={":lab": date_string},
             )
         except Exception as e:
             self.logging.error("Problem updating lab used date: %s", str(e))
