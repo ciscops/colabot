@@ -23,14 +23,6 @@ class Dynamoapi:
         self.table_date_format = "%m%d%Y"
         self.cml_labs_tag = "#cml_labs"
         self.lab_id_tag = "#lab_id"
-        self.table_lab_keys = [
-            "lab_title",
-            "lab_last_used_date",
-            "lab_is_wiped",
-            "lab_wiped_date",
-            "card_sent_date",
-            "card_responded_date",
-        ]
 
     def get_dynamo_cml_table(self):
         """
@@ -89,7 +81,7 @@ class Dynamoapi:
     def add_cml_lab(
         self, email: str, lab_id: str, lab_title: str, created_date: datetime.date
     ):
-        """Adds a new lab to a user - has to have cml_labs field"""
+        """Adds a new lab to a user"""
         self.get_dynamo_cml_table()
 
         # date_string = str(int(datetime.timestamp()))
@@ -126,29 +118,34 @@ class Dynamoapi:
         )
 
     def update_cml_lab_used_date(
-        self, email: str, lab_id: str, update_date: datetime.date = date.today()
+        self,
+        email: str,
+        lab_id: str,
+        lab_title: str,
+        update_date: datetime.date = date.today(),
     ):
         """Updates the last used date for a lab"""
+        self.add_cml_lab(email, lab_id, lab_title, update_date)
+
+    def update_cml_lab_wiped(
+        self, email: str, lab_id: str, lab_wiped_date: datetime.date = date.today()
+    ):
+        """upadtes the wiped lab fields"""
         self.get_dynamo_cml_table()
         # date_string = str(int(datetime.timestamp()))
-        date_string = datetime.strftime(update_date, self.table_date_format)
+        date_string = datetime.strftime(lab_wiped_date, self.table_date_format)
 
-        try:
-            self.cml_table.update_item(
-                Key={"email": email},
-                UpdateExpression="SET #cml_labs.#lab_id= :value",
-                ExpressionAttributeNames={self.cml_labs_tag: "cml_labs", "#lab_id": lab_id},
-                ExpressionAttributeValues={
-                    ":value": {
-                        "lab_is_wiped": False,
-                        "lab_wiped_date": "",
-                        "card_sent_date": "",
-                        "user_responded_date": date_string,
-                    }
-                },
-            )
-        except Exception as e:
-            self.logging.error("Problem updating lab used date: %s", str(e))
+        self.cml_table.update_item(
+            Key={"email": email},
+            UpdateExpression="SET #cml_labs.#lab_id.#lab_wiped_date= :value, #cml_labs.#lab_id.#lab_wiped= :value2",
+            ExpressionAttributeNames={
+                self.cml_labs_tag: "cml_labs",
+                "#lab_id": lab_id,
+                "#lab_wiped_date": "lab_wiped_date",
+                "#lab_wiped": "lab_wiped",
+            },
+            ExpressionAttributeValues={":value": date_string, ":value2": True},
+        )
 
     def delete_cml_lab(self, email: str, lab_id: str):
         """Adds a new lab to a user - has to have cml_labs field"""
