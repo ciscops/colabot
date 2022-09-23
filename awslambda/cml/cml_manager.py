@@ -163,7 +163,9 @@ class CMLManager:
                     labs_to_delete.append(lab_id)
 
                 # check see if lab within wiped period
-                elif self.lab_to_warn_delete(lab_is_wiped, lab_wiped_date):
+                elif self.lab_to_warn_delete(
+                    lab_is_wiped, lab_wiped_date, lab_id, lab_title, user_email
+                ):
                     self.logging.info("Adding lab to warning for being wiped")
                     labs_warning_deleted.append((lab_title, user_responded_date))
 
@@ -414,42 +416,53 @@ class CMLManager:
 
         return False
 
-    def lab_to_warn_delete(self, lab_is_wiped: bool, lab_wiped_date: date) -> bool:
+    def lab_to_warn_delete(
+        self,
+        lab_is_wiped: bool,
+        lab_wiped_date: date,
+        lab_id: str,
+        lab_title: str,
+        user_email: str,
+    ) -> bool:
         """Checks if lab within deletion warning period"""
 
         if not lab_is_wiped or not isinstance(lab_wiped_date, date):
             return False
-     
+
         if (date.today() - lab_wiped_date).days >= self.DELETE_WARNING_DAYS:
-            # what if they start using it again within that time period - should we see if it's running
-            # use user_responded_date or lab_wiped_date?
+            # only warn if not active
+            if self.cml_api.check_lab_active(lab_id):
+                self.dynamodb.update_cml_lab_used_date(user_email, lab_id, lab_title)
+                return False
             return True
 
         return False
 
-    def lab_to_wipe(self, card_sent_date: date, user_responded_date: date, lab_is_wiped: bool) -> bool:
+    def lab_to_wipe(
+        self, card_sent_date: date, user_responded_date: date, lab_is_wiped: bool
+    ) -> bool:
         """Checks see if a person did not respond to card in time and auto wipes the lab"""
 
-        if (lab_is_wiped or not isinstance(card_sent_date,date) or 
-            (date.today() - user_responded_date).days <= self.WARN_DAYS):
+        if (
+            lab_is_wiped
+            or not isinstance(card_sent_date, date)
+            or (date.today() - user_responded_date).days <= self.WARN_DAYS
+        ):
             return False
-            # Test case: Card_sent_date = 7 days ago, user_responded=3 days ago
-            # Don't need this if delete card_sent_date when we update user_reponded_date
 
         if (date.today() - card_sent_date).days >= self.CARD_RESPOND_DAYS:
             return True
 
         return False
 
-    def lab_to_delete(self, lab_is_wiped: bool, user_responded_date: date) -> bool:
+    def lab_to_delete(self, lab_is_wiped: bool, lab_wiped_date: date) -> bool:
         """Checks if lab needs to be deleted"""
 
         if not lab_is_wiped:
             return False
 
         # Checks if lab is over the wiped-to-delete period
-        if (date.today() - user_responded_date).days >= self.DELETE_DAYS:
-            # Should we use lab_wiped_date
+        if (date.today() - lab_wiped_date).days >= self.DELETE_DAYS:
             return True
 
         return False
