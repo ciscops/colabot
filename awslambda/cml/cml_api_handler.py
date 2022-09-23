@@ -138,6 +138,7 @@ class CMLAPI:
                 lab.update_lab_groups(
                     [{"id": self.wiped_labs_group, "permission": "read_only"}]
                 )
+                self.dynamodb.update_cml_lab_wiped(email, lab_id)
             except Exception:
                 self.logging.error("Error wiping lab")
 
@@ -196,13 +197,15 @@ class CMLAPI:
         for lab_id in lab_ids:
             try:
                 lab = self.client.join_existing_lab(lab_id)
+                lab_title = lab.title
 
                 # check to see if lab is running
                 if lab.is_active():
-                    self.dynamodb.update_cml_lab_used_date(user_email, lab_id)
+                    self.dynamodb.update_cml_lab_used_date(
+                        user_email, lab_id, lab_title
+                    )
                     continue
 
-                lab_title = lab.title
                 yaml_string = lab.download()
 
                 lab.remove()
@@ -234,3 +237,8 @@ class CMLAPI:
             )
 
         return True
+
+    def check_lab_active(self, lab_id: str) -> bool:
+        """Returns whether a lab is active or not"""
+        lab = self.client.join_existing_lab(lab_id)
+        return lab.is_active()
