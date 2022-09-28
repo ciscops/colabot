@@ -64,8 +64,7 @@ class CMLManager:
         self.logging.info("Managing Labs")
 
         self.cml_api.fill_user_labs_dict()
-        # all_user_emails = self.dynamodb.get_all_cml_users()
-        all_user_emails = ["kstickne@cisco.com"]
+        all_user_emails = self.dynamodb.get_all_cml_users()
 
         self.logging.info("Starting users")
 
@@ -135,7 +134,7 @@ class CMLManager:
             self.send_labbing_card(labs_warning_wiped, user_email)
 
             # Send card warning labs to be deleted
-            self.send_deletion_card(labs_warning_wiped, user_email)
+            self.send_deletion_card(labs_warning_deleted, user_email)
 
         return (success_counter, fail_counter)
 
@@ -227,7 +226,7 @@ class CMLManager:
         if not labs_to_send:
             return False
 
-        message = "The following labs are scheduled to be deleted. If you would like to keep your lab, please start it."
+        message = "The following labs are scheduled to be deleted. If you would like to keep your lab, please start it.\n"
         for lab_title, last_used_date in labs_to_send:
             last_seen = (date.today() - last_used_date).days
             message += f"\n- Lab: {lab_title} | Last seen: {last_seen} days ago"
@@ -236,7 +235,7 @@ class CMLManager:
             os.path.dirname(os.path.realpath(__file__)), "deletion_card.json"
         )
 
-        render_variables = {"message": message}
+        render_variables = {"message": json.dumps(message)}
 
         self.logging.info("Sending warning deletion card")
         self.send_card(card_file, render_variables, user_email)
@@ -274,6 +273,10 @@ class CMLManager:
         }
         self.logging.info("Sending labbing card")
         self.send_card(card_file, render_variables, user_email)
+
+        for lab_data in labs_to_send:
+            lab_id = lab_data[0]
+            self.dynamodb.update_cml_lab_card_sent(user_email, lab_id)
 
         return True
 

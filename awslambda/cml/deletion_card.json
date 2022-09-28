@@ -12,7 +12,8 @@
             "inlines": [
                 {
                     "type": "TextRun",
-                    "text": {{message}}
+                    "text": {{message}},
+                    "size": "medium"
                 }
             ]
         }
