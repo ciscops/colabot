@@ -202,6 +202,25 @@ class Dynamoapi:
             ExpressionAttributeValues={":value": date_string, ":value2": True},
         )
 
+    def update_cml_lab_card_sent(
+        self, email: str, lab_id: str, card_sent_date: datetime.date = date.today()
+    ):
+        """upadtes the card_sent_date field"""
+        self.get_dynamo_cml_table()
+        # date_string = str(int(datetime.timestamp()))
+        date_string = datetime.strftime(card_sent_date, self.table_date_format)
+
+        self.cml_table.update_item(
+            Key={"email": email},
+            UpdateExpression="SET #cml_labs.#lab_id.#card_sent_date= :value",
+            ExpressionAttributeNames={
+                self.cml_labs_tag: "cml_labs",
+                "#lab_id": lab_id,
+                "#card_sent_date": "card_sent_date",
+            },
+            ExpressionAttributeValues={":value": date_string},
+        )
+
     def delete_cml_lab(self, email: str, lab_id: str):
         """Adds a new lab to a user - has to have cml_labs field"""
         self.get_dynamo_cml_table()
