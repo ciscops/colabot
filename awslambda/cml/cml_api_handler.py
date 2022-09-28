@@ -64,11 +64,9 @@ class CMLAPI:
         self.connect()
         self.logging.info("Getting diagnostics")
         diagnostics = self.client.get_diagnostics()
-        # for user in diagnostics["user_list"]:
+
         self.logging.debug("iterating through users")
         for user in diagnostics["user_list"]:
-            if user["username"] != "kstickne":
-                continue
             email = user["username"] + "@cisco.com"
             self.user_and_labs[email] = user["labs"]
 
@@ -139,6 +137,9 @@ class CMLAPI:
                     [{"id": self.wiped_labs_group, "permission": "read_only"}]
                 )
                 self.dynamodb.update_cml_lab_wiped(email, lab_id)
+
+                lab_title = lab.title
+                message += f"Lab: {lab_title}\n"
             except Exception:
                 self.logging.error("Error wiping lab")
 
@@ -157,7 +158,8 @@ class CMLAPI:
                 lab_title = lab.title
 
                 # check to see if lab is running
-                if lab.is_active():
+
+                if lab.state() == "STARTED":
                     self.dynamodb.update_cml_lab_used_date(
                         user_email, lab_id, lab_title
                     )
@@ -198,4 +200,4 @@ class CMLAPI:
     def check_lab_active(self, lab_id: str) -> bool:
         """Returns whether a lab is active or not"""
         lab = self.client.join_existing_lab(lab_id)
-        return lab.is_active()
+        return lab.state() == "STARTED"
