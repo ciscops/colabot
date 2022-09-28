@@ -125,17 +125,17 @@ class CMLManager:
             self.logging.info("WARN DELETE: %s", str(labs_warning_deleted))
             self.logging.info("DELETE: %s", str(labs_to_delete))
 
-            # # Delete labs
-            # self.cml_api.delete_labs(labs_to_delete, user_email)
+            # Delete labs
+            self.cml_api.delete_labs(labs_to_delete, user_email)
 
-            # # Wipe labs
-            # self.cml_api.wipe_labs(labs_to_wipe, user_email)
+            # Wipe labs
+            self.cml_api.wipe_labs(labs_to_wipe, user_email)
 
-            # # Send card warning labs to be wiped
-            # self.send_labbing_card(labs_warning_wiped, user_email)
+            # Send card warning labs to be wiped
+            self.send_labbing_card(labs_warning_wiped, user_email)
 
-            # # Send card warning labs to be deleted
-            # self.send_deletion_card(labs_warning_wiped, user_email)
+            # Send card warning labs to be deleted
+            self.send_deletion_card(labs_warning_wiped, user_email)
 
         return (success_counter, fail_counter)
 
