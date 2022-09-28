@@ -1,7 +1,7 @@
 import logging
 import os
 import sys
-from datetime import datetime, date
+from datetime import datetime
 import boto3
 from boto3.dynamodb.conditions import Key, Attr
 
@@ -20,7 +20,6 @@ class Dynamoapi:
 
         self.cml_table = None
         self.dynamodb = None
-        self.table_date_format = "%m%d%Y"
         self.cml_labs_tag = "#cml_labs"
         self.lab_id_tag = "#lab_id"
 
@@ -69,23 +68,19 @@ class Dynamoapi:
         for lab_id in table_labs:
             for key, val in table_labs[lab_id].items():
                 try:
-                    # SOME MAY NEED TIME, NOT JUST DATE
-                    # time_ = datetime.fromtimestamp(int(val))
-                    date_ = datetime.strptime(val, self.table_date_format).date()
-                    table_labs[lab_id][key] = date_
+                    time_ = datetime.fromtimestamp(int(val))
+                    table_labs[lab_id][key] = time_
                 except Exception:
                     pass
 
         return table_labs
 
     def add_cml_lab(
-        self, email: str, lab_id: str, lab_title: str, created_date: datetime.date
+        self, email: str, lab_id: str, lab_title: str, created_date: datetime
     ):
         """Adds a new lab to a user"""
         self.get_dynamo_cml_table()
-
-        # date_string = str(int(datetime.timestamp()))
-        date_string = datetime.strftime(created_date, self.table_date_format)
+        date_string = str(int(datetime.timestamp(created_date)))
 
         response = self.cml_table.query(
             KeyConditionExpression=Key("email").eq(email),
@@ -105,7 +100,7 @@ class Dynamoapi:
         self.cml_table.update_item(
             Key={"email": email},
             UpdateExpression="SET #cml_labs.#lab_id= :value",
-            ExpressionAttributeNames={self.cml_labs_tag: "cml_labs", "#lab_id": lab_id},
+            ExpressionAttributeNames={self.cml_labs_tag: "cml_labs", self.lab_id_tag: lab_id},
             ExpressionAttributeValues={
                 ":value": {
                     "lab_title": lab_title,
@@ -122,25 +117,24 @@ class Dynamoapi:
         email: str,
         lab_id: str,
         lab_title: str,
-        update_date: datetime.date = date.today(),
+        update_date: datetime = datetime.now()
     ):
         """Updates the last used date for a lab"""
         self.add_cml_lab(email, lab_id, lab_title, update_date)
 
     def update_cml_lab_wiped(
-        self, email: str, lab_id: str, lab_wiped_date: datetime.date = date.today()
+        self, email: str, lab_id: str, lab_wiped_date: datetime = datetime.now()
     ):
         """upadtes the wiped lab fields"""
         self.get_dynamo_cml_table()
-        # date_string = str(int(datetime.timestamp()))
-        date_string = datetime.strftime(lab_wiped_date, self.table_date_format)
+        date_string = str(int(datetime.timestamp(lab_wiped_date)))
 
         self.cml_table.update_item(
             Key={"email": email},
             UpdateExpression="SET #cml_labs.#lab_id.#lab_wiped_date= :value, #cml_labs.#lab_id.#lab_wiped= :value2",
             ExpressionAttributeNames={
                 self.cml_labs_tag: "cml_labs",
-                "#lab_id": lab_id,
+                self.lab_id_tag: lab_id,
                 "#lab_wiped_date": "lab_wiped_date",
                 "#lab_wiped": "lab_is_wiped",
             },
@@ -148,19 +142,18 @@ class Dynamoapi:
         )
 
     def update_cml_lab_card_sent(
-        self, email: str, lab_id: str, card_sent_date: datetime.date = date.today()
+        self, email: str, lab_id: str, card_sent_date: datetime = datetime.now()
     ):
         """upadtes the card_sent_date field"""
         self.get_dynamo_cml_table()
-        # date_string = str(int(datetime.timestamp()))
-        date_string = datetime.strftime(card_sent_date, self.table_date_format)
+        date_string = str(int(datetime.timestamp(card_sent_date)))
 
         self.cml_table.update_item(
             Key={"email": email},
             UpdateExpression="SET #cml_labs.#lab_id.#card_sent_date= :value",
             ExpressionAttributeNames={
                 self.cml_labs_tag: "cml_labs",
-                "#lab_id": lab_id,
+                self.lab_id_tag: lab_id,
                 "#card_sent_date": "card_sent_date",
             },
             ExpressionAttributeValues={":value": date_string},
