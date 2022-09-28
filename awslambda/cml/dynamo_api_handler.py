@@ -197,7 +197,7 @@ class Dynamoapi:
                 self.cml_labs_tag: "cml_labs",
                 "#lab_id": lab_id,
                 "#lab_wiped_date": "lab_wiped_date",
-                "#lab_wiped": "lab_wiped",
+                "#lab_wiped": "lab_is_wiped",
             },
             ExpressionAttributeValues={":value": date_string, ":value2": True},
         )
