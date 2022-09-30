@@ -198,7 +198,7 @@ class Dynamoapi:
                 "#lab_wiped_date": "lab_wiped_date",
                 "#lab_wiped": "lab_is_wiped",
             },
-            ExpressionAttributeValues={":value": date_string, ":value2": True},
+            ExpressionAttributeValues={":value1": date_string, ":value2": True},
         )
 
     def update_cml_lab_card_sent(
@@ -210,13 +210,13 @@ class Dynamoapi:
 
         self.cml_table.update_item(
             Key={"email": email},
-            UpdateExpression="SET #cml_labs.#lab_id.#card_sent_date= :value",
+            UpdateExpression="SET #cml_labs.#lab_id.#card_sent_date= :date",
             ExpressionAttributeNames={
                 self.cml_labs_tag: "cml_labs",
                 self.lab_id_tag: lab_id,
                 "#card_sent_date": "card_sent_date",
             },
-            ExpressionAttributeValues={":value": date_string},
+            ExpressionAttributeValues={":date": date_string},
         )
 
     def delete_cml_lab(self, email: str, lab_id: str):
