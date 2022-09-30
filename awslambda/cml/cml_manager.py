@@ -2,7 +2,7 @@ import logging
 import sys
 import os
 import json
-from datetime import date
+from datetime import datetime
 from jinja2 import Template
 from webexteamssdk import WebexTeamsAPI
 from awslambda.cml.dynamo_api_handler import Dynamoapi
@@ -108,13 +108,20 @@ class CMLManager:
                     labs_warning_wiped.append((lab_id, lab_title, user_responded_date))
 
                 # check see if within deletion period
-                elif self.lab_to_delete(lab_is_wiped, lab_wiped_date):
+                elif self.lab_to_delete(
+                    lab_wiped_date, user_responded_date, lab_is_wiped
+                ):
                     self.logging.info("Adding lab to be deleted")
                     labs_to_delete.append(lab_id)
 
                 # check see if lab within wiped period
                 elif self.lab_to_warn_delete(
-                    lab_is_wiped, lab_wiped_date, lab_id, lab_title, user_email
+                    lab_wiped_date,
+                    user_responded_date,
+                    lab_is_wiped,
+                    lab_id,
+                    lab_title,
+                    user_email,
                 ):
                     self.logging.info("Adding lab to warning for being wiped")
                     labs_warning_deleted.append((lab_title, user_responded_date))
@@ -158,31 +165,38 @@ class CMLManager:
 
         return True
 
-    def lab_to_warn_wiping(self, user_responded_date: date, lab_is_wiped: bool) -> bool:
+    def lab_to_warn_wiping(
+        self, user_responded_date: datetime, lab_is_wiped: bool
+    ) -> bool:
         """Determines if lab within wiping warning period"""
 
         if lab_is_wiped:
             return False
 
-        if (date.today() - user_responded_date).days >= self.WARN_DAYS:
+        if (datetime.today() - user_responded_date).days >= self.WARN_DAYS:
             return True
 
         return False
 
     def lab_to_warn_delete(
         self,
+        lab_wiped_date: datetime,
+        user_responded_date: datetime,
         lab_is_wiped: bool,
-        lab_wiped_date: date,
         lab_id: str,
         lab_title: str,
         user_email: str,
     ) -> bool:
         """Checks if lab within deletion warning period"""
 
-        if not lab_is_wiped or not isinstance(lab_wiped_date, date):
+        if (
+            not lab_is_wiped
+            or not isinstance(lab_wiped_date, datetime)
+            or (datetime.today() - user_responded_date).days <= self.WARN_DAYS
+        ):
             return False
 
-        if (date.today() - lab_wiped_date).days >= self.DELETE_WARNING_DAYS:
+        if (datetime.today() - lab_wiped_date).days >= self.DELETE_WARNING_DAYS:
             # only warn if not active
             if self.cml_api.check_lab_active(lab_id):
                 self.dynamodb.update_cml_lab_used_date(user_email, lab_id, lab_title)
@@ -192,30 +206,41 @@ class CMLManager:
         return False
 
     def lab_to_wipe(
-        self, card_sent_date: date, user_responded_date: date, lab_is_wiped: bool
+        self,
+        card_sent_date: datetime,
+        user_responded_date: datetime,
+        lab_is_wiped: bool,
     ) -> bool:
         """Checks see if a person did not respond to card in time and auto wipes the lab"""
 
         if (
             lab_is_wiped
-            or not isinstance(card_sent_date, date)
-            or (date.today() - user_responded_date).days <= self.WARN_DAYS
+            or not isinstance(card_sent_date, datetime)
+            or (datetime.today() - user_responded_date).days <= self.WARN_DAYS
         ):
             return False
 
-        if (date.today() - card_sent_date).days >= self.CARD_RESPOND_DAYS:
+        if (datetime.today() - card_sent_date).days >= self.CARD_RESPOND_DAYS:
             return True
 
         return False
 
-    def lab_to_delete(self, lab_is_wiped: bool, lab_wiped_date: date) -> bool:
+    def lab_to_delete(
+        self,
+        lab_wiped_date: datetime,
+        user_responded_date: datetime,
+        lab_is_wiped: bool,
+    ) -> bool:
         """Checks if lab needs to be deleted"""
 
-        if not lab_is_wiped:
+        if (
+            not lab_is_wiped
+            or (datetime.today() - user_responded_date).days <= self.WARN_DAYS
+        ):
             return False
 
         # Checks if lab is over the wiped-to-delete period
-        if (date.today() - lab_wiped_date).days >= self.DELETE_DAYS:
+        if (datetime.today() - lab_wiped_date).days >= self.DELETE_DAYS:
             return True
 
         return False
@@ -228,7 +253,7 @@ class CMLManager:
 
         message = "The following labs are scheduled to be deleted. If you would like to keep your lab, please start it.\n"
         for lab_title, last_used_date in labs_to_send:
-            last_seen = (date.today() - last_used_date).days
+            last_seen = (datetime.today() - last_used_date).days
             message += f"\n- Lab: {lab_title} | Last seen: {last_seen} days ago"
 
         card_file = os.path.join(
@@ -255,7 +280,7 @@ class CMLManager:
         lab_choices = []
         all_lab_ids = ""
         for lab_id, lab_title, last_used_date in labs_to_send:
-            last_seen = (date.today() - last_used_date).days
+            last_seen = (datetime.today() - last_used_date).days
             lab = {
                 "title": f"Lab: {lab_title} | Last seen: {last_seen} days ago",
                 "value": lab_id,

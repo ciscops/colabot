@@ -68,6 +68,8 @@ class Dynamoapi:
         for lab_id in table_labs:
             for key, val in table_labs[lab_id].items():
                 try:
+                    if isinstance(table_labs[lab_id][key], bool):
+                        continue
                     time_ = datetime.fromtimestamp(int(val))
                     table_labs[lab_id][key] = time_
                 except Exception:
@@ -100,7 +102,10 @@ class Dynamoapi:
         self.cml_table.update_item(
             Key={"email": email},
             UpdateExpression="SET #cml_labs.#lab_id= :value",
-            ExpressionAttributeNames={self.cml_labs_tag: "cml_labs", self.lab_id_tag: lab_id},
+            ExpressionAttributeNames={
+                self.cml_labs_tag: "cml_labs",
+                self.lab_id_tag: lab_id,
+            },
             ExpressionAttributeValues={
                 ":value": {
                     "lab_title": lab_title,
@@ -117,7 +122,7 @@ class Dynamoapi:
         email: str,
         lab_id: str,
         lab_title: str,
-        update_date: datetime = datetime.now()
+        update_date: datetime = datetime.now(),
     ):
         """Updates the last used date for a lab"""
         self.add_cml_lab(email, lab_id, lab_title, update_date)

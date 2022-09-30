@@ -110,10 +110,9 @@ class CMLAPI:
             if not is_long_living:
                 lab_id = details["id"]
                 title = details["lab_title"]
-                created_date_full = datetime.strptime(
+                created_date = datetime.strptime(
                     details["created"], self.created_date_format
                 )
-                created_date = created_date_full.date()
                 labs[lab_id] = {"title": title, "created_date": created_date}
 
         return labs
