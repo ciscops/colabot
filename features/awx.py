@@ -690,7 +690,7 @@ async def get_cml_password(user_email, table):
     encrypted_cml_key = base64.urlsafe_b64encode(base64.b64decode(response["Items"][0]["password"]))
 
     return (
-        Fernet(fernet_key).decrypt().decode(encrypted_cml_key)
+        Fernet(fernet_key).decrypt(encrypted_cml_key).decode()
     )
 
 
