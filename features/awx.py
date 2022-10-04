@@ -678,7 +678,7 @@ async def get_cml_password(user_email, table):
     """Gets the user's cml password"""
     response = table.query(KeyConditionExpression=Key("email").eq(user_email))
 
-    fernet_key = base64.urlsafe_b64encode(bytes(CONFIG.AWX_DECRYPT_KEY,'utf-8'))
+    fernet_key = base64.urlsafe_b64encode(CONFIG.AWX_DECRYPT_KEY.encode())
 
     return (
         Fernet(fernet_key)
