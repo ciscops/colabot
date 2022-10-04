@@ -687,7 +687,7 @@ async def get_cml_password(user_email, table):
     fernet_key = Fernet(base64.urlsafe_b64encode(kdf.derive(CONFIG.AWX_DECRYPT_KEY.encode())))
 
     return (
-        fernet_key.decrypt(response["Items"][0]["password"], encoding="ascii").decode()
+        fernet_key.decrypt(response["Items"][0]["password"].encode("utf-8")).decode()
     )
 
 
