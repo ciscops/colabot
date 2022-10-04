@@ -685,7 +685,7 @@ async def update_used_labs_in_dynamo(labs, user_email, table):
     """Updates the information of the current used labs"""
     for lab in labs:
         try:
-            date_responded = datetime.strftime(date.today(), "%m%d%Y")
+            date_responded = str(int(datetime.timestamp(datetime.now()))) 
 
             table.update_item(
                 Key={"email": user_email},
@@ -693,7 +693,7 @@ async def update_used_labs_in_dynamo(labs, user_email, table):
                 ExpressionAttributeNames={
                     "#cml_labs": "cml_labs",
                     "#lab_id": lab,
-                    "#responded": "card_responded_date",
+                    "#responded": "user_responded_date",
                 },
                 ExpressionAttributeValues={":card_responded_date": date_responded},
             )
