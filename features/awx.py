@@ -682,16 +682,12 @@ async def get_cml_password(user_email, table):
     """Gets the user's cml password"""
     response = table.query(KeyConditionExpression=Key("email").eq(user_email))
     
-    # salt = os.urandom(16)
-    # kdf = PBKDF2HMAC(algorithm=hashes.SHA256(),length=32,salt=salt,iterations=100,backend=default_backend())
-    # fernet_key = Fernet(base64.urlsafe_b64encode(kdf.derive(CONFIG.AWX_DECRYPT_KEY.encode())))
+    cml_password = response["Items"][0]["password"]
+    fernet_decrypt = Fernet(CONFIG.AWX_DECRYPT_KEY)
+    decrypted_key = fernet_decrypt.decrypt(cml_password)
+    key = decrypted_key.decode()
 
-    fernet_key =  base64.urlsafe_b64encode(base64.b64decode(CONFIG.AWX_DECRYPT_KEY))
-    fernet_decrypt = Fernet(fernet_key)
-    encrypted_cml_key = base64.urlsafe_b64encode(bytes(response["Items"][0]["password"], 'utf-8'))
-    decrypted_key = fernet_decrypt.decrypt(encrypted_cml_key).decode()
-
-    return decrypted_key
+    return key
 
 
 async def update_used_labs_in_dynamo(labs, user_email, table):
