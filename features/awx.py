@@ -678,7 +678,7 @@ async def get_cml_password(user_email, table):
     response = table.query(KeyConditionExpression=Key("email").eq(user_email))
 
     return (
-        Fernet(CONFIG.AWX_DECRYPT_KEY)
+        Fernet(CONFIG.AWX_DECRYPT_KEY.decode('utf-8'))
         .decrypt(response["Items"][0]["password"])
         .decode()
     )
