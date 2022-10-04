@@ -697,7 +697,7 @@ async def update_used_labs_in_dynamo(labs, user_email, table):
                     "#cml_labs": "cml_labs",
                     "#lab_id": lab,
                     "#responded": "user_responded_date",
-                    "card_sent_date": "card_sent_date",
+                    "#card_sent_date": "card_sent_date",
                 },
                 ExpressionAttributeValues={":card_responded_date": date_responded, ":remove_sent_date": ""},
             )
