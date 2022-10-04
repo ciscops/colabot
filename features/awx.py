@@ -4,6 +4,7 @@ import logging
 import json
 import re
 import tempfile
+from cryptography.fernet import Fernet
 from datetime import datetime, date
 import aiohttp
 import pymongo
@@ -625,9 +626,9 @@ async def handle_labbing_card(activity):
 
     dynamodb = boto3.resource(
         "dynamodb",
-        region_name=CONFIG.AWS_REGION,
-        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY,
+        region_name=CONFIG.AWS_REGION_COLAB, # TODO change these from colab when going to prod
+        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
+        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
     )
 
     table = dynamodb.Table(
@@ -677,7 +678,7 @@ async def get_cml_password(user_email, table):
         KeyConditionExpression=Key("email").eq(user_email)
     )
 
-    return response["Items"][0]['password']
+    return Fernet(CONFIG.AWX_DECRYPT_KEY).decrypt(response["Items"][0]['password']).decode() 
 
 
 async def update_used_labs_in_dynamo(labs, user_email, table):
