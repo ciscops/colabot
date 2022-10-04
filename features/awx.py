@@ -692,13 +692,14 @@ async def update_used_labs_in_dynamo(labs, user_email, table):
 
             table.update_item(
                 Key={"email": user_email},
-                UpdateExpression="set #cml_labs.#lab_id.#responded= :card_responded_date",
+                UpdateExpression="set #cml_labs.#lab_id.#responded= :card_responded_date , #cml_labs.#lab_id.#card_sent_date= :remove_sent_date",
                 ExpressionAttributeNames={
                     "#cml_labs": "cml_labs",
                     "#lab_id": lab,
                     "#responded": "user_responded_date",
+                    "card_sent_date": "card_sent_date",
                 },
-                ExpressionAttributeValues={":card_responded_date": date_responded},
+                ExpressionAttributeValues={":card_responded_date": date_responded, ":remove_sent_date": ""},
             )
         except Exception as e:
             logging.error("Problem updating lab used date: %s", str(e))
