@@ -4,13 +4,13 @@ import logging
 import json
 import re
 import tempfile
-from cryptography.fernet import Fernet
 from datetime import datetime, date
+from cryptography.fernet import Fernet
 import aiohttp
 import pymongo
 import urllib3
 import boto3
-from boto3.dynamodb.conditions import Key, Attr
+from boto3.dynamodb.conditions import Key
 import yaml
 from virl2_client import ClientLibrary
 from jinja2 import Template
