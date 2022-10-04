@@ -684,7 +684,7 @@ async def get_cml_password(user_email, table):
     
     salt = os.urandom(16)
     kdf = PBKDF2HMAC(algorithm=hashes.SHA256(),length=32,salt=salt,iterations=100,backend=default_backend())
-    fernet_key = base64.urlsafe_b64encode(kdf.derive(CONFIG.AWX_DECRYPT_KEY))
+    fernet_key = base64.urlsafe_b64encode(kdf.derive(CONFIG.AWX_DECRYPT_KEY.encode()))
 
     return (
         Fernet(fernet_key)
