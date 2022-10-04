@@ -10,6 +10,7 @@ import aiohttp
 import pymongo
 import urllib3
 import boto3
+import base64
 from boto3.dynamodb.conditions import Key
 import yaml
 from virl2_client import ClientLibrary
@@ -677,8 +678,10 @@ async def get_cml_password(user_email, table):
     """Gets the user's cml password"""
     response = table.query(KeyConditionExpression=Key("email").eq(user_email))
 
+    fernet_key = base64.urlsafe_b64encode(bytes(CONFIG.AWX_DECRYPT_KEY,'utf-8'))
+
     return (
-        Fernet(CONFIG.AWX_DECRYPT_KEY.decode('utf-8'))
+        Fernet(fernet_key)
         .decrypt(response["Items"][0]["password"])
         .decode()
     )
