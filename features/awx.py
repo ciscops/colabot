@@ -619,14 +619,14 @@ async def handle_rotate_keys_card(activity):
 async def handle_labbing_card(activity):
     """handles the are cml lab check in card"""
     card_type = activity["inputs"]["isLabbing"]
-    selected_labs = activity["inputs"]["labIds"]
-    all_labs = activity["inputs"]["allLabIds"]
+    selected_labs = activity["inputs"]["labIds"].split(',')
+    all_labs = activity["inputs"]["allLabIds"].split(',')
     user_email = activity["inputs"]["email"]
     labs_not_selected = (set(all_labs)).symmetric_difference(set(selected_labs))
-
+    
     dynamodb = boto3.resource(
         "dynamodb",
-        region_name=CONFIG.AWS_REGION_COLAB, # TODO change these from colab when going to prod
+        region_name=CONFIG.AWS_REGION_COLAB,  # TODO change these from colab when going to prod
         aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
         aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
     )
@@ -654,7 +654,7 @@ async def handle_labbing_card(activity):
 
     if card_type == "all":
         logging.debug("all selected, keep all")
-        await update_used_labs_in_dynamo(selected_labs, user_email, table)
+        await update_used_labs_in_dynamo(all_labs, user_email, table)
 
 
 async def wipe_and_delete_labs(activity, labs, user_email, table):
@@ -674,18 +674,20 @@ async def wipe_and_delete_labs(activity, labs, user_email, table):
 
 async def get_cml_password(user_email, table):
     """Gets the user's cml password"""
-    response = table.query(
-        KeyConditionExpression=Key("email").eq(user_email)
-    )
+    response = table.query(KeyConditionExpression=Key("email").eq(user_email))
 
-    return Fernet(CONFIG.AWX_DECRYPT_KEY).decrypt(response["Items"][0]['password']).decode() 
+    return (
+        Fernet(CONFIG.AWX_DECRYPT_KEY)
+        .decrypt(response["Items"][0]["password"])
+        .decode()
+    )
 
 
 async def update_used_labs_in_dynamo(labs, user_email, table):
     """Updates the information of the current used labs"""
     for lab in labs:
         try:
-            date_responded = str(int(datetime.timestamp(datetime.now()))) 
+            date_responded = str(int(datetime.timestamp(datetime.now())))
 
             table.update_item(
                 Key={"email": user_email},
