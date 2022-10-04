@@ -687,11 +687,11 @@ async def get_cml_password(user_email, table):
     # fernet_key = Fernet(base64.urlsafe_b64encode(kdf.derive(CONFIG.AWX_DECRYPT_KEY.encode())))
 
     fernet_key =  base64.urlsafe_b64encode(base64.b64decode(CONFIG.AWX_DECRYPT_KEY))
+    fernet_decrypt = Fernet(fernet_key)
     encrypted_cml_key = base64.urlsafe_b64encode(bytes(response["Items"][0]["password"], 'utf-8'))
+    decrypted_key = fernet_decrypt.decrypt(encrypted_cml_key).decode()
 
-    return (
-        Fernet(fernet_key).decrypt(encrypted_cml_key).decode()
-    )
+    return decrypted_key
 
 
 async def update_used_labs_in_dynamo(labs, user_email, table):
