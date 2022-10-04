@@ -4,7 +4,7 @@ import logging
 import json
 import re
 import tempfile
-from datetime import date
+from datetime import datetime, date
 import aiohttp
 import pymongo
 import urllib3
@@ -619,46 +619,9 @@ async def handle_labbing_card(activity):
     card_type = activity["inputs"]["isLabbing"]
     selected_labs = activity["inputs"]["labIds"]
     all_labs = activity["inputs"]["allLabIds"]
+    user_email = activity["inputs"]["email"]
     labs_not_selected = (all_labs).symmetric_difference(selected_labs)
 
-    # if cardType is selection, keep all selected labs, and wipe the other labs
-    if card_type == "selection":
-        if len(selected_labs) == 0:
-            logging.debug("No labs selected, wiping all labs")
-            # use all_labs
-            return
-
-        logging.debug("Labs selected, wiping unselected labs")
-        # use labs_not_selected
-        return
-
-    # if cardType is none, wipe all labs
-    if card_type == "none":
-        logging.debug("None button selected, wiping all labs")
-        # use all_labs
-        return
-
-    # if cardType is all, keep all labs
-    if card_type == "all":
-        logging.debug("all selected, keep all")
-        return
-
-
-async def wipe_labs(activity, labs_to_wipe, user_email):
-    """Wipes the labs, sends the user each lab's yaml file, and messages the user"""
-    cml_servers = CONFIG.SERVER_LIST.split(",")
-    cml_server = cml_servers[1]
-    user_and_domain = activity["sender_email"].split("@")
-    cml_user = CML(user_and_domain[0], activity["cml_password"], cml_server)
-
-    for lab_id in labs_to_wipe:
-        cml_user.wipe_lab(lab_id)
-        download_and_send_lab_toplogy(activity, lab_id, cml_server, user_email)
-        delete_lab_from_dynamo(user_email, lab_id)
-
-
-async def delete_lab_from_dynamo(user_email, lab_id):
-    """Deletes the lab from the dynamoDB table"""
     dynamodb = boto3.resource(
         "dynamodb",
         region_name=CONFIG.AWS_REGION,
@@ -669,6 +632,66 @@ async def delete_lab_from_dynamo(user_email, lab_id):
     table = dynamodb.Table(
         "colab_directory_dev"
     )  # TODO remove dev extension when pushing to prod
+
+    # if cardType is selection, keep all selected labs, and wipe the other labs
+    if card_type == "selection":
+        if len(selected_labs) == 0:
+            logging.debug("No labs selected, wiping all labs")
+            wipe_and_delete_labs(activity, all_labs, user_email, table)
+            return
+
+        logging.debug("Labs selected, wiping unselected labs")
+        wipe_and_delete_labs(activity, labs_not_selected, user_email, table)
+        update_used_labs_in_dynamo(selected_labs, user_email, table)
+        return
+
+    if card_type == "none":
+        logging.debug("None button selected, wiping all labs")
+        wipe_and_delete_labs(activity, all_labs, user_email, table)
+        return
+
+    if card_type == "all":
+        logging.debug("all selected, keep all")
+        update_used_labs_in_dynamo(selected_labs, user_email, table)
+        return
+
+
+async def wipe_and_delete_labs(activity, labs, user_email, table):
+    """Wipes the labs, sends the user each lab's yaml file, and messages the user"""
+    cml_servers = CONFIG.SERVER_LIST.split(",")
+    cml_server = cml_servers[1]
+    user_and_domain = activity["sender_email"].split("@")
+    cml_user = CML(user_and_domain[0], activity["cml_password"], cml_server)
+
+    for lab_id in labs:
+        cml_user.wipe_lab(lab_id)
+        download_and_send_lab_toplogy(activity, lab_id, cml_server, user_email)
+        delete_lab_from_dynamo(user_email, lab_id, table)
+        cml_user.delete_lab(lab_id)
+
+
+async def update_used_labs_in_dynamo(labs, user_email, table):
+    """Updates the information of the current used labs"""
+    for lab in labs:
+        try:
+            date_responded = datetime.strftime(date.today(), "%m%d%Y")
+
+            table.update_item(
+                Key={"email": user_email},
+                UpdateExpression="set #cml_labs.#lab_id.#responded= :card_responded_date",
+                ExpressionAttributeNames={
+                    "#cml_labs": "cml_labs",
+                    "#lab_id": lab,
+                    "#responded": "card_responded_date",
+                },
+                ExpressionAttributeValues={":card_responded_date": date_responded},
+            )
+        except Exception as e:
+            logging.error("Problem updating lab used date: %s", str(e))
+
+
+async def delete_lab_from_dynamo(user_email, lab_id, table):
+    """Deletes the lab from the dynamoDB table"""
 
     try:
         table.update_item(

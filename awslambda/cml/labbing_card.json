@@ -12,7 +12,7 @@
             "inlines": [
                 {
                     "type": "TextRun",
-                    "text": "Are you still labbing? (Select labs to keep)"
+                    "text": "Are you still labbing? (Unselected labs will be deleted)"
                 }
             ]
         },
@@ -20,7 +20,7 @@
             "type": "Input.ChoiceSet",
             "id": "labIds",
             "style": "expanded",
-            "spacing": "Small",
+            "spacing": "Large",
             "isMultiSelect": true,
             "choices": {{ lab_choices }}
         },
@@ -29,7 +29,7 @@
             "id": "isLabbing",
             "isMultiSelect": false,
             "style": "expanded",
-            "spacing": "Small",
+            "spacing": "Large",
             "separator": true,
             "isRequired": true,
             "value": "selection",
@@ -52,6 +52,7 @@
         {
             "type": "ActionSet",
             "style": "positive",
+            "horizontalAlignment": "center",
             "actions": [
                 {
                     "type": "Action.Submit",
