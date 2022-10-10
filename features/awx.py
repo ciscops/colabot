@@ -683,10 +683,10 @@ async def get_cml_password(user_email, table):
     response = table.query(KeyConditionExpression=Key("email").eq(user_email))
     
     cml_password = response["Items"][0]["password"]
-    fernet_cypher_bytes = bytes(CONFIG.AWX_DECRYPT_KEY, 'utf-8')
+    #fernet_cypher_bytes = bytes(, 'utf-8')
 
     # cipher = base64.urlsafe_b64encode(fernet_cypher_bytes)
-    fernet_decrypt = Fernet(fernet_cypher_bytes)
+    fernet_decrypt = Fernet(CONFIG.AWX_DECRYPT_KEY)
     decrypted_key = fernet_decrypt.decrypt(cml_password)
     key = decrypted_key.decode()
 
