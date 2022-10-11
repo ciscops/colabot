@@ -687,7 +687,7 @@ async def get_cml_password(user_email, table):
 
     # cipher = base64.urlsafe_b64encode(fernet_cypher_bytes)
     fernet_decrypt = Fernet(CONFIG.COLABOT_CYPHER)
-    decrypted_key = fernet_decrypt.decrypt(cml_password)
+    decrypted_key = fernet_decrypt.decrypt(bytes(cml_password, 'utf-8'))
     key = decrypted_key.decode()
 
     return key
