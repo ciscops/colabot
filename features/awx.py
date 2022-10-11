@@ -671,11 +671,11 @@ async def wipe_and_delete_labs(activity, labs, user_email, table):
     cml_user = CML(user_and_domain[0], cml_password, cml_server)
 
     for lab_id in labs:
-        cml_user.stop_lab(lab_id)
-        cml_user.wipe_lab(lab_id)
+        await cml_user.stop_lab(lab_id)
+        await cml_user.wipe_lab(lab_id)
         await download_and_send_lab_toplogy(activity, lab_id, cml_server, user_email)
         await delete_lab_from_dynamo(user_email, lab_id, table)
-        cml_user.delete_lab(lab_id)
+        await cml_user.delete_lab(lab_id)
 
 
 async def get_cml_password(user_email, table):
@@ -683,9 +683,6 @@ async def get_cml_password(user_email, table):
     response = table.query(KeyConditionExpression=Key("email").eq(user_email))
     
     cml_password = response["Items"][0]["password"]
-    #fernet_cypher_bytes = bytes(, 'utf-8')
-
-    # cipher = base64.urlsafe_b64encode(fernet_cypher_bytes)
     fernet_decrypt = Fernet(CONFIG.COLABOT_CYPHER)
     decrypted_key = fernet_decrypt.decrypt(bytes(cml_password, 'utf-8'))
     key = decrypted_key.decode()
