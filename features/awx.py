@@ -672,8 +672,8 @@ async def wipe_and_delete_labs(activity, labs, user_email, table):
 
     for lab_id in labs:
         await cml_user.stop_lab(lab_id)
-        await cml_user.wipe_lab(lab_id)
         await download_and_send_lab_toplogy(activity, lab_id, cml_server, user_and_domain[0])
+        await cml_user.wipe_lab(lab_id)
         await delete_lab_from_dynamo(user_email, lab_id, table)
         await cml_user.delete_lab(lab_id)
 
