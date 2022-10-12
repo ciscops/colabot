@@ -673,7 +673,7 @@ async def wipe_and_delete_labs(activity, labs, user_email, table):
     for lab_id in labs:
         await cml_user.stop_lab(lab_id)
         await cml_user.wipe_lab(lab_id)
-        await download_and_send_lab_toplogy(activity, lab_id, cml_server, user_email)
+        await download_and_send_lab_toplogy(activity, lab_id, cml_server, user_and_domain[0])
         await delete_lab_from_dynamo(user_email, lab_id, table)
         await cml_user.delete_lab(lab_id)
 
@@ -727,7 +727,7 @@ async def delete_lab_from_dynamo(user_email, lab_id, table):
         logging.error("Problem deleting lab: %s", str(e))
 
 
-async def download_and_send_lab_toplogy(activity, lab_id, cml_server, user_email):
+async def download_and_send_lab_toplogy(activity, lab_id, cml_server, user_webex_id):
     """Downloads the lab-to-be-wiped topology and sends it to the user"""
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
     url = "https://" + cml_server + "/"
@@ -753,10 +753,10 @@ async def download_and_send_lab_toplogy(activity, lab_id, cml_server, user_email
         yaml.dump(yaml.full_load(yaml_string), outfile, default_flow_style=False)
 
         message = dict(
-            toPersonEmail=user_email,
+            toPersonId=user_webex_id,
             markdown=f'Your lab "{lab_title}" has been deleted. Attached is the YAML Topology file',
             files=[outfile.name],
-        )
+        ) # this is not working, something about user_email not being correct. Might not have the domain at the
 
         await webex.post_message_to_webex(message)
 
