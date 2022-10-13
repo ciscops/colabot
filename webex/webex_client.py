@@ -4,6 +4,7 @@
 import json
 import logging
 import aiohttp
+import os
 import requests
 from requests_toolbelt import MultipartEncoder
 
@@ -58,22 +59,23 @@ class WebExClient:
                 logging.info("Exception posting WebEx message")
                 return {}
 
-    async def send_message_with_file(self, message=None, file=None):
-        if not message or not file:
+    async def send_message_with_file(self, message=None, filename=None):
+        if not message or not filename:
             return None
-        headers = {
-            "Content-Type": self.content_type,
-            "Authorization": self.bearer_text + self.webex_bot_token,
-        }
-        # (file_orig, open(os.path.join(temp_directory, file), 'rb'),
-        #         content_type))
+
         data_with_file = MultipartEncoder(
             {
                 "roomId": message.get("roomId"),
                 "markdown": message.get("text"),
-                "files": file,
+                "files": (filename, open(os.path.join(filename), 'rb'), "application/json" )
             }
-        )
+
+        ) # "text/plain"
+
+        headers = {
+            "Content-Type": data_with_file.content_type,
+            "Authorization": self.bearer_text + self.webex_bot_token,
+        }
 
         async with aiohttp.ClientSession(
             timeout=aiohttp.ClientTimeout(total=30)
