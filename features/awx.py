@@ -753,13 +753,13 @@ async def download_and_send_lab_toplogy(activity, lab_id, cml_server, cml_userna
         encoding="utf-8",
     ) as outfile:
         yaml.dump(yaml.full_load(yaml_string), outfile, default_flow_style=False)
-        room_id=activity["roomId"]
-        message = dict(
-            roomId=room_id,
-            text='Your lab  has been deleted. Attached is the YAML Topology file',
-            files=[outfile.name],
-        ) 
         
+        message = dict(
+            roomId=activity["roomId"],
+            text='Your lab  has been deleted. Attached is the YAML Topology file',
+            files=outfile.name,
+        ) 
+
         await webex.post_message_to_webex(message)
 
 
