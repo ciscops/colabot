@@ -671,8 +671,9 @@ async def wipe_and_delete_labs(activity, labs, user_email, table):
     cml_user = CML(user_and_domain[0], cml_password, cml_server)
 
     for lab_id in labs:
+        logging.debug(" deleting lab %s", lab_id)
         await cml_user.stop_lab(lab_id)
-        await download_and_send_lab_toplogy(activity, lab_id, cml_server, user_and_domain[0])
+        await download_and_send_lab_toplogy(activity, lab_id, cml_server, user_and_domain[0], user_and_domain[0], cml_password)
         await cml_user.wipe_lab(lab_id)
         await delete_lab_from_dynamo(user_email, lab_id, table)
         await cml_user.delete_lab(lab_id)
@@ -727,14 +728,14 @@ async def delete_lab_from_dynamo(user_email, lab_id, table):
         logging.error("Problem deleting lab: %s", str(e))
 
 
-async def download_and_send_lab_toplogy(activity, lab_id, cml_server, user_webex_id):
+async def download_and_send_lab_toplogy(activity, lab_id, cml_server, user_webex_id, cml_username, cml_password):
     """Downloads the lab-to-be-wiped topology and sends it to the user"""
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
     url = "https://" + cml_server + "/"
     client = ClientLibrary(
         url,
-        CONFIG.CML_USERNAME,
-        CONFIG.CML_PASSWORD,
+        cml_username, # change to current user
+        cml_password,
         ssl_verify=False,
         raise_for_auth_failure=True,
     )
