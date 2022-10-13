@@ -753,13 +753,13 @@ async def download_and_send_lab_toplogy(activity, lab_id, cml_server, cml_userna
         encoding="utf-8",
     ) as outfile:
         yaml.dump(yaml.full_load(yaml_string), outfile, default_flow_style=False)
-
+        room_id=activity["roomId"]
         message = dict(
-            toPersonId=cml_username,
+            roomId=room_id,
             text='Your lab  has been deleted. Attached is the YAML Topology file',
             #files=[outfile.name],
         ) # this is not working, something about user_email not being correct. Might not have the domain at the
-        logging.debug( "sending to %s", cml_username)
+        logging.debug( "sending to room %s", room_id)
         await webex.post_message_to_webex(message)
 
 
