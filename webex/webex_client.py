@@ -5,6 +5,7 @@ import json
 import logging
 import aiohttp
 import requests
+from requests_toolbelt import MultipartEncoder
 
 
 class WebExClient:
@@ -47,6 +48,43 @@ class WebExClient:
                     url="https://api.ciscospark.com/v1/messages",
                     headers=headers,
                     data=json.dumps(post_data),
+                ) as res:
+                    response_content = await res.json()
+                    logging.debug(
+                        "WebEx POST message response_content: %s", response_content
+                    )
+                    return response_content
+            except Exception:
+                logging.info("Exception posting WebEx message")
+                return {}
+
+    async def send_message_with_file(self, message=None, file=None):
+        if not message or not file:
+            return None
+        headers = {
+            "Content-Type": self.content_type,
+            "Authorization": self.bearer_text + self.webex_bot_token,
+        }
+        # (file_orig, open(os.path.join(temp_directory, file), 'rb'),
+        #         content_type))
+        data_with_file = MultipartEncoder(
+            {
+                "roomId": message.get("roomId"),
+                "markdown": message.get("text"),
+                "files": file,
+            }
+        )
+
+        async with aiohttp.ClientSession(
+            timeout=aiohttp.ClientTimeout(total=30)
+        ) as session:
+            logging.debug("%s %s", self.logging_message, session)
+            try:
+                async with session.request(
+                    method="POST",
+                    url="https://api.ciscospark.com/v1/messages",
+                    headers=headers,
+                    data=data_with_file,
                 ) as res:
                     response_content = await res.json()
                     logging.debug(

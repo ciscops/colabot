@@ -624,11 +624,11 @@ async def handle_rotate_keys_card(activity):
 async def handle_labbing_card(activity):
     """handles the are cml lab check in card"""
     card_type = activity["inputs"]["isLabbing"]
-    selected_labs = activity["inputs"]["labIds"].split(',')
-    all_labs = activity["inputs"]["allLabIds"].split(',')
+    selected_labs = activity["inputs"]["labIds"].split(",")
+    all_labs = activity["inputs"]["allLabIds"].split(",")
     user_email = activity["inputs"]["email"]
     labs_not_selected = (set(all_labs)).symmetric_difference(set(selected_labs))
-    
+
     dynamodb = boto3.resource(
         "dynamodb",
         region_name=CONFIG.AWS_REGION_COLAB,  # TODO change these from colab when going to prod
@@ -665,7 +665,9 @@ async def handle_labbing_card(activity):
 async def wipe_and_delete_labs(activity, labs, user_email, table):
     """Wipes the labs, sends the user each lab's yaml file, and messages the user"""
     cml_server = CONFIG.SERVER_LIST.split(",")[0]
-    logging.debug("CML Server is: %s", cml_server) # CML Server is: cpn-rtp-cml-stable1.ciscops.net
+    logging.debug(
+        "CML Server is: %s", cml_server
+    )  # CML Server is: cpn-rtp-cml-stable1.ciscops.net
     user_and_domain = user_email.split("@")
     cml_password = await get_cml_password(user_email, table)
     cml_user = CML(user_and_domain[0], cml_password, cml_server)
@@ -674,7 +676,9 @@ async def wipe_and_delete_labs(activity, labs, user_email, table):
         logging.debug(" deleting lab %s", lab_id)
         if await cml_user.get_token():
             await cml_user.stop_lab(lab_id)
-            await download_and_send_lab_toplogy(activity, lab_id, cml_server, user_and_domain[0], cml_password)
+            await download_and_send_lab_toplogy(
+                activity, lab_id, cml_server, user_and_domain[0], cml_password
+            )
             # await cml_user.wipe_lab(lab_id)
             # await delete_lab_from_dynamo(user_email, lab_id, table)
             # await cml_user.delete_lab(lab_id)
@@ -683,10 +687,10 @@ async def wipe_and_delete_labs(activity, labs, user_email, table):
 async def get_cml_password(user_email, table):
     """Gets the user's cml password"""
     response = table.query(KeyConditionExpression=Key("email").eq(user_email))
-    
+
     cml_password = response["Items"][0]["password"]
     fernet_decrypt = Fernet(CONFIG.COLABOT_CYPHER)
-    decrypted_key = fernet_decrypt.decrypt(bytes(cml_password, 'utf-8'))
+    decrypted_key = fernet_decrypt.decrypt(bytes(cml_password, "utf-8"))
     key = decrypted_key.decode()
 
     return key
@@ -707,7 +711,10 @@ async def update_used_labs_in_dynamo(labs, user_email, table):
                     "#responded": "user_responded_date",
                     "#card_sent_date": "card_sent_date",
                 },
-                ExpressionAttributeValues={":card_responded_date": date_responded, ":remove_sent_date": ""},
+                ExpressionAttributeValues={
+                    ":card_responded_date": date_responded,
+                    ":remove_sent_date": "",
+                },
             )
         except Exception as e:
             logging.error("Problem updating lab used date: %s", str(e))
@@ -729,13 +736,15 @@ async def delete_lab_from_dynamo(user_email, lab_id, table):
         logging.error("Problem deleting lab: %s", str(e))
 
 
-async def download_and_send_lab_toplogy(activity, lab_id, cml_server, cml_username, cml_password):
+async def download_and_send_lab_toplogy(
+    activity, lab_id, cml_server, cml_username, cml_password
+):
     """Downloads the lab-to-be-wiped topology and sends it to the user"""
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
     url = "https://" + cml_server + "/"
     client = ClientLibrary(
         url,
-        cml_username, # change to current user
+        cml_username,  # change to current user
         cml_password,
         ssl_verify=False,
         raise_for_auth_failure=True,
@@ -753,14 +762,13 @@ async def download_and_send_lab_toplogy(activity, lab_id, cml_server, cml_userna
         encoding="utf-8",
     ) as outfile:
         yaml.dump(yaml.full_load(yaml_string), outfile, default_flow_style=False)
-        
+
         message = dict(
             roomId=activity["roomId"],
-            text='Your lab  has been deleted. Attached is the YAML Topology file',
-            files=outfile.name,
-        ) 
+            text=f"Your lab {lab_title} has been deleted. Attached is the YAML Topology file",
+        )
 
-        await webex.post_message_to_webex(message)
+        await webex.send_message_with_file(message, [outfile.name])
 
 
 async def delete_accounts(activity):
