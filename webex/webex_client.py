@@ -20,10 +20,7 @@ class WebExClient:
         self.logging_message = "This is the aiohttp webex Client session"
         self.logging_webex_message = "Exception retrieving WebEx message attachment"
         self.content_type = "application/json"
-        self.bearer_text = "Bearer "
-        self.webex_api = WebexTeamsAPI()
-
-        
+        self.bearer_text = "Bearer "      
         
 
     async def post_message_to_webex(self, message=None):
