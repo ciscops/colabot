@@ -4,9 +4,8 @@
 import json
 import logging
 import aiohttp
-import os
 import requests
-from requests_toolbelt import MultipartEncoder
+from webexteamssdk import WebexTeamsAPI
 
 
 class WebExClient:
@@ -22,6 +21,10 @@ class WebExClient:
         self.logging_webex_message = "Exception retrieving WebEx message attachment"
         self.content_type = "application/json"
         self.bearer_text = "Bearer "
+        self.webex_api = WebexTeamsAPI()
+
+        
+        
 
     async def post_message_to_webex(self, message=None):
         if not message:
@@ -59,43 +62,12 @@ class WebExClient:
                 logging.info("Exception posting WebEx message")
                 return {}
 
-    async def send_message_with_file(self, message=None, filename=None):
-        if not message or not filename:
+    async def send_message_with_file(self, message=None):
+        if not message:
             return None
 
-        data_with_file = MultipartEncoder(
-            {
-                "roomId": message.get("roomId"),
-                "markdown": message.get("text"),
-                "files": [(filename, open(os.path.join(filename), 'rb'), "application/json" )]
-            }
-
-        ) # "text/plain"
-
-        headers = {
-            "Content-Type": data_with_file.content_type,
-            "Authorization": self.bearer_text + self.webex_bot_token,
-        }
-
-        async with aiohttp.ClientSession(
-            timeout=aiohttp.ClientTimeout(total=30)
-        ) as session:
-            logging.debug("%s %s", self.logging_message, session)
-            try:
-                async with session.request(
-                    method="POST",
-                    url="https://api.ciscospark.com/v1/messages",
-                    headers=headers,
-                    data=data_with_file,
-                ) as res:
-                    response_content = await res.json()
-                    logging.debug(
-                        "WebEx POST message response_content: %s", response_content
-                    )
-                    return response_content
-            except Exception:
-                logging.info("Exception posting WebEx message")
-                return {}
+        api = WebexTeamsAPI(access_token=self.webex_bot_token)
+        api.messages.create(roomId=message.get("roomId"), markdown=message.get("text"), files=message.get("files"))
 
     async def edit_message(self, message_id, message, room_id):
         URL = f"https://webexapis.com/v1/messages/{message_id}"

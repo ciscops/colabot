@@ -753,20 +753,19 @@ async def download_and_send_lab_toplogy(
     lab = client.join_existing_lab(lab_id)
     lab_title = lab.title
     yaml_string = lab.download()
-    filename = ""
 
     with open(tempfile.NamedTemporaryFile(
             suffix=".yaml", prefix=f'{lab_title.replace(" ","_")}_').name, "w", encoding="utf-8",
     ) as outfile:
         yaml.dump(yaml.full_load(yaml_string), outfile, default_flow_style=False)
-        filename = outfile.name
 
-    message = dict(
-        roomId=activity["roomId"],
-        text=f"Your lab {lab_title} has been deleted. Attached is the YAML Topology file",
-    )
+        message = dict(
+            roomId=activity["roomId"],
+            text=f"Your lab {lab_title} has been deleted. Attached is the YAML Topology file",
+            files=[outfile.name],
+        )
 
-    await webex.send_message_with_file(message, filename)
+        await webex.send_message_with_file(message)
 
 
 async def delete_accounts(activity):
