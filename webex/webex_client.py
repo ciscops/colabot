@@ -67,7 +67,7 @@ class WebExClient:
             {
                 "roomId": message.get("roomId"),
                 "markdown": message.get("text"),
-                "files": (filename, open(os.path.join(filename), 'rb'), "application/json" )
+                "files": [(filename, open(os.path.join(filename), 'rb'), "application/json" )]
             }
 
         ) # "text/plain"
