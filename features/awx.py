@@ -665,18 +665,19 @@ async def handle_labbing_card(activity):
 async def wipe_and_delete_labs(activity, labs, user_email, table):
     """Wipes the labs, sends the user each lab's yaml file, and messages the user"""
     cml_server = CONFIG.SERVER_LIST.split(",")[0]
-    logging.debug("CML Server is: %s", cml_server)
+    logging.debug("CML Server is: %s", cml_server) # CML Server is: cpn-rtp-cml-stable1.ciscops.net
     user_and_domain = user_email.split("@")
     cml_password = await get_cml_password(user_email, table)
     cml_user = CML(user_and_domain[0], cml_password, cml_server)
 
     for lab_id in labs:
         logging.debug(" deleting lab %s", lab_id)
-        await cml_user.stop_lab(lab_id)
-        await download_and_send_lab_toplogy(activity, lab_id, cml_server, user_and_domain[0], cml_password)
-        await cml_user.wipe_lab(lab_id)
-        await delete_lab_from_dynamo(user_email, lab_id, table)
-        await cml_user.delete_lab(lab_id)
+        if cml_user.get_token():
+            await cml_user.stop_lab(lab_id)
+            await download_and_send_lab_toplogy(activity, lab_id, cml_server, user_and_domain[0], cml_password)
+            await cml_user.wipe_lab(lab_id)
+            await delete_lab_from_dynamo(user_email, lab_id, table)
+            await cml_user.delete_lab(lab_id)
 
 
 async def get_cml_password(user_email, table):
