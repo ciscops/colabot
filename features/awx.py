@@ -672,7 +672,7 @@ async def wipe_and_delete_labs(activity, labs, user_email, table):
 
     for lab_id in labs:
         logging.debug(" deleting lab %s", lab_id)
-        if cml_user.get_token():
+        if await cml_user.get_token():
             await cml_user.stop_lab(lab_id)
             await download_and_send_lab_toplogy(activity, lab_id, cml_server, user_and_domain[0], cml_password)
             await cml_user.wipe_lab(lab_id)
