@@ -639,10 +639,10 @@ async def handle_labbing_card(activity):
     table = dynamodb.Table(
         "colab_directory_dev"
     )  # TODO remove dev extension when pushing to prod
-
+    #root - DEBUG - Labs selected, wiping unselected labs
     # if cardType is selection, keep all selected labs, and wipe the other labs
     if card_type == "selection":
-        if len(selected_labs) == 0:
+        if len(activity["inputs"]["labIds"]) == 0:
             logging.debug("No labs selected, wiping all labs")
             await wipe_and_delete_labs(activity, all_labs, user_email, table)
             return
@@ -665,9 +665,6 @@ async def handle_labbing_card(activity):
 async def wipe_and_delete_labs(activity, labs, user_email, table):
     """Wipes the labs, sends the user each lab's yaml file, and messages the user"""
     cml_server = CONFIG.SERVER_LIST.split(",")[0]
-    logging.debug(
-        "CML Server is: %s", cml_server
-    )  # CML Server is: cpn-rtp-cml-stable1.ciscops.net
     user_and_domain = user_email.split("@")
     cml_password = await get_cml_password(user_email, table)
     cml_user = CML(user_and_domain[0], cml_password, cml_server)
