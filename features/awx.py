@@ -641,25 +641,26 @@ async def handle_labbing_card(activity):
     )  # TODO remove dev extension when pushing to prod
     #root - DEBUG - Labs selected, wiping unselected labs
     # if cardType is selection, keep all selected labs, and wipe the other labs
-    if card_type == "selection":
-        if len(activity["inputs"]["labIds"]) == 0:
-            logging.debug("No labs selected, wiping all labs")
-            await wipe_and_delete_labs(activity, all_labs, user_email, table)
-            return
+    logging.debug( "this is the activity: " + activity )
+    # if card_type == "selection":
+    #     if len(activity["inputs"]["labIds"]) == 0:
+    #         logging.debug("No labs selected, wiping all labs")
+    #         await wipe_and_delete_labs(activity, all_labs, user_email, table)
+    #         return
 
-        logging.debug("Labs selected, wiping unselected labs")
-        await wipe_and_delete_labs(activity, labs_not_selected, user_email, table)
-        await update_used_labs_in_dynamo(selected_labs, user_email, table)
-        return
+    #     logging.debug("Labs selected, wiping unselected labs")
+    #     await wipe_and_delete_labs(activity, labs_not_selected, user_email, table)
+    #     await update_used_labs_in_dynamo(selected_labs, user_email, table)
+    #     return
 
-    if card_type == "none":
-        logging.debug("None button selected, wiping all labs")
-        await wipe_and_delete_labs(activity, all_labs, user_email, table)
-        return
+    # if card_type == "none":
+    #     logging.debug("None button selected, wiping all labs")
+    #     await wipe_and_delete_labs(activity, all_labs, user_email, table)
+    #     return
 
-    if card_type == "all":
-        logging.debug("all selected, keep all")
-        await update_used_labs_in_dynamo(all_labs, user_email, table)
+    # if card_type == "all":
+    #     logging.debug("all selected, keep all")
+    #     await update_used_labs_in_dynamo(all_labs, user_email, table)
 
 
 async def wipe_and_delete_labs(activity, labs, user_email, table):
