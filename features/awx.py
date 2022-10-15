@@ -677,6 +677,9 @@ async def handle_labbing_card(activity):
             elif activity["inputs"][lab_id] == "delete":  
                 labs_to_delete[lab_id] = lab_name
 
+        #text=f"Your lab {lab_title} has been deleted. Attached is the YAML Topology file",
+        #[(labs_to_delete[lab_id] = lab_name) if activity['inputs'][lab_id] == 'delete' else labs_to_save[lab_id] = lab_name for lab_id, lab_name in all_labs.items()]
+
         await edit_card(activity, webex, labs_to_save, labs_to_delete, activity["messageId"])
 
         for lab in labs_to_save:
@@ -783,7 +786,6 @@ async def download_and_send_lab_toplogy(
 
         message = dict(
             roomId=activity["roomId"],
-            text=f"Your lab {lab_title} has been deleted. Attached is the YAML Topology file",
             files=[outfile.name],
         )
 
