@@ -3,18 +3,13 @@
 import logging
 import json
 import re
-import os
 import tempfile
 from datetime import datetime, date
 from cryptography.fernet import Fernet
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 import aiohttp
 import pymongo
 import urllib3
 import boto3
-import base64
 from boto3.dynamodb.conditions import Key
 import yaml
 from virl2_client import ClientLibrary
@@ -623,11 +618,9 @@ async def handle_rotate_keys_card(activity):
 
 async def handle_labbing_card(activity):
     """handles the are cml lab check in card"""
-    card_type = activity["inputs"]["isLabbing"]
-    selected_labs = activity["inputs"]["labIds"].split(",")
+    card_type = activity["inputs"]["type"]
     all_labs = activity["inputs"]["allLabIds"].split(",")
     user_email = activity["inputs"]["email"]
-    labs_not_selected = (set(all_labs)).symmetric_difference(set(selected_labs))
 
     dynamodb = boto3.resource(
         "dynamodb",
@@ -639,43 +632,52 @@ async def handle_labbing_card(activity):
     table = dynamodb.Table(
         "colab_directory_dev"
     )  # TODO remove dev extension when pushing to prod
-    #root - DEBUG - Labs selected, wiping unselected labs
-    # if cardType is selection, keep all selected labs, and wipe the other labs
-    logging.debug( "this is the activity: " + activity )
-    # if card_type == "selection":
-    #     if len(activity["inputs"]["labIds"]) == 0:
-    #         logging.debug("No labs selected, wiping all labs")
-    #         await wipe_and_delete_labs(activity, all_labs, user_email, table)
-    #         return
 
-    #     logging.debug("Labs selected, wiping unselected labs")
-    #     await wipe_and_delete_labs(activity, labs_not_selected, user_email, table)
-    #     await update_used_labs_in_dynamo(selected_labs, user_email, table)
-    #     return
-
-    # if card_type == "none":
-    #     logging.debug("None button selected, wiping all labs")
-    #     await wipe_and_delete_labs(activity, all_labs, user_email, table)
-    #     return
-
-    # if card_type == "all":
-    #     logging.debug("all selected, keep all")
-    #     await update_used_labs_in_dynamo(all_labs, user_email, table)
-
-
-async def wipe_and_delete_labs(activity, labs, user_email, table):
-    """Wipes the labs, sends the user each lab's yaml file, and messages the user"""
     cml_server = CONFIG.SERVER_LIST.split(",")[0]
     user_and_domain = user_email.split("@")
     cml_password = await get_cml_password(user_email, table)
     cml_user = CML(user_and_domain[0], cml_password, cml_server)
 
+    if card_type == "KeepAll":  # call update method for all labs
+        logging.debug("Keep all labs selected, keeping all labs")
+        await update_used_labs_in_dynamo(all_labs, user_email, table)
+
+    if card_type == "DeleteAll":  # call delete method for all labs
+        logging.debug("Delete all labs selected, wiping and deleting all labs")
+        await wipe_and_delete_labs(
+            activity, all_labs, user_email, table, cml_user, cml_server, cml_password
+        )
+
+    if (
+        card_type == "Selection"
+    ):  # if user opts to select which labs to keep or delete, evaluate each lab individually
+        for lab in all_labs:
+            if activity["inputs"][lab] == "keep":  # if keep, update the lab in dynamo
+                await update_used_labs_in_dynamo([lab], user_email, table)
+            elif (
+                activity["inputs"][lab] == "delete"
+            ):  # if delete, delete lab from cml and dynamo, and send topology
+                await wipe_and_delete_labs(
+                    activity,
+                    [lab],
+                    user_email,
+                    table,
+                    cml_user,
+                    cml_server,
+                    cml_password,
+                )
+
+
+async def wipe_and_delete_labs(
+    activity, labs, user_email, table, cml_user, cml_server, cml_password
+):
+    """Wipes the labs, sends the user each lab's yaml file, and messages the user"""
+
     for lab_id in labs:
-        logging.debug(" deleting lab %s", lab_id)
         if await cml_user.get_token():
             await cml_user.stop_lab(lab_id)
             await download_and_send_lab_toplogy(
-                activity, lab_id, cml_server, user_and_domain[0], cml_password
+                activity, lab_id, cml_server, user_email.split("@")[0], cml_password
             )
             # await cml_user.wipe_lab(lab_id)
             # await delete_lab_from_dynamo(user_email, lab_id, table)
@@ -752,8 +754,12 @@ async def download_and_send_lab_toplogy(
     lab_title = lab.title
     yaml_string = lab.download()
 
-    with open(tempfile.NamedTemporaryFile(
-            suffix=".yaml", prefix=f'{lab_title.replace(" ","_")}_').name, "w", encoding="utf-8",
+    with open(
+        tempfile.NamedTemporaryFile(
+            suffix=".yaml", prefix=f'{lab_title.replace(" ","_")}_'
+        ).name,
+        "w",
+        encoding="utf-8",
     ) as outfile:
         yaml.dump(yaml.full_load(yaml_string), outfile, default_flow_style=False)
 
