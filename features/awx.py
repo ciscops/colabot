@@ -576,7 +576,6 @@ async def rotate_aws_key(activity):
         )
 
         card_file = "./cards/aws_iam_rotate_keys.json"
-        # verify this doesn't cause problems
         with open(f"{card_file}", encoding="utf8") as file_:
             template = Template(file_.read())
         card = template.render(
@@ -669,17 +668,7 @@ async def handle_labbing_card(activity):
         labs_to_save = {}
         labs_to_delete = {}
 
-        # for lab_id, lab_name in all_labs.items():
-        #     if activity["inputs"][lab_id] == "keep":  # if keep, update the lab in dynamo
-        #         labs_to_save[lab_id] = lab_name
-
-        #     # if delete, delete lab from cml and dynamo, and send topology    
-        #     elif activity["inputs"][lab_id] == "delete":  
-        #         labs_to_delete[lab_id] = lab_name
-        
         [labs_to_delete.update({lab_id:lab_name}) if activity['inputs'][lab_id] == 'delete' else labs_to_save.update({lab_id:lab_name}) for lab_id, lab_name in all_labs.items()] 
-        #text=f"Your lab {lab_title} has been deleted. Attached is the YAML Topology file",
-        #[(labs_to_delete[lab_id] = lab_name) if activity['inputs'][lab_id] == 'delete' else labs_to_save[lab_id] = lab_name for lab_id, lab_name in all_labs.items()]
 
         await edit_card(activity, webex, labs_to_save, labs_to_delete, activity["messageId"])
 
@@ -709,9 +698,9 @@ async def wipe_and_delete_labs(
             await download_and_send_lab_toplogy(
                 activity, lab_id, client, webex
             )
-            # await cml_user.wipe_lab(lab_id)
-            # await delete_lab_from_dynamo(user_email, lab_id, table)
-            # await cml_user.delete_lab(lab_id)
+            await cml_user.wipe_lab(lab_id)
+            await delete_lab_from_dynamo(user_email, lab_id, table)
+            await cml_user.delete_lab(lab_id)
 
 
 async def get_cml_password(user_email, table):
