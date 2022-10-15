@@ -792,15 +792,17 @@ async def download_and_send_lab_toplogy(
 
         await webex.send_message_with_file(message)
 
-async def edit_card(activity, webex, labs_to_save, labs_to_delete, message_id):
+async def edit_card(activity, webex, labs_to_save=None, labs_to_delete=None, message_id=None):
     """Edits the webex card to show change log for all the labs"""
     message = ""
 
-    for lab in labs_to_save.values():
-        message += "Lab **"+ lab + "** was saved\n"
-
-    for lab in labs_to_delete.values():
-        message += "Lab **" + lab + "** was deleted, the topology file will be attached below\n"    
+    if labs_to_save:
+        for lab in labs_to_save.values():
+            message += "Lab **"+ lab + "** was saved\n"
+    
+    if labs_to_delete:
+        for lab in labs_to_delete.values():
+            message += "Lab **" + lab + "** was deleted, the topology file will be attached below\n"    
 
     await webex.edit_message(message_id, message, activity["roomId"])
 
