@@ -619,7 +619,7 @@ async def handle_rotate_keys_card(activity):
 async def handle_labbing_card(activity):
     """handles the are cml lab check in card"""
     card_type = activity["inputs"]["type"]
-    all_labs = json.loads(activity["inputs"]["allLabIds"])
+    all_labs = json.loads(activity["inputs"]["allLabIds"].replace("'", '"'))
     user_email = activity["inputs"]["email"]
     labs_to_save = []
     labs_to_delete = []
