@@ -797,10 +797,10 @@ async def edit_card(activity, webex, labs_to_save, labs_to_delete, message_id):
     message = ""
 
     for lab in labs_to_save.values():
-        message += f"Lab {lab} was saved\n"
+        message += "Lab **"+ lab + "** was saved\n"
 
     for lab in labs_to_delete.values():
-        message += f"Lab {lab} was deleted, the topology file will be attached below\n"    
+        message += "Lab **" + lab + "** was deleted, the topology file will be attached below\n"    
 
     await webex.edit_message(message_id, message, activity["roomId"])
 
