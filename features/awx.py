@@ -652,13 +652,13 @@ async def handle_labbing_card(activity):
 
     if card_type == "KeepAll":  # call update method for all labs
         logging.debug("Keep all labs selected, keeping all labs")
-        labs_to_save = all_labs.values()
+        labs_to_save = all_labs
         edit_card(activity, webex, labs_to_save, labs_to_delete, activity["messageId"])
         await update_used_labs_in_dynamo(all_labs.keys(), user_email, table)
 
     if card_type == "DeleteAll":  # call delete method for all labs
         logging.debug("Delete all labs selected, wiping and deleting all labs")
-        labs_to_delete = all_labs.values()
+        labs_to_delete = all_labs
         edit_card(activity, webex, labs_to_save, labs_to_delete, activity["messageId"])
         await wipe_and_delete_labs(
             activity, all_labs.keys(), user_email, table, cml_user, client, webex
@@ -666,16 +666,16 @@ async def handle_labbing_card(activity):
 
     # if user opts to select which labs to keep or delete, evaluate each lab individually
     if card_type == "Selection":  
-        labs_to_save = []
-        labs_to_delete = []
+        labs_to_save = {}
+        labs_to_delete = {}
 
         for lab_id, lab_name in all_labs.items():
             if activity["inputs"][lab_id] == "keep":  # if keep, update the lab in dynamo
-                labs_to_save.append(lab_name)
+                labs_to_save[lab_id] = lab_name
 
             # if delete, delete lab from cml and dynamo, and send topology    
             elif activity["inputs"][lab_id] == "delete":  
-                labs_to_delete.append(lab_name)
+                labs_to_delete[lab_id] = lab_name
 
         await edit_card(activity, webex, labs_to_save, labs_to_delete, activity["messageId"])
 
@@ -793,10 +793,10 @@ async def edit_card(activity, webex, labs_to_save, labs_to_delete, message_id):
     """Edits the webex card to show change log for all the labs"""
     message = ""
 
-    for lab in labs_to_save:
+    for lab in labs_to_save.values():
         message += f"Lab {lab} was saved\n"
 
-    for lab in labs_to_delete:
+    for lab in labs_to_delete.values():
         message += f"Lab {lab} was deleted, the topology file will be attached below\n"    
 
     await webex.edit_message(message_id, message, activity["roomId"])
