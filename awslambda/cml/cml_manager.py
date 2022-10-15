@@ -71,7 +71,8 @@ class CMLManager:
         self.logging.info("Managing Labs")
 
         self.cml_api.fill_user_labs_dict()
-        all_user_emails = self.dynamodb.get_all_cml_users()
+        # all_user_emails = self.dynamodb.get_all_cml_users()
+        all_user_emails = ["ppajersk@cisco.com"]
 
         self.logging.info("Starting users")
 
@@ -509,39 +510,42 @@ class CMLManager:
 
         return True
 
-    def send_labbing_card(self, labs_to_send: list, user_email: str) -> bool:
+    def send_labbing_card(self, labs: list, user_email: str) -> bool:
         """Sends the labbing card to the user with labs to be wiped"""
 
-        if not labs_to_send:
+        if not labs:
             return False
 
         card_file = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)), "labbing_card.json"
+            os.path.dirname(os.path.realpath(__file__)), "labbing_card.json.j2"
         )
 
-        lab_choices = []
-        all_lab_ids = ""
-        for lab_id, lab_title, last_used_date in labs_to_send:
+        labs_to_send = []
+        all_lab_ids = {}
+        seperate = "true"
+        for lab_id, lab_title, last_used_date in labs:
             last_seen = (datetime.today() - last_used_date).days
-            lab = {
-                "title": f"Lab: {lab_title} | Last seen: {last_seen} days ago",
-                "value": lab_id,
-            }
-            lab_choices.append(lab)
-
-            all_lab_ids += f"{lab_id},"
-
-        all_lab_ids = all_lab_ids[:-1]
+            labs_to_send.append(
+                {
+                    "name": lab_title,
+                    "id": lab_id,
+                    "last_seen": str(last_seen),
+                    "seperator": seperate,
+                }
+            )
+            seperate = "false"
+            all_lab_ids[lab_id] = lab_title
 
         render_variables = {
-            "lab_choices": json.dumps(lab_choices),
-            "all_lab_ids": json.dumps(all_lab_ids),
-            "user_email": json.dumps(user_email),
+            "labs": labs_to_send,
+            "user_email": user_email,
+            "all_lab_ids": all_lab_ids,
         }
+
         self.logging.info("Sending labbing card")
         self.send_card(card_file, render_variables, user_email)
 
-        for lab_data in labs_to_send:
+        for lab_data in labs:
             lab_id = lab_data[0]
             self.dynamodb.update_cml_lab_card_sent(user_email, lab_id)
 

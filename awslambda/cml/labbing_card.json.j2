@@ -17,7 +17,11 @@
         },{% for lab in labs %}
         {
             "type": "TextBlock",
+<<<<<<< HEAD
             "size": "Medium",
+=======
+            "size": "Small",
+>>>>>>> redid labbing card and logic
             "spacing": "Large",
             "separator": {{ lab['seperator'] }},
             "text": "Lab: {{ lab['name'] }} | Last seen: {{ lab['last_seen'] }} days ago",
@@ -33,7 +37,11 @@
             "choices": [
                 {
                     "title": "Keep",
+<<<<<<< HEAD
                     "value": "keep"
+=======
+                    "value": "keep" 
+>>>>>>> redid labbing card and logic
                 },
                 {
                     "title": "Delete",
@@ -54,9 +62,13 @@
                         "type": "Selection",
                         "email": "{{ user_email }}",
                         "card_feature_index": "cml_labbing_card",
+<<<<<<< HEAD
                         "allLabIds": "{{ all_lab_ids }}",
                         "card_sent_date": "{{ card_sent_date }}",
                         "card_response_limit": "{{ card_response_limit }}"
+=======
+                        "allLabIds": "{{ all_lab_ids }}"
+>>>>>>> redid labbing card and logic
                     }
                 },
                     {
@@ -67,9 +79,13 @@
                         "type": "DeleteAll",
                         "email": "{{ user_email }}",
                         "card_feature_index": "cml_labbing_card",
+<<<<<<< HEAD
                         "allLabIds": "{{ all_lab_ids }}",
                         "card_sent_date": "{{ card_sent_date }}",
                         "card_response_limit": "{{ card_response_limit }}"
+=======
+                        "allLabIds": "{{ all_lab_ids }}"
+>>>>>>> redid labbing card and logic
                     }
                 },
                 {
@@ -80,9 +96,13 @@
                         "type": "KeepAll",
                         "email": "{{ user_email }}",
                         "card_feature_index": "cml_labbing_card",
+<<<<<<< HEAD
                         "allLabIds": "{{ all_lab_ids }}",
                         "card_sent_date": "{{ card_sent_date }}",
                         "card_response_limit": "{{ card_response_limit }}"
+=======
+                        "allLabIds": "{{ all_lab_ids }}"
+>>>>>>> redid labbing card and logic
                     }
                 }
                 ]
@@ -91,4 +111,8 @@
     ]
 }
   
+<<<<<<< HEAD
   }]
+=======
+  }] 
+>>>>>>> redid labbing card and logic
