@@ -653,13 +653,13 @@ async def handle_labbing_card(activity):
     if card_type == "KeepAll":  # call update method for all labs
         logging.debug("Keep all labs selected, keeping all labs")
         labs_to_save = all_labs
-        edit_card(activity, webex, labs_to_save, labs_to_delete, activity["messageId"])
+        await edit_card(activity, webex, labs_to_save, labs_to_delete, activity["messageId"])
         await update_used_labs_in_dynamo(all_labs.keys(), user_email, table)
 
     if card_type == "DeleteAll":  # call delete method for all labs
         logging.debug("Delete all labs selected, wiping and deleting all labs")
         labs_to_delete = all_labs
-        edit_card(activity, webex, labs_to_save, labs_to_delete, activity["messageId"])
+        await edit_card(activity, webex, labs_to_save, labs_to_delete, activity["messageId"])
         await wipe_and_delete_labs(
             activity, all_labs.keys(), user_email, table, cml_user, client, webex
         )
