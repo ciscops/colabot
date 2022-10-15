@@ -669,14 +669,15 @@ async def handle_labbing_card(activity):
         labs_to_save = {}
         labs_to_delete = {}
 
-        for lab_id, lab_name in all_labs.items():
-            if activity["inputs"][lab_id] == "keep":  # if keep, update the lab in dynamo
-                labs_to_save[lab_id] = lab_name
+        # for lab_id, lab_name in all_labs.items():
+        #     if activity["inputs"][lab_id] == "keep":  # if keep, update the lab in dynamo
+        #         labs_to_save[lab_id] = lab_name
 
-            # if delete, delete lab from cml and dynamo, and send topology    
-            elif activity["inputs"][lab_id] == "delete":  
-                labs_to_delete[lab_id] = lab_name
-
+        #     # if delete, delete lab from cml and dynamo, and send topology    
+        #     elif activity["inputs"][lab_id] == "delete":  
+        #         labs_to_delete[lab_id] = lab_name
+        
+        [labs_to_delete.update({lab_id:lab_name}) if activity['inputs'][lab_id] == 'delete' else labs_to_save.update({lab_id:lab_name}) for lab_id, lab_name in all_labs.items()] 
         #text=f"Your lab {lab_title} has been deleted. Attached is the YAML Topology file",
         #[(labs_to_delete[lab_id] = lab_name) if activity['inputs'][lab_id] == 'delete' else labs_to_save[lab_id] = lab_name for lab_id, lab_name in all_labs.items()]
 
