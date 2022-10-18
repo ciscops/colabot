@@ -1,0 +1,88 @@
+[{"contentType":
+  "application/vnd.microsoft.card.adaptive",
+  "content":
+  {
+    "type": "AdaptiveCard",
+    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+    "version": "1.2",
+    "body": [
+        {
+            "type": "RichTextBlock",
+            "inlines": [
+                {
+                    "type": "TextRun",
+                    "text": "Are you still using these labs?"
+                }
+            ]
+        },{% for lab in labs %}
+        {
+            "type": "TextBlock",
+            "size": "Small",
+            "spacing": "Large",
+            "separator": {{ lab['seperator'] }},
+            "text": "Lab: {{ lab['name'] }} | Last seen: {{ lab['last_seen'] }} days ago",
+            "wrap": true
+        },
+        {
+            "type": "Input.ChoiceSet",
+            "id": "{{ lab['id'] }}",
+            "style": "expanded",
+            "spacing": "Small",
+            "isRequired": true,
+            "value": "keep",
+            "choices": [
+                {
+                    "title": "Keep",
+                    "value": "keep" 
+                },
+                {
+                    "title": "Delete",
+                    "value": "delete"
+                }
+            ]
+        }, {% endfor %}
+        {
+            "type": "ActionSet",
+            "style": "positive",
+            "horizontalAlignment": "center",
+            "actions": [
+                    {
+                    "type": "Action.Submit",
+                    "title": "Submit Selection",
+                    "id": "Selection",
+                    "data": {
+                        "type": "Selection",
+                        "email": "{{ user_email }}",
+                        "card_feature_index": "cml_labbing_card",
+                        "allLabIds": "{{ all_lab_ids }}"
+                    }
+                },
+                    {
+                    "type": "Action.Submit",
+                    "title": "Delete All",
+                    "id": "DeleteAll",
+                    "data": {
+                        "type": "DeleteAll",
+                        "email": "{{ user_email }}",
+                        "card_feature_index": "cml_labbing_card",
+                        "allLabIds": "{{ all_lab_ids }}"
+                    }
+                },
+                {
+                    "type": "Action.Submit",
+                    "title": "Keep All",
+                    "id": "KeepAll",
+                    "data": {
+                        "type": "KeepAll",
+                        "email": "{{ user_email }}",
+                        "card_feature_index": "cml_labbing_card",
+                        "allLabIds": "{{ all_lab_ids }}"
+                    }
+                }
+                ]
+        }
+
+    ]
+}
+  
+  }]
