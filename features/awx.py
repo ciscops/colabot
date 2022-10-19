@@ -617,6 +617,7 @@ async def handle_rotate_keys_card(activity):
 
 async def handle_labbing_card(activity):
     """handles the are cml lab check in card"""
+    webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
     card_type = activity["inputs"]["type"]
     all_labs = json.loads(activity["inputs"]["allLabIds"].replace("'", '"'))
     user_email = activity["inputs"]["email"]
@@ -647,8 +648,7 @@ async def handle_labbing_card(activity):
     user_and_domain = user_email.split("@")
     cml_password = await get_cml_password(user_email, table)
     cml_user = CML(user_and_domain[0], cml_password, cml_server)
-
-    webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
+    
     url = "https://" + cml_server + "/"
     client = ClientLibrary(
         url,
