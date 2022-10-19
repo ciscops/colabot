@@ -624,7 +624,7 @@ async def handle_labbing_card(activity):
     card_sent_date = activity["inputs"]["card_sent_date"]
     card_response_limit = activity["inputs"]["card_response_limit"]
 
-    if (datetime.today() - card_sent_date).days < card_response_limit:
+    if (datetime.today() - datetime.fromtimestamp(int(card_sent_date))).days < card_response_limit:
         message = f"Card is past response timeframe, please respond to a card that is no older than {card_response_limit} days"
         await webex.edit_message(activity["messageId"], message, activity["roomId"])
         return
