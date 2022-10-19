@@ -39,6 +39,12 @@ class CMLAPI:
             logging.error("Environment variable WIPED_LABS_GROUP must be set")
             sys.exit(1)
 
+        if "LAB_DELETE_DAYS" in os.environ:
+            self.DELETE_DAYS = int(os.getenv("LAB_DELETE_DAYS"))
+        else:
+            logging.error("Environment variable LAB_DELETE_DAYS must be set")
+            sys.exit(1)
+
         self.client = None
         self.webex_api = WebexTeamsAPI()
         self.dynamodb = Dynamoapi()
@@ -119,16 +125,18 @@ class CMLAPI:
 
         return labs
 
-    def wipe_labs(self, lab_ids: list, email: str) -> bool:
+    def wipe_labs(self, labs_to_wipe: list, email: str) -> bool:
         """Wipes the labs, sends the user each lab's yaml file, and messages the user"""
 
-        if not lab_ids:
+        if not labs_to_wipe:
             return False
 
         self.connect()
-        message = "The following CML Labs have been wiped:<pre>"
-        for lab_id in lab_ids:
+        for lab_dict in labs_to_wipe:
             try:
+                lab_id = lab_dict["lab_id"]
+                reason_lab_wiped = lab_dict["reason_lab_wiped"]
+
                 lab = self.client.join_existing_lab(lab_id)
 
                 lab.stop()
@@ -140,12 +148,14 @@ class CMLAPI:
                 self.dynamodb.update_cml_lab_wiped(email, lab_id)
 
                 lab_title = lab.title
-                message += f"Lab: {lab_title}\n"
+                message = (
+                    "Lab: **"
+                    + lab_title
+                    + f"**\n - Status: **Wiped** \n - Reason: {reason_lab_wiped}"
+                )
+                self.webex_api.messages.create(toPersonEmail=email, markdown=message)
             except Exception:
                 self.logging.error("Error wiping lab")
-
-        message += "</code></pre>"
-        self.webex_api.messages.create(toPersonEmail=email, markdown=message)
 
         return True
 
@@ -192,7 +202,9 @@ class CMLAPI:
 
             self.webex_api.messages.create(
                 toPersonEmail=email,
-                markdown=f'Your lab "{lab_title}" has been deleted. Attached is the YAML Topology file',
+                markdown="Lab: **"
+                + lab_title
+                + f"**\n - Status: **Deleted** \n - Reason: Exceeded {self.DELETE_DAYS} wiped timeframe",
                 files=[outfile.name],
             )
 
