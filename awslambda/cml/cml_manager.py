@@ -174,6 +174,10 @@ class CMLManager:
                     self.logging.info("Adding lab to warning for being wiped")
                     labs_warning_deleted.append((lab_title, user_responded_date))
 
+                # Checks to see if a wiped lab has been reactivated
+                elif lab_is_wiped and self.cml_api.check_lab_active(lab_id):
+                    self.dynamdb.update_cml_lab_used_date(user_email, lab_id, lab_title)
+
             self.logging.info("WARN WIPE: %s", str(labs_warning_wiped))
             self.logging.info("WIPE: %s", str(labs_to_wipe))
             self.logging.info("WARN DELETE: %s", str(labs_warning_deleted))
@@ -452,9 +456,17 @@ class CMLManager:
         self,
         card_sent_date: datetime,
         user_responded_date: datetime,
+        lab_discovered_date: datetime,
         lab_is_wiped: bool,
     ) -> bool:
         """Checks see if a person did not respond to card in time and auto wipes the lab"""
+
+        if (datetime.today() - lab_discovered_date).days >= self.LAB_UNWIPED_LIFESPAN:
+            # Lab hit hard deadline date
+            self.reason_lab_wiped = (
+                f"Lab exceeded unwiped {self.LAB_UNWIPED_LIFESPAN} day limit"
+            )
+            return True
 
         if (
             lab_is_wiped
@@ -464,6 +476,8 @@ class CMLManager:
             return False
 
         if (datetime.today() - card_sent_date).days >= self.CARD_RESPOND_DAYS:
+            # User didn't respond in timeframe alloted
+            self.reason_lab_wiped = f"User did not respond to card prompt within {self.CARD_RESPOND_DAYS} day limit"
             return True
 
         return False
@@ -540,6 +554,8 @@ class CMLManager:
             "labs": labs_to_send,
             "user_email": user_email,
             "all_lab_ids": all_lab_ids,
+            "card_sent_date": int(datetime.today().timestamp()),
+            "card_response_limit": self.CARD_RESPOND_DAYS,
         }
 
         self.logging.info("Sending labbing card")
