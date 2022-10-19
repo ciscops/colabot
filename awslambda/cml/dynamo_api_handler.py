@@ -113,6 +113,7 @@ class Dynamoapi:
                     "lab_wiped_date": "",
                     "card_sent_date": "",
                     "user_responded_date": date_string,
+                    "lab_discovered_date": date_string,
                 }
             },
         )

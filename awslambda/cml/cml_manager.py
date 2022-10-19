@@ -39,6 +39,12 @@ class CMLManager:
             logging.error("Environment variable LAB_CARD_RESPOND_DAYS must be set")
             sys.exit(1)
 
+        if "LAB_UNWIPED_LIFESPAN" in os.environ:
+            self.LAB_UNWIPED_LIFESPAN = int(os.getenv("LAB_UNWIPED_LIFESPAN"))
+        else:
+            logging.error("Environment variable LAB_UNWIPED_LIFESPAN must be set")
+            sys.exit(1)
+
         if "WEBEX_TEAMS_ACCESS_TOKEN" in os.environ:
             self.wxt_access_token = os.getenv("WEBEX_TEAMS_ACCESS_TOKEN")
         else:
@@ -48,6 +54,7 @@ class CMLManager:
         self.dynamodb = Dynamoapi()
         self.cml_api = CMLAPI()
         self.webex_api = WebexTeamsAPI()
+        self.reason_lab_wiped = ""
 
     def manage_labs(self) -> tuple:
         """Main function for managing cml labs"""
@@ -97,11 +104,19 @@ class CMLManager:
                 lab_wiped_date = lab_data["lab_wiped_date"]
                 card_sent_date = lab_data["card_sent_date"]
                 user_responded_date = lab_data["user_responded_date"]
+                lab_discovered_date = lab_data["lab_discovered_date"]
 
                 # check see if user was sent a card and never responded in time
-                if self.lab_to_wipe(card_sent_date, user_responded_date, lab_is_wiped):
+                if self.lab_to_wipe(
+                    card_sent_date,
+                    user_responded_date,
+                    lab_discovered_date,
+                    lab_is_wiped,
+                ):
                     self.logging.info("Adding lab to be wiped")
-                    labs_to_wipe.append(lab_id)
+                    labs_to_wipe.append(
+                        {"lab_id": lab_id, "reason_lab_wiped": self.reason_lab_wiped}
+                    )
 
                 # check see if lab within warning wiped period
                 elif self.lab_to_warn_wiping(user_responded_date, lab_is_wiped):
@@ -126,6 +141,10 @@ class CMLManager:
                 ):
                     self.logging.info("Adding lab to warning for being wiped")
                     labs_warning_deleted.append((lab_title, user_responded_date))
+
+                # Checks to see if a wiped lab has been reactivated
+                elif lab_is_wiped and self.cml_api.check_lab_active(lab_id):
+                    self.dynamdb.update_cml_lab_used_date(user_email, lab_id, lab_title)
 
             self.logging.info("WARN WIPE: %s", str(labs_warning_wiped))
             self.logging.info("WIPE: %s", str(labs_to_wipe))
@@ -210,9 +229,17 @@ class CMLManager:
         self,
         card_sent_date: datetime,
         user_responded_date: datetime,
+        lab_discovered_date: datetime,
         lab_is_wiped: bool,
     ) -> bool:
         """Checks see if a person did not respond to card in time and auto wipes the lab"""
+
+        if (datetime.today() - lab_discovered_date).days >= self.LAB_UNWIPED_LIFESPAN:
+            # Lab hit hard deadline date
+            self.reason_lab_wiped = (
+                f"Lab exceeded unwiped {self.LAB_UNWIPED_LIFESPAN} day limit"
+            )
+            return True
 
         if (
             lab_is_wiped
@@ -222,6 +249,8 @@ class CMLManager:
             return False
 
         if (datetime.today() - card_sent_date).days >= self.CARD_RESPOND_DAYS:
+            # User didn't respond in timeframe alloted
+            self.reason_lab_wiped = f"User did not respond to card prompt within {self.CARD_RESPOND_DAYS} day limit"
             return True
 
         return False
@@ -298,6 +327,8 @@ class CMLManager:
             "labs": labs_to_send,
             "user_email": user_email,
             "all_lab_ids": all_lab_ids,
+            "card_sent_date": int(datetime.today().timestamp()),
+            "card_response_limit": self.CARD_RESPOND_DAYS,
         }
 
         self.logging.info("Sending labbing card")
