@@ -73,7 +73,7 @@ class CMLAPI:
 
         self.logging.debug("iterating through users")
         for user in diagnostics["user_list"]:
-            if user["username"] != "ppajersk":
+            if user["username"] != "kstickne":
                 continue
             email = user["username"] + "@cisco.com"
             self.user_and_labs[email] = user["labs"]
@@ -178,6 +178,8 @@ class CMLAPI:
 
                 yaml_string = lab.download()
 
+                lab.stop()
+                lab.wipe()
                 lab.remove()
                 self.send_lab_topology(yaml_string, lab_title, user_email)
                 self.dynamodb.delete_cml_lab(user_email, lab_id)

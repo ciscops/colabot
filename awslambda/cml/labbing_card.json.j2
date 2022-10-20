@@ -17,7 +17,7 @@
         },{% for lab in labs %}
         {
             "type": "TextBlock",
-            "size": "Small",
+            "size": "Medium",
             "spacing": "Large",
             "separator": {{ lab['seperator'] }},
             "text": "Lab: {{ lab['name'] }} | Last seen: {{ lab['last_seen'] }} days ago",
@@ -33,7 +33,7 @@
             "choices": [
                 {
                     "title": "Keep",
-                    "value": "keep" 
+                    "value": "keep"
                 },
                 {
                     "title": "Delete",
