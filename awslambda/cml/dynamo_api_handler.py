@@ -197,8 +197,13 @@ class Dynamoapi:
                 self.lab_id_tag: lab_id,
                 "#lab_wiped_date": "lab_wiped_date",
                 "#lab_wiped": "lab_is_wiped",
+                "#card_sent_date": "card_sent_date",
             },
-            ExpressionAttributeValues={":value1": date_string, ":value2": True},
+            ExpressionAttributeValues={
+                ":value1": date_string,
+                ":value2": True,
+                ":value3": "",
+            },
         )
 
     def update_cml_lab_card_sent(
