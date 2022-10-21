@@ -301,7 +301,7 @@ class CMLManager:
             days_till_deletion = (
                 lab_wiped_date + timedelta(days=self.DELETE_DAYS) - datetime.today()
             ).days
-            
+
             message += (
                 f"\n- Lab: {lab_title} | Days till deletion: {days_till_deletion} days"
             )
@@ -374,7 +374,9 @@ class CMLManager:
         self.logging.info("CARD %s", str(card_json))
 
         self.webex_api.messages.create(
-            toPersonEmail=user_email, markdown="CML Labs - Action Required", attachments=card_json
+            toPersonEmail=user_email,
+            markdown="CML Labs - Action Required",
+            attachments=card_json,
         )
 
         return True
