@@ -252,7 +252,7 @@ class CMLAPI:
                 toPersonEmail=email,
                 markdown="Lab: **"
                 + lab_title
-                + f"**\n - Status: **Deleted** \n - Reason: Exceeded {self.DELETE_DAYS} wiped timeframe",
+                + f"**\n - Status: **Deleted** \n - Reason: Exceeded {self.DELETE_DAYS} day wiped timeframe",
                 files=[outfile.name],
             )
 
