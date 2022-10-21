@@ -596,7 +596,9 @@ class CMLManager:
         self.logging.info("CARD %s", str(card_json))
 
         self.webex_api.messages.create(
-            toPersonEmail=user_email, markdown="CML Labs - Action Required", attachments=card_json
+            toPersonEmail=user_email,
+            markdown="CML Labs - Action Required",
+            attachments=card_json,
         )
 
         return True
