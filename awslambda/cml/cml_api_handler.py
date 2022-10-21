@@ -73,8 +73,6 @@ class CMLAPI:
 
         self.logging.debug("iterating through users")
         for user in diagnostics["user_list"]:
-            if user["username"] != "ppajersk":
-                continue
             email = user["username"] + "@cisco.com"
             self.user_and_labs[email] = user["labs"]
 

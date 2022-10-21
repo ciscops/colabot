@@ -624,13 +624,18 @@ async def handle_labbing_card(activity):
     card_sent_date = activity["inputs"]["card_sent_date"]
     card_response_limit = activity["inputs"]["card_response_limit"]
 
-    logging.debug("this is happening %s and %s", (datetime.today() - datetime.fromtimestamp(int(card_sent_date))).days, int(card_response_limit))
+    logging.debug(
+        "this is happening %s and %s",
+        (datetime.today() - datetime.fromtimestamp(int(card_sent_date))).days,
+        int(card_response_limit),
+    )
 
-    if (datetime.today() - datetime.fromtimestamp(int(card_sent_date))).days > int(card_response_limit):
+    if (datetime.today() - datetime.fromtimestamp(int(card_sent_date))).days > int(
+        card_response_limit
+    ):
         message = f"Card is past response timeframe, please respond to a card that is no older than {card_response_limit} days"
         await webex.edit_message(activity["messageId"], message, activity["roomId"])
         return
-
 
     labs_to_save = []
     labs_to_delete = []
@@ -650,7 +655,7 @@ async def handle_labbing_card(activity):
     user_and_domain = user_email.split("@")
     cml_password = await get_cml_password(user_email, table)
     cml_user = CML(user_and_domain[0], cml_password, cml_server)
-    
+
     url = "https://" + cml_server + "/"
     client = ClientLibrary(
         url,
@@ -663,39 +668,49 @@ async def handle_labbing_card(activity):
     if card_type == "KeepAll":  # call update method for all labs
         logging.debug("Keep all labs selected, keeping all labs")
         labs_to_save = all_labs
-        await edit_card(activity, webex, labs_to_save, labs_to_delete, activity["messageId"])
+        await edit_card(
+            activity, webex, labs_to_save, labs_to_delete, activity["messageId"]
+        )
         await update_used_labs_in_dynamo(all_labs.keys(), user_email, table)
 
     if card_type == "DeleteAll":  # call delete method for all labs
         logging.debug("Delete all labs selected, wiping and deleting all labs")
         labs_to_delete = all_labs
-        await edit_card(activity, webex, labs_to_save, labs_to_delete, activity["messageId"])
+        await edit_card(
+            activity, webex, labs_to_save, labs_to_delete, activity["messageId"]
+        )
         await wipe_and_delete_labs(
             activity, all_labs.keys(), user_email, table, cml_user, client, webex
         )
 
     # if user opts to select which labs to keep or delete, evaluate each lab individually
-    if card_type == "Selection":  
+    if card_type == "Selection":
         labs_to_save = {}
         labs_to_delete = {}
 
-        [labs_to_delete.update({lab_id:lab_name}) if activity['inputs'][lab_id] == 'delete' else labs_to_save.update({lab_id:lab_name}) for lab_id, lab_name in all_labs.items()] 
+        for lab_id, lab_name in all_labs.items():
+            if activity["inputs"][lab_id] == "delete":
+                labs_to_delete.update({lab_id: lab_name})
+            elif activity["inputs"][lab_id] == "keep":
+                labs_to_save.update({lab_id: lab_name})
 
-        await edit_card(activity, webex, labs_to_save, labs_to_delete, activity["messageId"])
+        await edit_card(
+            activity, webex, labs_to_save, labs_to_delete, activity["messageId"]
+        )
 
         for lab in labs_to_save:
-            await update_used_labs_in_dynamo([lab], user_email, table)   
+            await update_used_labs_in_dynamo([lab], user_email, table)
 
         for lab in labs_to_delete:
             await wipe_and_delete_labs(
-                    activity,
-                    [lab],
-                    user_email,
-                    table,
-                    cml_user,
-                    client,
-                    webex,
-                )
+                activity,
+                [lab],
+                user_email,
+                table,
+                cml_user,
+                client,
+                webex,
+            )
 
 
 async def wipe_and_delete_labs(
@@ -706,9 +721,7 @@ async def wipe_and_delete_labs(
     for lab_id in labs:
         if await cml_user.get_token():
             await cml_user.stop_lab(lab_id)
-            await download_and_send_lab_toplogy(
-                activity, lab_id, client, webex
-            )
+            await download_and_send_lab_toplogy(activity, lab_id, client, webex)
             await cml_user.wipe_lab(lab_id)
             await delete_lab_from_dynamo(user_email, lab_id, table)
             await cml_user.delete_lab(lab_id)
@@ -766,11 +779,8 @@ async def delete_lab_from_dynamo(user_email, lab_id, table):
         logging.error("Problem deleting lab: %s", str(e))
 
 
-async def download_and_send_lab_toplogy(
-    activity, lab_id, client, webex
-):
+async def download_and_send_lab_toplogy(activity, lab_id, client, webex):
     """Downloads the lab-to-be-wiped topology and sends it to the user"""
-   
 
     lab = client.join_existing_lab(lab_id)
     lab_title = lab.title
@@ -792,17 +802,24 @@ async def download_and_send_lab_toplogy(
 
         await webex.send_message_with_file(message)
 
-async def edit_card(activity, webex, labs_to_save=None, labs_to_delete=None, message_id=None):
+
+async def edit_card(
+    activity, webex, labs_to_save=None, labs_to_delete=None, message_id=None
+):
     """Edits the webex card to show change log for all the labs"""
     message = ""
 
     if labs_to_save:
         for lab in labs_to_save.values():
-            message += "Lab **"+ lab + "** was saved\n"
-    
+            message += "Lab **" + lab + "** was saved\n"
+
     if labs_to_delete:
         for lab in labs_to_delete.values():
-            message += "Lab **" + lab + "** was deleted, the topology file will be attached below\n"    
+            message += (
+                "Lab **"
+                + lab
+                + "** was deleted, the topology file will be attached below\n"
+            )
 
     await webex.edit_message(message_id, message, activity["roomId"])
 
