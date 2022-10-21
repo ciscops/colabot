@@ -34,7 +34,7 @@ class CMLAPI:
             sys.exit(1)
 
         if "WIPED_LABS_GROUP" in os.environ:
-            self.wiped_labs_group = os.getenv("WIPED_LABS_GROUP")
+            self.stopped_labs_group = os.getenv("WIPED_LABS_GROUP")
         else:
             logging.error("Environment variable WIPED_LABS_GROUP must be set")
             sys.exit(1)
@@ -73,6 +73,8 @@ class CMLAPI:
 
         self.logging.debug("iterating through users")
         for user in diagnostics["user_list"]:
+            if user["username"] != 'kstickne':
+                continue
             email = user["username"] + "@cisco.com"
             self.user_and_labs[email] = user["labs"]
 
@@ -123,33 +125,32 @@ class CMLAPI:
 
         return labs
 
-    def wipe_labs(self, labs_to_wipe: list, email: str) -> bool:
+    def stop_labs(self, labs_to_stop: list, email: str) -> bool:
         """Wipes the labs, sends the user each lab's yaml file, and messages the user"""
 
-        if not labs_to_wipe:
+        if not labs_to_stop:
             return False
 
         self.connect()
-        for lab_dict in labs_to_wipe:
+        for lab_dict in labs_to_stop:
             try:
                 lab_id = lab_dict["lab_id"]
-                reason_lab_wiped = lab_dict["reason_lab_wiped"]
+                reason_lab_stopped = lab_dict["reason_lab_stopped"]
 
                 lab = self.client.join_existing_lab(lab_id)
 
                 lab.stop()
-                lab.wipe()
-                self.logging.info("Stopped and wiped lab")
+                self.logging.info("Stopped lab")
                 lab.update_lab_groups(
-                    [{"id": self.wiped_labs_group, "permission": "read_only"}]
+                    [{"id": self.stopped_labs_group, "permission": "read_only"}]
                 )
-                self.dynamodb.update_cml_lab_wiped(email, lab_id)
+                self.dynamodb.update_cml_lab_stopped(email, lab_id)
 
                 lab_title = lab.title
                 message = (
                     "Lab: **"
                     + lab_title
-                    + f"**\n - Status: **Wiped** \n - Reason: {reason_lab_wiped}"
+                    + f"**\n - Status: **Wiped** \n - Reason: {reason_lab_stopped}"
                 )
                 self.webex_api.messages.create(toPersonEmail=email, markdown=message)
             except Exception:
@@ -176,7 +177,6 @@ class CMLAPI:
 
                 yaml_string = lab.download()
 
-                lab.stop()
                 lab.wipe()
                 lab.remove()
                 self.send_lab_topology(yaml_string, lab_title, user_email)
@@ -204,7 +204,7 @@ class CMLAPI:
                 toPersonEmail=email,
                 markdown="Lab: **"
                 + lab_title
-                + f"**\n - Status: **Deleted** \n - Reason: Exceeded {self.DELETE_DAYS} day wiped timeframe",
+                + f"**\n - Status: **Deleted** \n - Reason: Exceeded {self.DELETE_DAYS} day stopped timeframe",
                 files=[outfile.name],
             )
 
