@@ -71,8 +71,8 @@ class CMLManager:
         self.logging.info("Managing Labs")
 
         self.cml_api.fill_user_labs_dict()
-        #all_user_emails = self.dynamodb.get_all_cml_users()
-        all_user_emails = ['kstickne@cisco.com']
+        # all_user_emails = self.dynamodb.get_all_cml_users()
+        all_user_emails = ["kstickne@cisco.com"]
 
         self.logging.info("Starting users")
 
@@ -155,8 +155,8 @@ class CMLManager:
                         user_email, lab_id, lab_title
                     )
 
-            self.logging.info("WARN WIPE: %s", str(labs_warning_stopped))
-            self.logging.info("WIPE: %s", str(labs_to_stop))
+            self.logging.info("WARN STOP: %s", str(labs_warning_stopped))
+            self.logging.info("STOP: %s", str(labs_to_stop))
             self.logging.info("WARN DELETE: %s", str(labs_warning_deleted))
             self.logging.info("DELETE: %s", str(labs_to_delete))
 

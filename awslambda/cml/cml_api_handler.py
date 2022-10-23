@@ -33,10 +33,10 @@ class CMLAPI:
             logging.error("Environment variable LONG_LIVED_LABS_GROUP must be set")
             sys.exit(1)
 
-        if "WIPED_LABS_GROUP" in os.environ:
-            self.stopped_labs_group = os.getenv("WIPED_LABS_GROUP")
+        if "STOPPED_LABS_GROUP" in os.environ:
+            self.stopped_labs_group = os.getenv("STOPPED_LABS_GROUP")
         else:
-            logging.error("Environment variable WIPED_LABS_GROUP must be set")
+            logging.error("Environment variable STOPPED_LABS_GROUP must be set")
             sys.exit(1)
 
         if "LAB_DELETE_DAYS" in os.environ:
@@ -73,7 +73,7 @@ class CMLAPI:
 
         self.logging.debug("iterating through users")
         for user in diagnostics["user_list"]:
-            if user["username"] != 'kstickne':
+            if user["username"] != "kstickne":
                 continue
             email = user["username"] + "@cisco.com"
             self.user_and_labs[email] = user["labs"]
@@ -150,7 +150,7 @@ class CMLAPI:
                 message = (
                     "Lab: **"
                     + lab_title
-                    + f"**\n - Status: **Wiped** \n - Reason: {reason_lab_stopped}"
+                    + f"**\n - Status: **Stopped** \n - Reason: {reason_lab_stopped}"
                 )
                 self.webex_api.messages.create(toPersonEmail=email, markdown=message)
             except Exception:
