@@ -1,7 +1,9 @@
 import logging
 import sys
 import os
+import json
 from datetime import date
+from jinja2 import Template
 from webexteamssdk import WebexTeamsAPI
 from awslambda.cml.dynamo_api_handler import Dynamoapi
 from awslambda.cml.cml_api_handler import CMLAPI
@@ -44,6 +46,9 @@ class CMLManager:
 
         for email in all_user_emails:
             try:
+                if self.cml_api.user_in_long_lived_labs(email):
+                    continue
+
                 cml_labs = self.cml_api.get_user_labs(email)
                 database_labs = self.dynamodb.get_cml_user_labs(email)
 
@@ -54,6 +59,12 @@ class CMLManager:
                 labs_to_wipe = self.get_labs_to_wipe(database_labs, cml_labs, email)
 
                 self.logging.info("%s LABS_TO_WIPE: %s", email, labs_to_wipe)
+
+                # Send card
+                if labs_to_wipe:
+                    self.logging.info("Sending labbing card to %s", email)
+                    self.send_labbing_card(labs_to_wipe, email)
+
                 success_counter += 1
             except Exception as e:
                 self.logging.error("ERROR: %s", str(e))
@@ -85,5 +96,43 @@ class CMLManager:
             if lab_id not in cml_labs:
                 self.logging.debug("DELETE %s Deleting lab from database", email)
                 self.dynamodb.delete_cml_lab(email, lab_id)
+
+        return True
+
+    def send_labbing_card(self, labs_to_wipe: list, email: str) -> bool:
+        """Sends the labbing card to the user with labs to be wiped"""
+        lab_choices = []
+        all_lab_ids = ""
+        for lab_id, lab_title, last_used_date in labs_to_wipe:
+            last_seen = (date.today() - last_used_date).days
+            lab = {
+                "title": f"Lab: {lab_title} | Last seen: {last_seen} days ago",
+                "value": lab_id,
+            }
+            lab_choices.append(lab)
+
+            all_lab_ids += f"{lab_id},"
+
+        all_lab_ids = all_lab_ids[:-1]
+        self.logging.debug("LAB: %s", str(lab_choices))
+
+        card_file = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), "labbing_card.json"
+        )
+        self.logging.debug("CARD: %s", str(card_file))
+        with open(f"{card_file}", encoding="utf8") as file_:
+            template = Template(file_.read())
+        card = template.render(
+            lab_choices=json.dumps(lab_choices),
+            all_lab_ids=json.dumps(all_lab_ids),
+            email=json.dumps(email),
+        )
+        card_json = json.loads(card)
+
+        self.logging.debug("CARD %s", str(card_json))
+
+        self.webex_api.messages.create(
+            toPersonEmail=email, markdown="labbing", attachments=card_json
+        )
 
         return True
