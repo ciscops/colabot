@@ -46,6 +46,7 @@ class CMLManager:
 
         for email in all_user_emails:
             try:
+                self.logging.info("Checking labs for user %s", email)
                 if self.cml_api.user_in_long_lived_labs(email):
                     continue
 

@@ -4,7 +4,7 @@ import json
 from awslambda.cml.cml_manager import CMLManager
 
 logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 
 def lambda_handler(event, handle):

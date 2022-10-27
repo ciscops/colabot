@@ -1,14 +1,17 @@
 import logging
 import os
 import sys
+import tempfile
 from datetime import datetime
-from virl2_client import ClientLibrary
+import yaml
+from virl2_client import ClientLibrary, models
+from webexteamssdk import WebexTeamsAPI
 
 
 class CMLAPI:
     def __init__(self):
         # Initialize logging
-        logging.basicConfig(level=os.environ.get("LOGLEVEL", "DEBUG"))
+        logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
         self.logging = logging.getLogger()
 
         if "CML_USERNAME" in os.environ:
@@ -29,7 +32,14 @@ class CMLAPI:
             logging.error("Environment variable LONG_LIVED_LABS_GROUP must be set")
             sys.exit(1)
 
+        if "WIPED_LABS_GROUP" in os.environ:
+            self.wiped_labs_group = os.getenv("WIPED_LABS_GROUP")
+        else:
+            logging.error("Environment variable WIPED_LABS_GROUP must be set")
+            sys.exit(1)
+
         self.client = None
+        self.webex_api = WebexTeamsAPI()
         self.created_date_format = "%Y-%m-%dT%H:%M:%S+00:00"
         self.user_and_labs = {}
         self.long_lived_users = []
@@ -98,3 +108,46 @@ class CMLAPI:
                 labs[lab_id] = (title, created_date)
 
         return labs
+
+    def wipe_labs(self, lab_ids: list, email: str) -> bool:
+        """Wipes the labs, sends the user each lab's yaml file, and messages the user"""
+
+        self.connect()
+        for lab_id in lab_ids:
+            try:
+                lab = self.client.join_existing_lab(lab_id)
+
+                lab.stop()
+                lab.wipe()
+                self.logging.info("Stopped and wiped lab")
+                self.send_lab_topology(lab, email)
+                lab.update_lab_groups(
+                    [{"id": self.wiped_labs_group, "permission": "read_only"}]
+                )
+            except Exception:
+                self.logging.error("Error wiping lab")
+
+        return True
+
+    def send_lab_topology(self, lab: models.lab.Lab, email) -> bool:
+        """Downloads the lab and sends it to the user"""
+        lab_name = lab.title
+        yaml_string = lab.download()
+        self.logging.info("Sending Topology file to user")
+
+        with open(
+            tempfile.NamedTemporaryFile(
+                suffix=".yaml", prefix=f'{lab_name.replace(" ","_")}_'
+            ).name,
+            "w",
+            encoding="utf-8",
+        ) as outfile:
+            yaml.dump(yaml.full_load(yaml_string), outfile, default_flow_style=False)
+
+            self.webex_api.messages.create(
+                toPersonEmail=email,
+                markdown=f'Your lab "{lab_name}" has been wiped. Attached is the YAML Topology file',
+                files=[outfile.name],
+            )
+
+        return True
