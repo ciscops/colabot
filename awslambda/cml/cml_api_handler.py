@@ -175,6 +175,13 @@ class CMLAPI:
                     )
                     continue
 
+                # fetch config from device - exception because certain nodes don't allow extraction
+                try:
+                    for node in lab.nodes():
+                        node.extract_configuration()
+                except Exception as e:
+                    self.logging.error("ERROR extracting node config: %s", str(e))
+
                 yaml_string = lab.download()
 
                 lab.wipe()
