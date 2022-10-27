@@ -22,7 +22,7 @@
             "style": "expanded",
             "spacing": "Small",
             "isMultiSelect": true,
-            "choices": {{lab_choices}}
+            "choices": {{ lab_choices }}
         },
         {
             "type": "Input.ChoiceSet",
@@ -59,8 +59,8 @@
                     "id": "Submit",
                     "data": {
                         "type": "labbing",
-                        "email": {{email}},
-                        "allLabIds": {{all_lab_ids}}
+                        "email": {{ email }},
+                        "allLabIds": {{ all_lab_ids }}
                     }
                 }
             ]
