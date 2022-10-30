@@ -73,8 +73,6 @@ class CMLAPI:
 
         self.logging.debug("iterating through users")
         for user in diagnostics["user_list"]:
-            if user["username"] != "kstickne":
-                continue
             email = user["username"] + "@cisco.com"
             self.user_and_labs[email] = user["labs"]
 
@@ -162,6 +160,8 @@ class CMLAPI:
         """Deletes the given labs from cml and the database"""
         self.connect()
 
+        self.logging.info("Start deleting labs")
+
         for lab_id in lab_ids:
             try:
                 lab = self.client.join_existing_lab(lab_id)
@@ -169,6 +169,7 @@ class CMLAPI:
 
                 # check to see if lab is running
 
+                self.logging.info("Check if lab is started")
                 if lab.state() == "STARTED":
                     self.dynamodb.update_cml_lab_used_date(
                         user_email, lab_id, lab_title
@@ -176,11 +177,14 @@ class CMLAPI:
                     continue
 
                 # fetch config from device - exception because certain nodes don't allow extraction
-                try:
-                    for node in lab.nodes():
+                self.logging.info("Update configs")
+                lab.start(wait=True)
+                for node in lab.nodes():
+                    try:
                         node.extract_configuration()
-                except Exception as e:
-                    self.logging.error("ERROR extracting node config: %s", str(e))
+                    except Exception as e:
+                        self.logging.error("ERROR extracting node config: %s", str(e))
+                lab.stop(wait=True)
 
                 yaml_string = lab.download()
 
