@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+import time
 import tempfile
 from datetime import datetime
 import yaml
@@ -73,6 +74,8 @@ class CMLAPI:
 
         self.logging.debug("iterating through users")
         for user in diagnostics["user_list"]:
+            if user["username"] != "kstickne":
+                continue
             email = user["username"] + "@cisco.com"
             self.user_and_labs[email] = user["labs"]
 
@@ -162,39 +165,57 @@ class CMLAPI:
 
         self.logging.info("Start deleting labs")
 
+        t1 = time.perf_counter()
+
+        started_labs = []
+        self.logging.info("Starting labs")
         for lab_id in lab_ids:
-            try:
-                lab = self.client.join_existing_lab(lab_id)
-                lab_title = lab.title
+            lab = self.client.join_existing_lab(lab_id)
+            lab_title = lab.title
 
-                # check to see if lab is running
+            # check to see if lab is running
+            self.logging.info("Check if lab is started")
+            if lab.state() == "STARTED":
+                self.dynamodb.update_cml_lab_used_date(user_email, lab_id, lab_title)
+                continue
 
-                self.logging.info("Check if lab is started")
-                if lab.state() == "STARTED":
-                    self.dynamodb.update_cml_lab_used_date(
-                        user_email, lab_id, lab_title
-                    )
-                    continue
+            lab.start(wait=False)
+            started_labs.append(lab)
 
-                # fetch config from device - exception because certain nodes don't allow extraction
-                self.logging.info("Update configs")
-                lab.start(wait=True)
-                for node in lab.nodes():
-                    try:
-                        node.extract_configuration()
-                    except Exception as e:
-                        self.logging.error("ERROR extracting node config: %s", str(e))
-                lab.stop(wait=True)
+        while (time.perf_counter() - t1 < 780) and len(started_labs) > 0:
+            for lab in started_labs.copy():
+                try:
+                    self.logging.info("Checking if converged")
+                    if not lab.has_converged():
+                        continue
 
-                yaml_string = lab.download()
+                    # fetch config from device - exception because certain nodes don't allow extraction
+                    self.logging.info("Update configs")
+                    for node in lab.nodes():
+                        try:
+                            node.extract_configuration()
+                        except Exception as e:
+                            self.logging.error(
+                                "ERROR extracting node config: %s", str(e)
+                            )
+                    lab.stop(wait=False)
 
-                lab.wipe()
-                lab.remove()
-                self.send_lab_topology(yaml_string, lab_title, user_email)
-                self.dynamodb.delete_cml_lab(user_email, lab_id)
+                    yaml_string = lab.download()
 
-            except Exception:
-                self.logging.error("Error deleting lab %s", lab_title)
+                    lab.wipe()
+                    #lab.remove()
+                    self.send_lab_topology(yaml_string, lab_title, user_email)
+                    #self.dynamodb.delete_cml_lab(user_email, lab.id)
+
+                    started_labs.remove(lab)
+
+                except Exception:
+                    self.logging.error("Error deleting lab %s", lab_title)
+
+            time.sleep(20)
+
+        t2 = time.perf_counter()
+        self.logging.info("TIME: %0.4f", t2 - t1)
 
         return True
 
