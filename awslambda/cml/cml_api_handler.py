@@ -246,3 +246,58 @@ class CMLAPI:
         """Returns whether a lab is active or not"""
         lab = self.client.join_existing_lab(lab_id)
         return lab.state() == "STARTED"
+
+    def download_lab(self, lab_ids, user_email):
+        self.connect()
+
+        self.logging.info("Start deleting labs")
+
+        t1 = time.perf_counter()
+
+        started_labs = []
+        self.logging.info("Starting labs")
+        for lab_id in lab_ids:
+            lab = self.client.join_existing_lab(lab_id)
+            lab_title = lab.title
+
+            # check to see if lab is running
+            self.logging.info("Check if lab is started")
+            is_started =  lab.state() == "STARTED"
+
+            lab.start(wait=False)
+            started_labs.append((lab, is_started))
+
+        while (time.perf_counter() - t1 < 780) and len(started_labs) > 0:
+            for lab, is_started in started_labs.copy():
+                try:
+                    self.logging.info("Checking if converged")
+                    if not lab.has_converged():
+                        continue
+
+                    # fetch config from device - exception because certain nodes don't allow extraction
+                    self.logging.info("Update configs")
+                    for node in lab.nodes():
+                        try:
+                            node.extract_configuration()
+                        except Exception as e:
+                            self.logging.error(
+                                "ERROR extracting node config: %s", str(e)
+                            )
+                    if not is_started:
+                        lab.stop(wait=False)
+
+                    yaml_string = lab.download()
+
+                    self.send_lab_topology(yaml_string, lab_title, user_email)
+
+                    started_labs.remove(lab)
+
+                except Exception:
+                    self.logging.error("Error deleting lab %s", lab_title)
+
+            time.sleep(20)
+
+        t2 = time.perf_counter()
+        self.logging.info("TIME: %0.4f", t2 - t1)
+
+        return True
