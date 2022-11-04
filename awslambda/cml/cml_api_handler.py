@@ -17,53 +17,46 @@ class CMLAPI:
         logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
         self.logging = logging.getLogger()
 
-        if "CML_USERNAME" in os.environ:
-            self.cml_username = os.getenv("CML_USERNAME")
-        else:
+        if "CML_USERNAME" not in os.environ:
             logging.error("Environment variable CML_USERNAME must be set")
             sys.exit(1)
 
-        if "CML_PASSWORD" in os.environ:
-            self.cml_password = os.getenv("CML_PASSWORD")
-        else:
+        if "CML_PASSWORD" not in os.environ:
             logging.error("Environment variable CML_PASSWORD must be set")
             sys.exit(1)
 
-        if "LONG_LIVED_LABS_GROUP" in os.environ:
-            self.long_lived_labs = os.getenv("LONG_LIVED_LABS_GROUP")
-        else:
+        if "LONG_LIVED_LABS_GROUP" not in os.environ:
             logging.error("Environment variable LONG_LIVED_LABS_GROUP must be set")
             sys.exit(1)
 
-        if "STOPPED_LABS_GROUP" in os.environ:
-            self.stopped_labs_group = os.getenv("STOPPED_LABS_GROUP")
-        else:
+        if "STOPPED_LABS_GROUP" not in os.environ:
             logging.error("Environment variable STOPPED_LABS_GROUP must be set")
             sys.exit(1)
 
-        if "LAB_DELETE_DAYS" in os.environ:
-            self.DELETE_DAYS = int(os.getenv("LAB_DELETE_DAYS"))
-        else:
+        if "LAB_DELETE_DAYS" not in os.environ:
             logging.error("Environment variable LAB_DELETE_DAYS must be set")
             sys.exit(1)
 
-        if "DELETE_LABS_CRON_JOB_NAME" in os.environ:
-            self.delete_labs_cron_job_name = os.getenv("DELETE_LABS_CRON_JOB_NAME")
-        else:
+        if "DELETE_LABS_CRON_JOB_NAME" not in os.environ:
             logging.error("Environment variable DELETE_LABS_CRON_JOB_NAME must be set")
             sys.exit(1)
 
-        if "DELETE_LABS_CRON_JOB_ID" in os.environ:
-            self.delete_labs_cron_job_id = os.getenv("DELETE_LABS_CRON_JOB_ID")
-        else:
+        if "DELETE_LABS_CRON_JOB_ID" not in os.environ:
             logging.error("Environment variable DELETE_LABS_CRON_JOB_ID must be set")
             sys.exit(1)
 
-        if "DELETE_LABS_CRON_JOB_ARN" in os.environ:
-            self.delete_labs_cron_job_arn = os.getenv("DELETE_LABS_CRON_JOB_ARN")
-        else:
+        if "DELETE_LABS_CRON_JOB_ARN" not in os.environ:
             logging.error("Environment variable DELETE_LABS_CRON_JOB_ARN must be set")
             sys.exit(1)
+
+        self.cml_username = os.getenv("CML_USERNAME")
+        self.cml_password = os.getenv("CML_PASSWORD")
+        self.long_lived_labs = os.getenv("LONG_LIVED_LABS_GROUP")
+        self.stopped_labs_group = os.getenv("STOPPED_LABS_GROUP")
+        self.DELETE_DAYS = int(os.getenv("LAB_DELETE_DAYS"))
+        self.delete_labs_cron_job_name = os.getenv("DELETE_LABS_CRON_JOB_NAME")
+        self.delete_labs_cron_job_id = os.getenv("DELETE_LABS_CRON_JOB_ID")
+        self.delete_labs_cron_job_arn = os.getenv("DELETE_LABS_CRON_JOB_ARN")
 
         self.eventbridge_client = boto3.client("events")
         self.cml_client = None
@@ -279,7 +272,7 @@ class CMLAPI:
         lab = self.cml_client.join_existing_lab(lab_id)
         return lab.state() == "STARTED"
 
-    def start_delete_labs_cron_job(self, started_labs: dict) -> bool:
+    def start_delete_labs_cron_job(self, started_labs: list) -> bool:
         """Enables the delete labs cron job"""
 
         event = {"type": "continue_cron_job", "started_labs": started_labs}
