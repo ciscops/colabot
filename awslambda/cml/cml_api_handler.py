@@ -1,10 +1,11 @@
 import logging
 import os
 import sys
-import time
 import tempfile
 from datetime import datetime
+import json
 import yaml
+import boto3
 from virl2_client import ClientLibrary
 from webexteamssdk import WebexTeamsAPI
 from awslambda.cml.dynamo_api_handler import Dynamoapi
@@ -46,7 +47,26 @@ class CMLAPI:
             logging.error("Environment variable LAB_DELETE_DAYS must be set")
             sys.exit(1)
 
-        self.client = None
+        if "DELETE_LABS_CRON_JOB_NAME" in os.environ:
+            self.delete_labs_cron_job_name = os.getenv("DELETE_LABS_CRON_JOB_NAME")
+        else:
+            logging.error("Environment variable DELETE_LABS_CRON_JOB_NAME must be set")
+            sys.exit(1)
+
+        if "DELETE_LABS_CRON_JOB_ID" in os.environ:
+            self.delete_labs_cron_job_id = os.getenv("DELETE_LABS_CRON_JOB_ID")
+        else:
+            logging.error("Environment variable DELETE_LABS_CRON_JOB_ID must be set")
+            sys.exit(1)
+
+        if "DELETE_LABS_CRON_JOB_ARN" in os.environ:
+            self.delete_labs_cron_job_arn = os.getenv("DELETE_LABS_CRON_JOB_ARN")
+        else:
+            logging.error("Environment variable DELETE_LABS_CRON_JOB_ARN must be set")
+            sys.exit(1)
+
+        self.eventbridge_client = boto3.client("events")
+        self.cml_client = None
         self.webex_api = WebexTeamsAPI()
         self.dynamodb = Dynamoapi()
         self.created_date_format = "%Y-%m-%dT%H:%M:%S+00:00"
@@ -55,9 +75,9 @@ class CMLAPI:
 
     def connect(self):
         """starts connection to cml api if there is none"""
-        if self.client is None:
+        if self.cml_client is None:
             url = "https://cpn-rtp-cml-stable1.ciscops.net/"
-            self.client = ClientLibrary(
+            self.cml_client = ClientLibrary(
                 url,
                 self.cml_username,
                 self.cml_password,
@@ -70,7 +90,7 @@ class CMLAPI:
         """gets all user emails and labs from cml as well as seeing if user in long lived labs group"""
         self.connect()
         self.logging.info("Getting diagnostics")
-        diagnostics = self.client.get_diagnostics()
+        diagnostics = self.cml_client.get_diagnostics()
 
         self.logging.debug("iterating through users")
         for user in diagnostics["user_list"]:
@@ -105,7 +125,7 @@ class CMLAPI:
             return {}
 
         for lab_id in user_labs:
-            lab = self.client.join_existing_lab(lab_id)
+            lab = self.cml_client.join_existing_lab(lab_id)
             details = lab.details()
 
             # check if in long lived labs:
@@ -138,7 +158,7 @@ class CMLAPI:
                 lab_id = lab_dict["lab_id"]
                 reason_lab_stopped = lab_dict["reason_lab_stopped"]
 
-                lab = self.client.join_existing_lab(lab_id)
+                lab = self.cml_client.join_existing_lab(lab_id)
 
                 lab.stop()
                 self.logging.info("Stopped lab")
@@ -159,19 +179,17 @@ class CMLAPI:
 
         return True
 
-    def delete_labs(self, lab_ids: list, user_email: str) -> bool:
-        """Deletes the given labs from cml and the database"""
+    def start_delete_process(self, lab_ids: list, user_email: str) -> bool:
+        """Starts all the labs and enables the EventBridge Cron Job"""
         self.connect()
 
         self.logging.info("Start deleting labs")
-
-        t1 = time.perf_counter()
 
         # Start all labs
         started_labs = []
         self.logging.info("Starting labs")
         for lab_id in lab_ids:
-            lab = self.client.join_existing_lab(lab_id)
+            lab = self.cml_client.join_existing_lab(lab_id)
             lab_title = lab.title
 
             # check to see if lab is running
@@ -181,43 +199,55 @@ class CMLAPI:
                 continue
 
             lab.start(wait=False)
-            started_labs.append(lab)
+            started_labs.append({"lab_id": lab_id, "user_email": user_email})
 
-        while (time.perf_counter() - t1 < 840) and len(started_labs) > 0:
-            for lab in started_labs.copy():
-                try:
-                    self.logging.info("Checking if converged")
-                    if not lab.has_converged():
-                        continue
+        if len(started_labs) != 0:
+            self.start_delete_labs_cron_job(started_labs)
 
-                    # fetch config from device - exception because certain nodes don't allow extraction
-                    self.logging.info("Update configs")
-                    for node in lab.nodes():
-                        try:
-                            node.extract_configuration()
-                        except Exception as e:
-                            self.logging.error(
-                                "ERROR extracting node config: %s", str(e)
-                            )
-                    lab.stop(wait=False)
+        return True
 
-                    lab_title = lab.title
-                    yaml_string = lab.download()
+    def check_lab_converged(self, event: dict) -> bool:
+        """Checks if labs have started and deletes them"""
 
-                    # lab.wipe()
-                    # lab.remove()
-                    self.send_lab_topology(yaml_string, lab_title, user_email)
-                    # self.dynamodb.delete_cml_lab(user_email, lab.id)
+        self.disable_delete_labs_cron_job()
+        self.connect()
+        started_labs = event["started_labs"]
 
-                    started_labs.remove(lab)
+        for lab_data in started_labs.copy():
+            try:
+                lab_id = lab_data["lab_id"]
+                user_email = lab_data["user_email"]
 
-                except Exception:
-                    self.logging.error("Error deleting lab %s", lab_title)
+                lab = self.cml_client.join_existing_lab(lab_id)
 
-            time.sleep(20)
+                self.logging.info("Checking if converged")
+                if not lab.has_converged():
+                    continue
 
-        t2 = time.perf_counter()
-        self.logging.info("TIME: %0.4f", t2 - t1)
+                # fetch config from device - exception because certain nodes don't allow extraction
+                self.logging.info("Update configs")
+                for node in lab.nodes():
+                    try:
+                        node.extract_configuration()
+                    except Exception as e:
+                        self.logging.error("ERROR extracting node config: %s", str(e))
+                lab.stop(wait=False)
+
+                lab_title = lab.title
+                yaml_string = lab.download()
+
+                # lab.wipe()
+                # lab.remove()
+                self.send_lab_topology(yaml_string, lab_title, user_email)
+                # self.dynamodb.delete_cml_lab(user_email, lab.id)
+
+                started_labs.remove({"lab_id": lab_id, "user_email": user_email})
+
+            except Exception:
+                self.logging.error("Error deleting lab %s", lab_title)
+
+        if len(started_labs) != 0:
+            self.start_delete_labs_cron_job(started_labs)
 
         return True
 
@@ -246,5 +276,42 @@ class CMLAPI:
 
     def check_lab_active(self, lab_id: str) -> bool:
         """Returns whether a lab is active or not"""
-        lab = self.client.join_existing_lab(lab_id)
+        lab = self.cml_client.join_existing_lab(lab_id)
         return lab.state() == "STARTED"
+
+    def start_delete_labs_cron_job(self, started_labs: dict) -> bool:
+        """Enables the delete labs cron job"""
+
+        event = {"type": "continue_cron_job", "started_labs": started_labs}
+
+        self.eventbridge_client.put_targets(
+            Rule=self.delete_labs_cron_job_name,
+            Targets=[
+                {
+                    "Id": self.delete_labs_cron_job_id,
+                    "Arn": self.delete_labs_cron_job_arn,
+                    "Input": json.dumps(event),
+                }
+            ],
+        )
+
+        self.eventbridge_client.enable_rule(Name=self.delete_labs_cron_job_name)
+
+        return True
+
+    def disable_delete_labs_cron_job(self) -> bool:
+        """Disables cron job and"""
+        self.eventbridge_client.put_targets(
+            Rule=self.delete_labs_cron_job_name,
+            Targets=[
+                {
+                    "Id": self.delete_labs_cron_job_id,
+                    "Arn": self.delete_labs_cron_job_arn,
+                    "Input": "",
+                }
+            ],
+        )
+
+        self.eventbridge_client.disable_rule(Name=self.delete_labs_cron_job_name)
+
+        return True

@@ -70,6 +70,9 @@ class CMLManager:
 
         self.logging.info("Managing Labs")
 
+        # disabled the delete lab cron job just to make sure
+        self.cml_api.disable_delete_labs_cron_job()
+
         self.cml_api.fill_user_labs_dict()
         # all_user_emails = self.dynamodb.get_all_cml_users()
         all_user_emails = ["kstickne@cisco.com"]
@@ -160,9 +163,6 @@ class CMLManager:
             self.logging.info("WARN DELETE: %s", str(labs_warning_deleted))
             self.logging.info("DELETE: %s", str(labs_to_delete))
 
-            # Delete labs
-            self.cml_api.delete_labs(labs_to_delete, user_email)
-
             # Wipe labs
             self.cml_api.stop_labs(labs_to_stop, user_email)
 
@@ -171,6 +171,9 @@ class CMLManager:
 
             # Send card warning labs to be deleted
             self.send_deletion_card(labs_warning_deleted, user_email)
+
+            # Delete labs
+            self.cml_api.start_delete_process(labs_to_delete, user_email)
 
         return (success_counter, fail_counter)
 
