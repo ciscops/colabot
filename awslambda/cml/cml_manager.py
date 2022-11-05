@@ -75,10 +75,11 @@ class CMLManager:
 
         self.cml_api.fill_user_labs_dict()
         # all_user_emails = self.dynamodb.get_all_cml_users()
-        all_user_emails = ["kstickne@cisco.com"]
+        all_user_emails = ["kstickne@cisco.com", "ppajersk@cisco.com"]
 
         self.logging.info("Starting users")
 
+        all_labs_to_delete = []
         for user_email in all_user_emails:
 
             if self.cml_api.user_in_long_lived_labs(user_email):
@@ -138,7 +139,7 @@ class CMLManager:
                     lab_stopped_date, user_responded_date, lab_is_stopped
                 ):
                     self.logging.info("Adding lab to be deleted")
-                    labs_to_delete.append(lab_id)
+                    labs_to_delete.append({"lab_id": lab_id, "user_email": user_email})
 
                 # check see if lab within stopped period
                 elif self.lab_to_warn_delete(
@@ -172,8 +173,11 @@ class CMLManager:
             # Send card warning labs to be deleted
             self.send_deletion_card(labs_warning_deleted, user_email)
 
-            # Delete labs
-            self.cml_api.start_delete_process(labs_to_delete, user_email)
+            # Add Labs to delete
+            all_labs_to_delete += labs_to_delete
+
+        # Delete labs
+        self.cml_api.start_delete_process(all_labs_to_delete)
 
         return (success_counter, fail_counter)
 
