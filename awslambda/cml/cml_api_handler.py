@@ -311,3 +311,17 @@ class CMLAPI:
         self.eventbridge_client.disable_rule(Name=self.delete_labs_cron_job_name)
 
         return True
+
+    def get_number_nodes_active(self) -> int:
+        """Returns the number of active nodes"""
+        number_of_active_nodes = 0
+        for user_labs in self.user_and_labs.values():
+            for lab_id in user_labs:
+                lab = self.cml_client.join_existing_lab(lab_id)
+                for node in lab.nodes():
+                    if node.is_active():
+                        number_of_active_nodes += 1
+
+        return number_of_active_nodes
+        # nodes_to_turn_on = len(labs.nodes())
+
