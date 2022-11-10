@@ -4,8 +4,9 @@ import sys
 import tempfile
 from datetime import datetime
 import yaml
-from virl2_client import ClientLibrary, models
+from virl2_client import ClientLibrary
 from webexteamssdk import WebexTeamsAPI
+from awslambda.cml.dynamo_api_handler import Dynamoapi
 
 
 class CMLAPI:
@@ -40,6 +41,7 @@ class CMLAPI:
 
         self.client = None
         self.webex_api = WebexTeamsAPI()
+        self.dynamodb = Dynamoapi()
         self.created_date_format = "%Y-%m-%dT%H:%M:%S+00:00"
         self.user_and_labs = {}
         self.long_lived_users = []
@@ -113,6 +115,7 @@ class CMLAPI:
         """Wipes the labs, sends the user each lab's yaml file, and messages the user"""
 
         self.connect()
+        message = "The following CML Labs have been wiped:<pre>"
         for lab_id in lab_ids:
             try:
                 lab = self.client.join_existing_lab(lab_id)
@@ -120,24 +123,49 @@ class CMLAPI:
                 lab.stop()
                 lab.wipe()
                 self.logging.info("Stopped and wiped lab")
-                self.send_lab_topology(lab, email)
                 lab.update_lab_groups(
                     [{"id": self.wiped_labs_group, "permission": "read_only"}]
                 )
             except Exception:
                 self.logging.error("Error wiping lab")
 
+        message += "</code></pre>"
+        self.webex_api.messages.create(toPersonEmail=email, markdown=message)
+
         return True
 
-    def send_lab_topology(self, lab: models.lab.Lab, email) -> bool:
+    def delete_labs(self, lab_ids: list, user_email: str) -> bool:
+        """Deletes the given labs from cml and the database"""
+        self.connect()
+
+        for lab_id in lab_ids:
+            try:
+                lab = self.client.join_existing_lab(lab_id)
+
+                # check to see if lab is running
+                if lab.is_active():
+                    self.dynamodb.update_cml_lab_used_date(user_email, lab_id)
+                    continue
+
+                lab_title = lab.title
+                yaml_string = lab.download()
+
+                lab.remove()
+                self.send_lab_topology(yaml_string, lab_title, user_email)
+                self.dynamodb.delete_cml_lab(user_email, lab_id)
+
+            except Exception:
+                self.logging.error("Error deleting lab %s", lab_title)
+
+        return True
+
+    def send_lab_topology(self, yaml_string: str, lab_title: str, email: str) -> bool:
         """Downloads the lab and sends it to the user"""
-        lab_name = lab.title
-        yaml_string = lab.download()
         self.logging.info("Sending Topology file to user")
 
         with open(
             tempfile.NamedTemporaryFile(
-                suffix=".yaml", prefix=f'{lab_name.replace(" ","_")}_'
+                suffix=".yaml", prefix=f'{lab_title.replace(" ","_")}_'
             ).name,
             "w",
             encoding="utf-8",
@@ -146,7 +174,7 @@ class CMLAPI:
 
             self.webex_api.messages.create(
                 toPersonEmail=email,
-                markdown=f'Your lab "{lab_name}" has been wiped. Attached is the YAML Topology file',
+                markdown=f'Your lab "{lab_title}" has been deleted. Attached is the YAML Topology file',
                 files=[outfile.name],
             )
 
