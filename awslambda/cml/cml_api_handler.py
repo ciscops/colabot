@@ -164,52 +164,6 @@ class CMLAPI:
         for lab_id in lab_ids:
             try:
                 lab = self.client.join_existing_lab(lab_id)
-
-                # check to see if lab is running
-                if lab.is_active():
-                    self.dynamodb.update_cml_lab_used_date(user_email, lab_id)
-                    continue
-
-                lab_title = lab.title
-                yaml_string = lab.download()
-
-                lab.remove()
-                self.send_lab_topology(yaml_string, lab_title, user_email)
-                self.dynamodb.delete_cml_lab(user_email, lab_id)
-
-            except Exception:
-                self.logging.error("Error deleting lab %s", lab_title)
-
-        return True
-
-    def send_lab_topology(self, yaml_string: str, lab_title: str, email: str) -> bool:
-        """Downloads the lab and sends it to the user"""
-        self.logging.info("Sending Topology file to user")
-
-        with open(
-            tempfile.NamedTemporaryFile(
-                suffix=".yaml", prefix=f'{lab_title.replace(" ","_")}_'
-            ).name,
-            "w",
-            encoding="utf-8",
-        ) as outfile:
-            yaml.dump(yaml.full_load(yaml_string), outfile, default_flow_style=False)
-
-            self.webex_api.messages.create(
-                toPersonEmail=email,
-                markdown=f'Your lab "{lab_title}" has been deleted. Attached is the YAML Topology file',
-                files=[outfile.name],
-            )
-
-        return True
-
-    def delete_labs(self, lab_ids: list, user_email: str) -> bool:
-        """Deletes the given labs from cml and the database"""
-        self.connect()
-
-        for lab_id in lab_ids:
-            try:
-                lab = self.client.join_existing_lab(lab_id)
                 lab_title = lab.title
 
                 # check to see if lab is running
