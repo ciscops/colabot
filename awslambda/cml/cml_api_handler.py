@@ -39,6 +39,12 @@ class CMLAPI:
             logging.error("Environment variable WIPED_LABS_GROUP must be set")
             sys.exit(1)
 
+        if "LAB_DELETE_DAYS" in os.environ:
+            self.DELETE_DAYS = int(os.getenv("LAB_DELETE_DAYS"))
+        else:
+            logging.error("Environment variable LAB_DELETE_DAYS must be set")
+            sys.exit(1)
+
         self.client = None
         self.webex_api = WebexTeamsAPI()
         self.dynamodb = Dynamoapi()
@@ -51,20 +57,27 @@ class CMLAPI:
         if self.client is None:
             url = "https://cpn-rtp-cml-stable1.ciscops.net/"
             self.client = ClientLibrary(
-                url, self.cml_username, self.cml_password, ssl_verify=False
+                url,
+                self.cml_username,
+                self.cml_password,
+                ssl_verify=False,
+                raise_for_auth_failure=True,
             )
+        self.logging.info("CONNECTED")
 
     def fill_user_labs_dict(self) -> dict:
         """gets all user emails and labs from cml as well as seeing if user in long lived labs group"""
         self.connect()
+        self.logging.info("Getting diagnostics")
         diagnostics = self.client.get_diagnostics()
+
+        self.logging.debug("iterating through users")
         for user in diagnostics["user_list"]:
             email = user["username"] + "@cisco.com"
             self.user_and_labs[email] = user["labs"]
 
-            for group in user["groups"]:
-                if group["id"] == self.long_lived_labs:
-                    self.long_lived_users.append(email)
+            if self.long_lived_labs in user["groups"]:
+                self.long_lived_users.append(email)
 
     def user_in_long_lived_labs(self, email: str) -> bool:
         """Checks if user is in the long lived labs group"""
@@ -103,21 +116,25 @@ class CMLAPI:
             if not is_long_living:
                 lab_id = details["id"]
                 title = details["lab_title"]
-                created_date_full = datetime.strptime(
+                created_date = datetime.strptime(
                     details["created"], self.created_date_format
                 )
-                created_date = created_date_full.date()
-                labs[lab_id] = (title, created_date)
+                labs[lab_id] = {"title": title, "created_date": created_date}
 
         return labs
 
-    def wipe_labs(self, lab_ids: list, email: str) -> bool:
+    def wipe_labs(self, labs_to_wipe: list, email: str) -> bool:
         """Wipes the labs, sends the user each lab's yaml file, and messages the user"""
 
+        if not labs_to_wipe:
+            return False
+
         self.connect()
-        message = "The following CML Labs have been wiped:<pre>"
-        for lab_id in lab_ids:
+        for lab_dict in labs_to_wipe:
             try:
+                lab_id = lab_dict["lab_id"]
+                reason_lab_wiped = lab_dict["reason_lab_wiped"]
+
                 lab = self.client.join_existing_lab(lab_id)
 
                 lab.stop()
@@ -126,11 +143,17 @@ class CMLAPI:
                 lab.update_lab_groups(
                     [{"id": self.wiped_labs_group, "permission": "read_only"}]
                 )
+                self.dynamodb.update_cml_lab_wiped(email, lab_id)
+
+                lab_title = lab.title
+                message = (
+                    "Lab: **"
+                    + lab_title
+                    + f"**\n - Status: **Wiped** \n - Reason: {reason_lab_wiped}"
+                )
+                self.webex_api.messages.create(toPersonEmail=email, markdown=message)
             except Exception:
                 self.logging.error("Error wiping lab")
-
-        message += "</code></pre>"
-        self.webex_api.messages.create(toPersonEmail=email, markdown=message)
 
         return True
 
@@ -141,15 +164,20 @@ class CMLAPI:
         for lab_id in lab_ids:
             try:
                 lab = self.client.join_existing_lab(lab_id)
+                lab_title = lab.title
 
                 # check to see if lab is running
-                if lab.is_active():
-                    self.dynamodb.update_cml_lab_used_date(user_email, lab_id)
+
+                if lab.state() == "STARTED":
+                    self.dynamodb.update_cml_lab_used_date(
+                        user_email, lab_id, lab_title
+                    )
                     continue
 
-                lab_title = lab.title
                 yaml_string = lab.download()
 
+                lab.stop()
+                lab.wipe()
                 lab.remove()
                 self.send_lab_topology(yaml_string, lab_title, user_email)
                 self.dynamodb.delete_cml_lab(user_email, lab_id)
@@ -174,8 +202,15 @@ class CMLAPI:
 
             self.webex_api.messages.create(
                 toPersonEmail=email,
-                markdown=f'Your lab "{lab_title}" has been deleted. Attached is the YAML Topology file',
+                markdown="Lab: **"
+                + lab_title
+                + f"**\n - Status: **Deleted** \n - Reason: Exceeded {self.DELETE_DAYS} day wiped timeframe",
                 files=[outfile.name],
             )
 
         return True
+
+    def check_lab_active(self, lab_id: str) -> bool:
+        """Returns whether a lab is active or not"""
+        lab = self.client.join_existing_lab(lab_id)
+        return lab.state() == "STARTED"
