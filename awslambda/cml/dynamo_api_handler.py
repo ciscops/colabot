@@ -176,54 +176,6 @@ class Dynamoapi:
             ExpressionAttributeValues={":date": date_string},
         )
 
-    def update_cml_lab_used_date(
-        self, email: str, lab_id: str, update_date: datetime.date = date.today()
-    ):
-        """Updates the last used date for a lab"""
-        self.add_cml_lab(email, lab_id, lab_title, update_date)
-
-    def update_cml_lab_wiped(
-        self, email: str, lab_id: str, lab_wiped_date: datetime = datetime.now()
-    ):
-        """upadtes the wiped lab fields"""
-        self.get_dynamo_cml_table()
-        date_string = str(int(datetime.timestamp(lab_wiped_date)))
-
-        self.cml_table.update_item(
-            Key={"email": email},
-            UpdateExpression="SET #cml_labs.#lab_id.#lab_wiped_date= :value, #cml_labs.#lab_id.#lab_wiped= :value2",
-            ExpressionAttributeNames={
-                self.cml_labs_tag: "cml_labs",
-                self.lab_id_tag: lab_id,
-                "#lab_wiped_date": "lab_wiped_date",
-                "#lab_wiped": "lab_is_wiped",
-                "#card_sent_date": "card_sent_date",
-            },
-            ExpressionAttributeValues={
-                ":value1": date_string,
-                ":value2": True,
-                ":value3": "",
-            },
-        )
-
-    def update_cml_lab_card_sent(
-        self, email: str, lab_id: str, card_sent_date: datetime = datetime.now()
-    ):
-        """upadtes the card_sent_date field"""
-        self.get_dynamo_cml_table()
-        date_string = str(int(datetime.timestamp(card_sent_date)))
-
-        self.cml_table.update_item(
-            Key={"email": email},
-            UpdateExpression="SET #cml_labs.#lab_id.#card_sent_date= :date",
-            ExpressionAttributeNames={
-                self.cml_labs_tag: "cml_labs",
-                self.lab_id_tag: lab_id,
-                "#card_sent_date": "card_sent_date",
-            },
-            ExpressionAttributeValues={":date": date_string},
-        )
-
     def delete_cml_lab(self, email: str, lab_id: str):
         """Adds a new lab to a user - has to have cml_labs field"""
         self.get_dynamo_cml_table()
