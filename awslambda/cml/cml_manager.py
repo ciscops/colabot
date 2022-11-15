@@ -75,8 +75,6 @@ class CMLManager:
 
         self.logging.info("Starting users")
 
-        self.logging.info("Starting users")
-
         for user_email in all_user_emails:
 
             if self.cml_api.user_in_long_lived_labs(user_email):
