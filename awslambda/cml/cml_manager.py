@@ -168,7 +168,6 @@ class CMLManager:
             # Send card warning labs to be deleted
             self.send_deletion_card(labs_warning_deleted, user_email)
 
-        
         return (success_counter, fail_counter)
 
     def update_user_database_labs(
