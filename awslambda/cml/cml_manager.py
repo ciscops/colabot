@@ -71,7 +71,8 @@ class CMLManager:
         self.logging.info("Managing Labs")
 
         self.cml_api.fill_user_labs_dict()
-        all_user_emails = self.dynamodb.get_all_cml_users()
+        #all_user_emails = self.dynamodb.get_all_cml_users()
+        all_user_emails = ['kstickne@cisco.com','ppajersk@cisco.com']
 
         self.logging.info("Starting users")
 
