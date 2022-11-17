@@ -109,8 +109,8 @@ class Dynamoapi:
             ExpressionAttributeValues={
                 ":lab_data": {
                     "lab_title": lab_title,
-                    "lab_is_wiped": False,
-                    "lab_wiped_date": "",
+                    "lab_is_stopped": False,
+                    "lab_stopped_date": "",
                     "card_sent_date": "",
                     "user_responded_date": date_string,
                     "lab_discovered_date": date_string,
@@ -128,24 +128,24 @@ class Dynamoapi:
         """Updates the last used date for a lab"""
         self.add_cml_lab(email, lab_id, lab_title, update_date)
 
-    def update_cml_lab_wiped(
-        self, email: str, lab_id: str, lab_wiped_date: datetime = datetime.now()
+    def update_cml_lab_stopped(
+        self, email: str, lab_id: str, lab_stopped_date: datetime = datetime.now()
     ):
-        """upadtes the wiped lab fields"""
+        """upadtes the stopped lab fields"""
         self.get_dynamo_cml_table()
-        date_string = str(int(datetime.timestamp(lab_wiped_date)))
+        date_string = str(int(datetime.timestamp(lab_stopped_date)))
 
         self.cml_table.update_item(
             Key={"email": email},
             UpdateExpression=(
-                """SET #cml_labs.#lab_id.#lab_wiped_date= :value1, #cml_labs.#lab_id.#lab_wiped= :value2,"""
+                """SET #cml_labs.#lab_id.#lab_stopped_date= :value1, #cml_labs.#lab_id.#lab_stopped= :value2,"""
                 """#cml_labs.#lab_id.#card_sent_date= :value3"""
             ),
             ExpressionAttributeNames={
                 self.cml_labs_tag: "cml_labs",
                 self.lab_id_tag: lab_id,
-                "#lab_wiped_date": "lab_wiped_date",
-                "#lab_wiped": "lab_is_wiped",
+                "#lab_stopped_date": "lab_stopped_date",
+                "#lab_stopped": "lab_is_stopped",
                 "#card_sent_date": "card_sent_date",
             },
             ExpressionAttributeValues={
