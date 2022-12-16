@@ -18,7 +18,8 @@ def lambda_handler(event, handle):
     if 'type' in event and event['type'] == 'continue_cron_job':
         cml.cml_api.check_lab_converged(event)
     else:
-        success_count, fail_count = cml.manage_labs()
+        #success_count, fail_count = cml.manage_labs()
+        success_count, fail_count = cml.test_cron_job()
         logger.debug("Succesful user iterations: %d", success_count)
         logger.debug("Failed user iterations: %d", fail_count)
 

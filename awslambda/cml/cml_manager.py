@@ -54,7 +54,12 @@ class CMLManager:
         self.dynamodb = Dynamoapi()
         self.cml_api = CMLAPI()
         self.webex_api = WebexTeamsAPI()
+        self.admin_webex_room_id = os.getenv("ADMIN_WEBEX_ROOM_ID")
         self.reason_lab_stopped = ""
+
+    def test_cron_job(self):
+        self.cml_api.start_delete_labs_cron_job([],[],1)
+        return (1,1)
 
     def manage_labs(self) -> tuple:
         """Main function for managing cml labs"""
@@ -74,10 +79,10 @@ class CMLManager:
         self.cml_api.disable_delete_labs_cron_job()
 
         self.cml_api.fill_user_labs_dict()
-        # all_user_emails = self.dynamodb.get_all_cml_users()
+        #all_user_emails = self.dynamodb.get_all_cml_users()
         all_user_emails = ["kstickne@cisco.com", "ppajersk@cisco.com"]
 
-        self.logging.info("Starting users")
+        self.logging.info("Starting users' labs")
 
         all_labs_to_delete = []
         for user_email in all_user_emails:
@@ -158,6 +163,7 @@ class CMLManager:
                     self.dynamodb.update_cml_lab_used_date(
                         user_email, lab_id, lab_title
                     )
+                    self.logging.info("Lab reset %s", lab_title)
 
             self.logging.info("WARN STOP: %s", str(labs_warning_stopped))
             self.logging.info("STOP: %s", str(labs_to_stop))
@@ -244,6 +250,7 @@ class CMLManager:
             # only warn if not active
             if self.cml_api.check_lab_active(lab_id):
                 self.dynamodb.update_cml_lab_used_date(user_email, lab_id, lab_title)
+                self.logging.info("Resetting Lab %s", lab_title)
                 return False
             return True
 
@@ -383,7 +390,7 @@ class CMLManager:
         self.logging.info("CARD: %s", str(card))
         card_json = json.loads(card)
 
-        self.logging.info("CARD %s", str(card_json))
+        #self.logging.info("CARD %s", str(card_json))
 
         self.webex_api.messages.create(
             toPersonEmail=user_email,

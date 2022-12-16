@@ -51,6 +51,7 @@ class Dynamoapi:
 
         return: dictionary pair of lab (id) and last_used date (data) {lab_id: last_used}
         """
+        self.logging.info("Email %s", user_email)
         self.get_dynamo_cml_table()
         response = self.cml_table.query(
             KeyConditionExpression=Key("email").eq(user_email),
