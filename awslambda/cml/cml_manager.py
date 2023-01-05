@@ -15,54 +15,26 @@ class CMLManager:
         logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
         self.logging = logging.getLogger()
 
-        if "LAB_WARN_DAYS" in os.environ:
-            self.WARN_DAYS = int(os.getenv("LAB_WARN_DAYS"))
-        else:
-            logging.error("Environment variable LAB_WARN_DAYS must be set")
-            sys.exit(1)
-
-        if "LAB_DELETE_DAYS" in os.environ:
-            self.DELETE_DAYS = int(os.getenv("LAB_DELETE_DAYS"))
-        else:
-            logging.error("Environment variable LAB_DELETE_DAYS must be set")
-            sys.exit(1)
-
-        if "LAB_DELETE_WARNING_DAYS" in os.environ:
-            self.DELETE_WARNING_DAYS = int(os.getenv("LAB_DELETE_WARNING_DAYS"))
-        else:
-            logging.error("Environment variable LAB_DELETE_WARNING_DAYS must be set")
-            sys.exit(1)
-
-        if "LAB_CARD_RESPOND_DAYS" in os.environ:
-            self.CARD_RESPOND_DAYS = int(os.getenv("LAB_CARD_RESPOND_DAYS"))
-        else:
-            logging.error("Environment variable LAB_CARD_RESPOND_DAYS must be set")
-            sys.exit(1)
-
-        if "LAB_UNSTOPPED_LIFESPAN" in os.environ:
-            self.LAB_UNSTOPPED_LIFESPAN = int(os.getenv("LAB_UNSTOPPED_LIFESPAN"))
-        else:
-            logging.error("Environment variable LAB_UNSTOPPED_LIFESPAN must be set")
-            sys.exit(1)
-
-        if "WEBEX_TEAMS_ACCESS_TOKEN" in os.environ:
-            self.wxt_access_token = os.getenv("WEBEX_TEAMS_ACCESS_TOKEN")
-        else:
-            logging.error("Environment variable WEBEX_TEAMS_ACCESS_TOKEN must be set")
+        try:
+            self.WARN_DAYS = int(os.environ["LAB_WARN_DAYS"])
+            self.DELETE_DAYS = int(os.environ["LAB_DELETE_DAYS"])
+            self.DELETE_WARNING_DAYS = int(os.environ["LAB_DELETE_WARNING_DAYS"])
+            self.CARD_RESPOND_DAYS = int(os.environ["LAB_CARD_RESPOND_DAYS"])
+            self.LAB_UNSTOPPED_LIFESPAN = int(os.environ["LAB_UNSTOPPED_LIFESPAN"])
+            self.WXT_ACCESS_TOKEN = os.environ["WEBEX_TEAMS_ACCESS_TOKEN"]
+            self.ADMIN_WEBEX_ROOM_ID = os.environ["ADMIN_WEBEX_ROOM_ID"]
+        except KeyError as e:
+            logging.error("Environment variable %s must be set", str(e))
             sys.exit(1)
 
         self.dynamodb = Dynamoapi()
         self.cml_api = CMLAPI()
         self.webex_api = WebexTeamsAPI()
-        self.admin_webex_room_id = os.getenv("ADMIN_WEBEX_ROOM_ID")
         self.reason_lab_stopped = ""
-
-    def test_cron_job(self):
-        self.cml_api.start_delete_labs_cron_job([],[],1)
-        return (1,1)
 
     def manage_labs(self) -> tuple:
         """Main function for managing cml labs"""
+        # FUNCTION LOGIC
         # for user in users:
         #   grab all labs
         #   updates labs in database
@@ -79,8 +51,7 @@ class CMLManager:
         self.cml_api.disable_delete_labs_cron_job()
 
         self.cml_api.fill_user_labs_dict()
-        #all_user_emails = self.dynamodb.get_all_cml_users()
-        all_user_emails = ["kstickne@cisco.com", "ppajersk@cisco.com"]
+        all_user_emails = self.dynamodb.get_all_cml_users()
 
         self.logging.info("Starting users' labs")
 
@@ -164,11 +135,6 @@ class CMLManager:
                         user_email, lab_id, lab_title
                     )
                     self.logging.info("Lab reset %s", lab_title)
-
-            self.logging.info("WARN STOP: %s", str(labs_warning_stopped))
-            self.logging.info("STOP: %s", str(labs_to_stop))
-            self.logging.info("WARN DELETE: %s", str(labs_warning_deleted))
-            self.logging.info("DELETE: %s", str(labs_to_delete))
 
             # Stop labs
             self.cml_api.stop_labs(labs_to_stop, user_email)
@@ -387,10 +353,7 @@ class CMLManager:
         with open(f"{card_file}", encoding="utf8") as file_:
             template = Template(file_.read())
         card = template.render(render_variables)
-        self.logging.info("CARD: %s", str(card))
         card_json = json.loads(card)
-
-        #self.logging.info("CARD %s", str(card_json))
 
         self.webex_api.messages.create(
             toPersonEmail=user_email,

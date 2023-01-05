@@ -2,7 +2,6 @@ import logging
 import os
 import sys
 import tempfile
-import time
 from datetime import datetime, timedelta
 import json
 import traceback
@@ -13,8 +12,6 @@ from virl2_client import ClientLibrary
 from webexteamssdk import WebexTeamsAPI
 from awslambda.cml.dynamo_api_handler import Dynamoapi
 
-# TODO: what if cron job takes 24 hours - would sense stopped labs as started and re put back into start of system
-
 
 class CMLAPI:
     def __init__(self):
@@ -22,73 +19,36 @@ class CMLAPI:
         logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
         self.logging = logging.getLogger()
 
-        if "CML_USERNAME" not in os.environ:
-            logging.error("Environment variable CML_USERNAME must be set")
+        try:
+            self.CML_MAX_NODE_COUNT = int(os.environ["CML_MAX_NODE_COUNT"]) - int(
+                os.environ["CML_MAX_NODE_COUNT_CUSHION"]
+            )
+            self.CML_USERNAME = os.environ["CML_USERNAME"]
+            self.CML_PASSWORD = os.environ["CML_PASSWORD"]
+            self.LONG_LIVED_LABS = os.environ["LONG_LIVED_LABS_GROUP"]
+            self.DELETE_DAYS = int(os.environ["LAB_DELETE_DAYS"])
+            self.DELETE_LABS_CRON_JOB_NAME = os.environ["DELETE_LABS_CRON_JOB_NAME"]
+            self.DELETE_LABS_CRON_JOB_ID = os.environ["DELETE_LABS_CRON_JOB_ID"]
+            self.DELETE_LABS_CRON_JOB_ARN = os.environ["DELETE_LABS_CRON_JOB_ARN"]
+            self.ADMIN_WEBEX_ROOM_ID = os.environ["ADMIN_WEBEX_ROOM_ID"]
+            self.DELETE_LABS_CRON_JOB_WAIT_TIME = int(
+                os.environ["DELETE_LABS_CRON_JOB_WAIT_TIME"]
+            )
+            self.ARN = os.environ["SELF_ARN"]
+            self.CML_URL = os.environ["CML_URL"]
+        except KeyError as e:
+            logging.error("Environment variable %s must be set", str(e))
             sys.exit(1)
-
-        if "CML_PASSWORD" not in os.environ:
-            logging.error("Environment variable CML_PASSWORD must be set")
-            sys.exit(1)
-
-        if "LONG_LIVED_LABS_GROUP" not in os.environ:
-            logging.error("Environment variable LONG_LIVED_LABS_GROUP must be set")
-            sys.exit(1)
-
-        if "STOPPED_LABS_GROUP" not in os.environ:
-            logging.error("Environment variable STOPPED_LABS_GROUP must be set")
-            sys.exit(1)
-
-        if "LAB_DELETE_DAYS" not in os.environ:
-            logging.error("Environment variable LAB_DELETE_DAYS must be set")
-            sys.exit(1)
-
-        if "DELETE_LABS_CRON_JOB_NAME" not in os.environ:
-            logging.error("Environment variable DELETE_LABS_CRON_JOB_NAME must be set")
-            sys.exit(1)
-
-        if "DELETE_LABS_CRON_JOB_ID" not in os.environ:
-            logging.error("Environment variable DELETE_LABS_CRON_JOB_ID must be set")
-            sys.exit(1)
-
-        if "DELETE_LABS_CRON_JOB_ARN" not in os.environ:
-            logging.error("Environment variable DELETE_LABS_CRON_JOB_ARN must be set")
-            sys.exit(1)
-
-        if "CML_MAX_NODE_COUNT" not in os.environ:
-            logging.error("Environment variable CML_MAX_NODE_COUNT must be set")
-            sys.exit(1)
-
-        if "CML_MAX_NODE_COUNT_CUSHION" not in os.environ:
-            logging.error("Environment variable CML_MAX_NODE_COUNT_CUSHION must be set")
-            sys.exit(1)
-
-        if "ADMIN_WEBEX_ROOM_ID" not in os.environ:
-            logging.error("Environment variable ADMIN_WEBEX_ROOM_ID must be set")
-            sys.exit(1)
-
-        self.cml_max_node_count = int(os.getenv("CML_MAX_NODE_COUNT")) - int(
-            os.getenv("CML_MAX_NODE_COUNT_CUSHION")
-        )
-        self.logging.info("MAX NODE COUNT: %d", self.cml_max_node_count)
-        self.cml_username = os.getenv("CML_USERNAME")
-        self.cml_password = os.getenv("CML_PASSWORD")
-        self.long_lived_labs = os.getenv("LONG_LIVED_LABS_GROUP")
-        self.stopped_labs_group = os.getenv("STOPPED_LABS_GROUP")
-        self.DELETE_DAYS = int(os.getenv("LAB_DELETE_DAYS"))
-        self.delete_labs_cron_job_name = os.getenv("DELETE_LABS_CRON_JOB_NAME")
-        self.delete_labs_cron_job_id = os.getenv("DELETE_LABS_CRON_JOB_ID")
-        self.delete_labs_cron_job_arn = os.getenv("DELETE_LABS_CRON_JOB_ARN")
-        self.admin_webex_room_id = os.getenv("ADMIN_WEBEX_ROOM_ID")
 
         self.eventbridge_client = boto3.client("events")
-        self.eventbridge_scheduler = boto3.client("scheduler")
+        self.lambda_client = boto3.client("lambda")
         self.cml_client = None
         self.webex_api = WebexTeamsAPI()
         self.dynamodb = Dynamoapi()
-        self.created_date_format = "%Y-%m-%dT%H:%M:%S+00:00"
         self.user_and_labs = {}
         self.long_lived_users = []
-        self.nodes_not_count_license = [
+        self.CREATED_DATE_FORMAT = "%Y-%m-%dT%H:%M:%S+00:00"
+        self.NODES_NOT_COUNT_LICENSE = [
             "trex",
             "wan_emulator",
             "alpine",
@@ -99,20 +59,18 @@ class CMLAPI:
             "external_connector",
             "unmanaged_switch",
         ]
-        self.node_license_error = """{
+        self.NODE_LICENSE_ERROR = """{
   "description": "Licensing issue: Maximum node count exceeded.",
   "code": 400
 }"""
-        self.MAX_AWS_TIME = 870000
 
     def connect(self):
         """starts connection to cml api if there is none"""
         if self.cml_client is None:
-            url = "https://cpn-rtp-cml-stable1.ciscops.net/"
             self.cml_client = ClientLibrary(
-                url,
-                self.cml_username,
-                self.cml_password,
+                self.CML_URL,
+                self.CML_USERNAME,
+                self.CML_PASSWORD,
                 ssl_verify=False,
                 raise_for_auth_failure=True,
             )
@@ -124,12 +82,12 @@ class CMLAPI:
         self.logging.info("Getting diagnostics")
         diagnostics = self.cml_client.get_diagnostics()
 
-        self.logging.debug("iterating through users")
+        self.logging.debug("Iterating through users")
         for user in diagnostics["user_list"]:
             email = user["username"] + "@cisco.com"
             self.user_and_labs[email] = user["labs"]
 
-            if self.long_lived_labs in user["groups"]:
+            if self.LONG_LIVED_LABS in user["groups"]:
                 self.long_lived_users.append(email)
 
     def user_in_long_lived_labs(self, email: str) -> bool:
@@ -162,22 +120,23 @@ class CMLAPI:
             is_long_living = False
             groups = details["groups"]
             for group in groups:
-                if group["id"] == self.long_lived_labs:
+                if group["id"] == self.LONG_LIVED_LABS:
                     is_long_living = True
                     break
 
+            # if not long living, get all labs
             if not is_long_living:
                 lab_id = details["id"]
                 title = details["lab_title"]
                 created_date = datetime.strptime(
-                    details["created"], self.created_date_format
+                    details["created"], self.CREATED_DATE_FORMAT
                 )
                 labs[lab_id] = {"title": title, "created_date": created_date}
 
         return labs
 
     def stop_labs(self, labs_to_stop: list, email: str) -> bool:
-        """Stops the labs, sends the user each lab's yaml file, and messages the user"""
+        """Stops the labs and messages the user"""
 
         if not labs_to_stop:
             return False
@@ -192,9 +151,6 @@ class CMLAPI:
 
                 lab.stop(wait=False)
                 self.logging.info("Stopped lab %s", lab.title)
-                lab.update_lab_groups(
-                    [{"id": self.stopped_labs_group, "permission": "read_only"}]
-                )
                 self.dynamodb.update_cml_lab_stopped(email, lab_id)
 
                 lab_title = lab.title
@@ -204,28 +160,26 @@ class CMLAPI:
                     + f"**\n - Status: **Stopped** \n - Reason: {reason_lab_stopped}"
                 )
                 self.webex_api.messages.create(toPersonEmail=email, markdown=message)
-            except Exception:
-                self.send_admin_error_message()
-                self.logging.error("Error wiping lab")
+            except Exception as e:
+                self.send_admin_error_message(lab=lab_id)
+                self.logging.error("Error stopping lab: %s", str(e))
 
         return True
 
     def start_delete_process(self, labs_to_delete: dict) -> bool:
-        """Starts all the labs and enables the EventBridge Cron Job"""
+        """Tries to start all the labs and enables the EventBridge Cron Job"""
         self.connect()
 
         self.logging.info("Start deleting labs")
 
         # get number nodes started
         base_number_nodes_started = self.get_number_nodes_active()
-        if not self.check_able_delete_labs(base_number_nodes_started, labs_to_delete):
-            return False
+        self.logging.info("Base Started Nodes: %d", base_number_nodes_started)
+        self.check_able_delete_labs(base_number_nodes_started, labs_to_delete)
 
         number_program_started_nodes = 0
 
-        self.logging.info("Base Started Nodes: %d", base_number_nodes_started)
-
-        # Start all labs
+        # Try to start all labs
         started_labs = []
         stopped_labs = []
         self.logging.info("Starting labs")
@@ -239,13 +193,16 @@ class CMLAPI:
                 lab_title = lab.title
                 self.logging.info("Title: %s", lab_title)
 
-                # check to see if lab is running
+                # check to see if lab is running - if it is, reset lifecycle
                 self.logging.info("Check if lab is started")
                 if lab.state() == "STARTED":
-                    self.logging.info("Lab %s in started state - resetting in dynamo", lab_title)
-                    #self.dynamodb.update_cml_lab_used_date(user_email, lab_id, lab_title)
+                    self.logging.info(
+                        "Lab %s in started state - resetting in dynamo", lab_title
+                    )
+                    self.dynamodb.update_cml_lab_used_date(user_email, lab_id, lab_title)
                     continue
 
+                # if node limit reached, put all other labs as stopped
                 if max_node_limit_reached:
                     stopped_labs.append(lab_data)
                     continue
@@ -255,71 +212,57 @@ class CMLAPI:
                 for node in lab.nodes():
                     try:
                         # don't count towards max node count
-                        if node.node_definition in self.nodes_not_count_license:
+                        if node.node_definition in self.NODES_NOT_COUNT_LICENSE:
                             node.start(wait=False)
                             nodes["started"]["no_license"].append(node.id)
                             nodes["started"]["all"].append(node.id)
 
                         elif (
                             base_number_nodes_started + number_program_started_nodes + 1
-                            <= self.cml_max_node_count
+                            <= self.CML_MAX_NODE_COUNT
                         ):
                             node.start(wait=False)
                             nodes["started"]["all"].append(node.id)
                             number_program_started_nodes += 1
+
                         # means reached limit
                         else:
                             max_node_limit_reached = True
                             nodes["stopped"].append(node.id)
                     except HTTPError as e:
                         self.send_admin_error_message()
-                        if e.response.text == self.node_license_error:
+                        if e.response.text == self.NODE_LICENSE_ERROR:
                             max_node_limit_reached = True
                             nodes["stopped"].append(node.id)
 
                 lab_data["nodes"] = nodes
                 started_labs.append(lab_data)
             except Exception:
-                self.send_admin_error_message()
+                self.send_admin_error_message(lab=lab_id)
                 self.logging.error("Error deleting lab %s: %s", lab_title, str(e))
 
-        self.logging.info("STARTED LABS: %s", str(started_labs))
-        self.logging.info("STOPPED LABS: %s", str(stopped_labs))
-
-        # if len(started_labs) != 0:
-        #     self.start_delete_labs_cron_job(
-        #         started_labs, stopped_labs, number_program_started_nodes
-        #     )
+        # if more labs to delete, start the cron job
+        if len(started_labs) != 0:
+            self.start_delete_labs_cron_job(
+                started_labs, stopped_labs, number_program_started_nodes
+            )
 
         return True
 
     def check_lab_converged(self, event: dict) -> bool:
         """Checks if labs have started and deletes them"""
-        start_time = time.perf_counter()
 
         self.logging.info("Check Labs Converge")
-        self.logging.warning("CRON JOB STOP TIME = %s", datetime.now().strftime("%H:%M:%S"))
 
         self.disable_delete_labs_cron_job()
-        self.fill_user_labs_dict()
+        self.connect()
 
         started_labs = event["started_labs"]
         stopped_labs = event["stopped_labs"]
         number_program_started_nodes = event["number_program_started_nodes"]
 
-        base_number_nodes_started = (
-            self.get_number_nodes_active() - number_program_started_nodes
-        )
-
-        self.check_able_delete_labs(
-            base_number_nodes_started, started_labs + stopped_labs
-        )
-
-        max_node_limit_reached = (
-            base_number_nodes_started + number_program_started_nodes
-            >= self.cml_max_node_count
-        )
-        self.logging.info("TOTAL BASE NODES STARTED: %d", base_number_nodes_started)
+        # automatically assume node limit reached is true
+        max_node_limit_reached = True
 
         for lab_data in started_labs.copy():
             try:
@@ -339,8 +282,6 @@ class CMLAPI:
                         self.logging.info("Update configs for node")
                         try:
                             # Make sure won't go out of AWS TIMEOUT
-                            if time.perf_counter() - start_time > self.MAX_AWS_TIME:
-                                self.start_delete_labs_cron_job(started_labs, stopped_labs)
                             node.extract_configuration()
                         except Exception as e:
                             self.logging.error(
@@ -356,6 +297,38 @@ class CMLAPI:
                         number_program_started_nodes -= 1
                         max_node_limit_reached = False
 
+                        ## instant recall of lambda to make sure don't timeout since some node extractions take a while
+                        event = self.get_cron_job_payload(
+                            started_labs, stopped_labs, number_program_started_nodes
+                        )
+                        self.lambda_client.invoke(
+                            FunctionName=self.ARN,
+                            InvocationType="Event",
+                            LogType="Tail",
+                            Payload=json.dumps(event),
+                        )
+                        return True
+
+                # only reassess nodes and such after the delay and not after each recursion
+                # note: this entire section was in the beginning of fx, but since restart lambda call after each config extraction, didn't want to waste time
+                self.fill_user_labs_dict()
+
+                base_number_nodes_started = (
+                    self.get_number_nodes_active() - number_program_started_nodes
+                )
+
+                self.check_able_delete_labs(
+                    base_number_nodes_started, started_labs + stopped_labs
+                )
+
+                # if limit_reached is true, means no nodes converged. But test to make sure actually true
+                # if false, means a node converged and was stopped, so we know we can start a node
+                if max_node_limit_reached:
+                    max_node_limit_reached = (
+                        base_number_nodes_started + number_program_started_nodes
+                        >= self.CML_MAX_NODE_COUNT
+                    )
+
                 if max_node_limit_reached:
                     continue
 
@@ -363,7 +336,7 @@ class CMLAPI:
                     try:
                         if (
                             base_number_nodes_started + number_program_started_nodes + 1
-                            <= self.cml_max_node_count
+                            <= self.CML_MAX_NODE_COUNT
                         ):
                             self.logging.info("Adding node from stopped")
                             node = lab.get_node_by_id(node_id)
@@ -377,14 +350,13 @@ class CMLAPI:
                             max_node_limit_reached = True
                             break
                     except HTTPError as e:
-                        self.send_admin_error_message()
-                        if e.response.text == self.node_license_error:
+                        self.send_admin_error_message(lab=lab.id)
+                        if e.response.text == self.NODE_LICENSE_ERROR:
                             max_node_limit_reached = True
                             break
 
-                # no more stopped nodes and no started nodes
+                # no more stopped nodes and no started nodes, so can download and delete lab
                 if not nodes["stopped"] and not nodes["started"]["all"]:
-                    # only download if all nodes gone
                     yaml_string = lab.download()
 
                     lab.stop()
@@ -395,12 +367,11 @@ class CMLAPI:
                     started_labs.remove(lab_data)
 
             except Exception as e:
-                self.send_admin_error_message()
+                self.send_admin_error_message(lab=lab_id)
                 self.logging.error("Error deleting lab %s: %s", lab_title, str(e))
 
-        # start more labs
+        # try and start a non-started lab
         if not max_node_limit_reached:
-            # try and start a non-started lab
             for lab_data in stopped_labs.copy():
                 lab_id = lab_data["lab_id"]
                 user_email = lab_data["user_email"]
@@ -412,14 +383,14 @@ class CMLAPI:
                 nodes = {"started": {"all": [], "no_license": []}, "stopped": []}
                 for node in lab.nodes():
                     try:
-                        if node.node_definition in self.nodes_not_count_license:
+                        if node.node_definition in self.NODES_NOT_COUNT_LICENSE:
                             node.start(wait=False)
                             nodes["started"]["no_license"].append(node.id)
                             nodes["started"]["all"].append(node.id)
 
                         elif (
                             base_number_nodes_started + number_program_started_nodes + 1
-                            <= self.cml_max_node_count
+                            <= self.CML_MAX_NODE_COUNT
                         ):
                             node.start(wait=False)
                             nodes["started"]["all"].append(node.id)
@@ -429,8 +400,8 @@ class CMLAPI:
                             max_node_limit_reached = True
                             nodes["stopped"].append(node.id)
                     except HTTPError as e:
-                        self.send_admin_error_message()
-                        if e.response.text == self.node_license_error:
+                        self.send_admin_error_message(lab=lab_id)
+                        if e.response.text == self.NODE_LICENSE_ERROR:
                             max_node_limit_reached = True
                             nodes["stopped"].append(node.id)
 
@@ -441,6 +412,7 @@ class CMLAPI:
                 if max_node_limit_reached:
                     break
 
+        # if more labs to delete, start the cron job
         if len(started_labs) != 0:
             self.start_delete_labs_cron_job(
                 started_labs, stopped_labs, number_program_started_nodes
@@ -456,23 +428,39 @@ class CMLAPI:
     ) -> bool:
         """Enables the delete labs cron job"""
 
-        # create schedule
-        t = datetime.now() + timedelta(minutes=3)
-        schedule_string = f"{t.year}-{str(t.month).zfill(2)}-{str(t.day).zfill(2)}T{str(t.hour).zfill(2)}:{str(t.minute).zfill(2)}:{str(t.second).zfill(2)}"
+        # update schedule
+        t = datetime.now() + timedelta(minutes=self.DELETE_LABS_CRON_JOB_WAIT_TIME)
 
-        self.eventbridge_scheduler.update_schedule(
-            FlexibleTimeWindow={
-                'Mode': 'OFF'
-            },
-            Name='CML-Lab-Delete-Schedule',
-            ScheduleExpression=f'at({schedule_string})',
-            ScheduleExpressionTimezone='UTC',
-            State='ENABLED',
-            Target={
-                'Arn': self.delete_labs_cron_job_arn,
-                'RoleArn': 'arn:aws:iam::326674879808:role/colabot-lambda-execution'
-            }
+        self.eventbridge_client.put_rule(
+            Name=self.DELETE_LABS_CRON_JOB_NAME,
+            ScheduleExpression=f"cron({t.minute} {t.hour} {t.day} {t.month} ? {t.year})",
         )
+
+        # update target json info with lab data
+        event = self.get_cron_job_payload(
+            started_labs, stopped_labs, number_program_started_nodes
+        )
+        event["is_cron_job_delay"] = True
+
+        self.eventbridge_client.put_targets(
+            Rule=self.DELETE_LABS_CRON_JOB_NAME,
+            Targets=[
+                {
+                    "Id": self.DELETE_LABS_CRON_JOB_ID,
+                    "Arn": self.DELETE_LABS_CRON_JOB_ARN,
+                    "Input": json.dumps(event),
+                }
+            ],
+        )
+
+        self.eventbridge_client.enable_rule(Name=self.DELETE_LABS_CRON_JOB_NAME)
+
+        return True
+
+    def get_cron_job_payload(
+        self, started_labs: list, stopped_labs: list, number_program_started_nodes: int
+    ) -> dict:
+        """Returns the necessary payload to continue deleting labs"""
 
         event = {
             "type": "continue_cron_job",
@@ -480,38 +468,22 @@ class CMLAPI:
             "started_labs": started_labs,
             "stopped_labs": stopped_labs,
         }
-
-        self.eventbridge_client.put_targets(
-            Rule=self.delete_labs_cron_job_name,
-            Targets=[
-                {
-                    "Id": self.delete_labs_cron_job_id,
-                    "Arn": self.delete_labs_cron_job_arn,
-                    "Input": json.dumps(event),
-                }
-            ],
-        )
-
-        self.eventbridge_client.enable_rule(Name=self.delete_labs_cron_job_name)
-
-        self.logging.warning("CRON JOB START TIME = %s", datetime.now().strftime("%H:%M:%S"))
-
-        return True
+        return event
 
     def disable_delete_labs_cron_job(self) -> bool:
-        """Disables cron job and"""
+        """Disables cron job and puts null target data"""
         self.eventbridge_client.put_targets(
-            Rule=self.delete_labs_cron_job_name,
+            Rule=self.DELETE_LABS_CRON_JOB_NAME,
             Targets=[
                 {
-                    "Id": self.delete_labs_cron_job_id,
-                    "Arn": self.delete_labs_cron_job_arn,
+                    "Id": self.DELETE_LABS_CRON_JOB_ID,
+                    "Arn": self.DELETE_LABS_CRON_JOB_ARN,
                     "Input": "",
                 }
             ],
         )
 
-        self.eventbridge_client.disable_rule(Name=self.delete_labs_cron_job_name)
+        self.eventbridge_client.disable_rule(Name=self.DELETE_LABS_CRON_JOB_NAME)
 
         return True
 
@@ -552,7 +524,7 @@ class CMLAPI:
                 for node in lab.nodes():
                     if (
                         node.is_active()
-                        and node.node_definition not in self.nodes_not_count_license
+                        and node.node_definition not in self.NODES_NOT_COUNT_LICENSE
                     ):
                         number_of_active_nodes += 1
 
@@ -561,7 +533,7 @@ class CMLAPI:
     def check_able_delete_labs(self, base_number_nodes_running, all_labs) -> bool:
         """If too many base nodes are started, exits function and notifies admins"""
 
-        if base_number_nodes_running < self.cml_max_node_count:
+        if base_number_nodes_running < self.CML_MAX_NODE_COUNT:
             return True
 
         self.logging.warning(
@@ -578,17 +550,29 @@ class CMLAPI:
                 lab.stop(wait=False)
 
         self.webex_api.messages.create(
-            roomId=self.admin_webex_room_id, markdown=message
+            roomId=self.ADMIN_WEBEX_ROOM_ID, markdown=message
         )
 
         sys.exit(1)
 
+    def send_admin_error_message(self, lab: str = None) -> bool:
+        """Sends the error message to the webex admin room"""
+        # TODO: Stop all labs if critical
 
-    def send_admin_error_message(self):
-        # Stop all labs if critical
-
-        message = f"An error was encoutered while running CML managing: <pre>{traceback.format_exc()}</code></pre>"
+        if lab:
+            message = f"The following lab encoutered an error while running CML Manage Labs: \nLab {lab}\n\n <pre>{traceback.format_exc()}</code></pre>"
+        else:
+            message = f"An error was encoutered while running CML Manage Labs: <pre>{traceback.format_exc()}</code></pre>"
 
         self.webex_api.messages.create(
-            roomId=self.admin_webex_room_id, markdown=message
+            roomId=self.ADMIN_WEBEX_ROOM_ID, markdown=message
         )
+
+        try:
+            self.connect()
+            cml_lab = self.cml_client.join_existing_lab(lab)
+            cml_lab.stop(wait=False)
+        except Exception:
+            pass
+
+        return True
