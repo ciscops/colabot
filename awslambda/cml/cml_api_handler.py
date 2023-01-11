@@ -199,7 +199,9 @@ class CMLAPI:
                     self.logging.info(
                         "Lab %s in started state - resetting in dynamo", lab_title
                     )
-                    self.dynamodb.update_cml_lab_used_date(user_email, lab_id, lab_title)
+                    self.dynamodb.update_cml_lab_used_date(
+                        user_email, lab_id, lab_title
+                    )
                     continue
 
                 # if node limit reached, put all other labs as stopped
@@ -207,37 +209,14 @@ class CMLAPI:
                     stopped_labs.append(lab_data)
                     continue
 
-                nodes = {"started": {"all": [], "no_license": []}, "stopped": []}
                 # try and start as many nodes as possible
-                for node in lab.nodes():
-                    try:
-                        # don't count towards max node count
-                        if node.node_definition in self.NODES_NOT_COUNT_LICENSE:
-                            node.start(wait=False)
-                            nodes["started"]["no_license"].append(node.id)
-                            nodes["started"]["all"].append(node.id)
-
-                        elif (
-                            base_number_nodes_started + number_program_started_nodes + 1
-                            <= self.CML_MAX_NODE_COUNT
-                        ):
-                            node.start(wait=False)
-                            nodes["started"]["all"].append(node.id)
-                            number_program_started_nodes += 1
-
-                        # means reached limit
-                        else:
-                            max_node_limit_reached = True
-                            nodes["stopped"].append(node.id)
-                    except HTTPError as e:
-                        self.send_admin_error_message()
-                        if e.response.text == self.NODE_LICENSE_ERROR:
-                            max_node_limit_reached = True
-                            nodes["stopped"].append(node.id)
+                max_node_limit_reached, nodes = self.start_lab_nodes(
+                    lab, base_number_nodes_started, number_program_started_nodes
+                )
 
                 lab_data["nodes"] = nodes
                 started_labs.append(lab_data)
-            except Exception:
+            except Exception as e:
                 self.send_admin_error_message(lab=lab_id)
                 self.logging.error("Error deleting lab %s: %s", lab_title, str(e))
 
@@ -275,39 +254,15 @@ class CMLAPI:
 
                 self.logging.info("Checking if converged %s", lab_title)
 
-                for node_id in nodes["started"]["all"].copy():
-                    node = lab.get_node_by_id(node_id)
-                    if node.has_converged():
-                        # fetch config from device - exception because certain nodes don't allow extraction
-                        self.logging.info("Update configs for node")
-                        try:
-                            # Make sure won't go out of AWS TIMEOUT
-                            node.extract_configuration()
-                        except Exception as e:
-                            self.logging.error(
-                                "ERROR extracting node config: %s", str(e)
-                            )
-                        node.stop(wait=True)
-                        nodes["started"]["all"].remove(node_id)
-
-                        if node_id in nodes["started"]["no_license"]:
-                            nodes["started"]["no_license"].remove(node_id)
-                            continue
-
-                        number_program_started_nodes -= 1
-                        max_node_limit_reached = False
-
-                        ## instant recall of lambda to make sure don't timeout since some node extractions take a while
-                        event = self.get_cron_job_payload(
-                            started_labs, stopped_labs, number_program_started_nodes
-                        )
-                        self.lambda_client.invoke(
-                            FunctionName=self.ARN,
-                            InvocationType="Event",
-                            LogType="Tail",
-                            Payload=json.dumps(event),
-                        )
-                        return True
+                # check all nodes, see if converged, and if so  extract configuration
+                self.check_lab_nodes_converged(
+                    lab,
+                    nodes,
+                    started_labs,
+                    stopped_labs,
+                    number_program_started_nodes,
+                    max_node_limit_reached,
+                )
 
                 # only reassess nodes and such after the delay and not after each recursion
                 # note: this entire section was in the beginning of fx, but since restart lambda call after each config extraction, didn't want to waste time
@@ -332,28 +287,10 @@ class CMLAPI:
                 if max_node_limit_reached:
                     continue
 
-                for node_id in nodes["stopped"].copy():
-                    try:
-                        if (
-                            base_number_nodes_started + number_program_started_nodes + 1
-                            <= self.CML_MAX_NODE_COUNT
-                        ):
-                            self.logging.info("Adding node from stopped")
-                            node = lab.get_node_by_id(node_id)
-                            node.start(wait=False)
-                            nodes["started"]["all"].append(node_id)
-                            nodes["stopped"].remove(node_id)
-                            number_program_started_nodes += 1
-
-                        # only add started_nodes if not all nodes started
-                        else:
-                            max_node_limit_reached = True
-                            break
-                    except HTTPError as e:
-                        self.send_admin_error_message(lab=lab.id)
-                        if e.response.text == self.NODE_LICENSE_ERROR:
-                            max_node_limit_reached = True
-                            break
+                # start as many stopped nodes in this lab
+                max_node_limit_reached = self.start_stopped_lab_nodes(
+                    lab, nodes, base_number_nodes_started, number_program_started_nodes
+                )
 
                 # no more stopped nodes and no started nodes, so can download and delete lab
                 if not nodes["stopped"] and not nodes["started"]["all"]:
@@ -380,30 +317,9 @@ class CMLAPI:
                 lab_title = lab.title
 
                 # try and start as many nodes as possible
-                nodes = {"started": {"all": [], "no_license": []}, "stopped": []}
-                for node in lab.nodes():
-                    try:
-                        if node.node_definition in self.NODES_NOT_COUNT_LICENSE:
-                            node.start(wait=False)
-                            nodes["started"]["no_license"].append(node.id)
-                            nodes["started"]["all"].append(node.id)
-
-                        elif (
-                            base_number_nodes_started + number_program_started_nodes + 1
-                            <= self.CML_MAX_NODE_COUNT
-                        ):
-                            node.start(wait=False)
-                            nodes["started"]["all"].append(node.id)
-                            number_program_started_nodes += 1
-
-                        else:
-                            max_node_limit_reached = True
-                            nodes["stopped"].append(node.id)
-                    except HTTPError as e:
-                        self.send_admin_error_message(lab=lab_id)
-                        if e.response.text == self.NODE_LICENSE_ERROR:
-                            max_node_limit_reached = True
-                            nodes["stopped"].append(node.id)
+                max_node_limit_reached, nodes = self.start_lab_nodes(
+                    lab, base_number_nodes_started, number_program_started_nodes
+                )
 
                 lab_data["nodes"] = nodes
                 started_labs.append(lab_data)
@@ -529,6 +445,126 @@ class CMLAPI:
                         number_of_active_nodes += 1
 
         return number_of_active_nodes
+
+    def start_lab_nodes(
+        self,
+        lab,
+        base_number_nodes_started: int,
+        number_program_started_nodes: int,
+        max_node_limit_reached: bool = False,
+    ) -> tuple:
+        """Try and start as many nodes as possible in a lab.
+
+        Returns: (bool, dict)
+        """
+
+        nodes = {"started": {"all": [], "no_license": []}, "stopped": []}
+
+        for node in lab.nodes():
+            try:
+                # don't count towards max node count
+                if node.node_definition in self.NODES_NOT_COUNT_LICENSE:
+                    node.start(wait=False)
+                    nodes["started"]["no_license"].append(node.id)
+                    nodes["started"]["all"].append(node.id)
+
+                elif (
+                    base_number_nodes_started + number_program_started_nodes + 1
+                    <= self.CML_MAX_NODE_COUNT
+                ):
+                    node.start(wait=False)
+                    nodes["started"]["all"].append(node.id)
+                    number_program_started_nodes += 1
+
+                # means reached limit
+                else:
+                    max_node_limit_reached = True
+                    nodes["stopped"].append(node.id)
+            except HTTPError as e:
+                self.send_admin_error_message()
+                if e.response.text == self.NODE_LICENSE_ERROR:
+                    max_node_limit_reached = True
+                    nodes["stopped"].append(node.id)
+
+        return max_node_limit_reached, nodes
+
+    def start_stopped_lab_nodes(
+        self,
+        lab,
+        nodes: dict,
+        base_number_nodes_started: int,
+        number_program_started_nodes: int,
+        max_node_limit_reached: bool = False,
+    ) -> bool:
+        for node_id in nodes["stopped"].copy():
+            try:
+                if (
+                    base_number_nodes_started + number_program_started_nodes + 1
+                    <= self.CML_MAX_NODE_COUNT
+                ):
+                    self.logging.info("Adding node from stopped")
+                    node = lab.get_node_by_id(node_id)
+                    node.start(wait=False)
+                    nodes["started"]["all"].append(node_id)
+                    nodes["stopped"].remove(node_id)
+                    number_program_started_nodes += 1
+
+                # only add started_nodes if not all nodes started
+                else:
+                    max_node_limit_reached = True
+                    break
+            except HTTPError as e:
+                self.send_admin_error_message(lab=lab.id)
+                if e.response.text == self.NODE_LICENSE_ERROR:
+                    max_node_limit_reached = True
+                    break
+
+        return max_node_limit_reached
+
+    def check_lab_nodes_converged(
+        self,
+        lab,
+        nodes: dict,
+        started_labs: dict,
+        stopped_labs: dict,
+        number_program_started_nodes: int,
+        max_node_limit_reached=True,
+    ) -> bool:
+        """Checks to see if nodes have converged, and if so, extracts their configs"""
+
+        for node_id in nodes["started"]["all"].copy():
+            node = lab.get_node_by_id(node_id)
+            if node.has_converged():
+                # fetch config from device - exception because certain nodes don't allow extraction
+                self.logging.info("Update configs for node")
+                try:
+                    # Make sure won't go out of AWS TIMEOUT
+                    node.extract_configuration()
+                except Exception as e:
+                    self.logging.error("ERROR extracting node config: %s", str(e))
+                node.stop(wait=True)
+                nodes["started"]["all"].remove(node_id)
+
+                if node_id in nodes["started"]["no_license"]:
+                    nodes["started"]["no_license"].remove(node_id)
+                    continue
+
+                number_program_started_nodes -= 1
+                max_node_limit_reached = False
+
+                ## instant recall of lambda to make sure don't timeout since some node extractions take a while
+                event = self.get_cron_job_payload(
+                    started_labs, stopped_labs, number_program_started_nodes
+                )
+                self.lambda_client.invoke(
+                    FunctionName=self.ARN,
+                    InvocationType="Event",
+                    LogType="Tail",
+                    Payload=json.dumps(event),
+                )
+                sys.exit(0)
+
+        return max_node_limit_reached
 
     def check_able_delete_labs(self, base_number_nodes_running, all_labs) -> bool:
         """If too many base nodes are started, exits function and notifies admins"""
