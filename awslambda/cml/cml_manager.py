@@ -51,9 +51,10 @@ class CMLManager:
         self.cml_api.disable_delete_labs_cron_job()
 
         self.cml_api.fill_user_labs_dict()
-        all_user_emails = self.dynamodb.get_all_cml_users()
+        # all_user_emails = self.dynamodb.get_all_cml_users()
+        all_user_emails = ["kstickne@cisco.com", "ppajersk@cisco.com"]
 
-        self.logging.info("Starting users' labs")
+        self.logging.info("Start iterating through users' labs")
 
         all_labs_to_delete = []
         for user_email in all_user_emails:
