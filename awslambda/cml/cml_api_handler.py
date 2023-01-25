@@ -229,20 +229,18 @@ class CMLAPI:
         # automatically assume node limit reached is true
         max_node_limit_reached = True
 
-        try:
-            (
-                max_node_limit_reached,
-                number_program_started_nodes,
-            ) = self.manage_started_labs(
-                started_labs,
-                stopped_labs,
-                base_number_nodes_started,
-                number_program_started_nodes,
-                max_node_limit_reached,
-            )
-        except Exception:
-            # Exception just for restarting lambda
-            return False
+        (
+            max_node_limit_reached,
+            number_program_started_nodes,
+        ) = self.manage_started_labs(
+            started_labs,
+            stopped_labs,
+            base_number_nodes_started,
+            number_program_started_nodes,
+            max_node_limit_reached,
+        )
+        if max_node_limit_reached is None:
+            return None
 
         # try and start a non-started lab
         if not max_node_limit_reached:
@@ -393,16 +391,15 @@ class CMLAPI:
                 self.logging.info("Checking if converged %s", lab_title)
 
                 # check all nodes, see if converged, and if so  extract configuration
-                try:
-                    self.check_lab_nodes_converged(
-                        lab,
-                        nodes,
-                        started_labs,
-                        stopped_labs,
-                        number_program_started_nodes,
-                    )
-                except Exception as end_program:
-                    raise Exception("Ending Program") from end_program
+                end_program = self.check_lab_nodes_converged(
+                    lab,
+                    nodes,
+                    started_labs,
+                    stopped_labs,
+                    number_program_started_nodes,
+                )
+                if end_program is None:
+                    return None, None
 
                 # if limit_reached is true, means no nodes converged. But test to make sure actually true
                 # if false, means a node converged and was stopped, so we know we can start a node
@@ -435,8 +432,6 @@ class CMLAPI:
                     started_labs.remove(lab_data)
 
             except Exception as e:
-                if str(e) == "Ending Program":
-                    raise Exception from e
                 self.send_admin_error_message(lab=lab_id)
                 self.logging.error("Error deleting lab %s: %s", lab_title, str(e))
 
@@ -619,7 +614,7 @@ class CMLAPI:
                     Payload=json.dumps(event),
                 )
 
-                raise Exception("Ending program")
+                return None
 
         return True
 
