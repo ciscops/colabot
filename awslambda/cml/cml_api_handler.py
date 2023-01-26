@@ -202,7 +202,7 @@ class CMLAPI:
 
         return True
 
-    def check_labs_converged(self, event: dict) -> bool:
+    def check_labs_converged(self, event: dict) -> bool | None:
         """Checks if labs have started and deletes them"""
 
         self.logging.info("Check Labs Converge")
@@ -377,7 +377,7 @@ class CMLAPI:
         base_number_nodes_started: int,
         number_program_started_nodes: int,
         max_node_limit_reached: bool = True,
-    ) -> tuple:
+    ) -> tuple | None:
         """Goes throughe ach started labs, check for node convergence, pulls node configs, and starts any stopped nodes"""
         for lab_data in started_labs.copy():
             try:
@@ -581,7 +581,7 @@ class CMLAPI:
         started_labs: dict,
         stopped_labs: dict,
         number_program_started_nodes: int,
-    ) -> bool:
+    ) -> bool | None:
         """Checks to see if nodes have converged, and if so, extracts their configs"""
 
         for node_id in nodes["started"]["all"].copy():
