@@ -160,7 +160,7 @@ class Dynamoapi:
     def update_cml_lab_card_sent(
         self, email: str, lab_id: str, card_sent_date: datetime = datetime.now()
     ):
-        """Upadtes the card_sent_date field"""
+        """Updates the card_sent_date field"""
         self.get_dynamo_cml_table()
         date_string = str(int(datetime.timestamp(card_sent_date)))
 

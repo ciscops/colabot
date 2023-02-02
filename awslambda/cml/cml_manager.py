@@ -57,96 +57,110 @@ class CMLManager:
 
         all_labs_to_delete = []
         for user_email in all_user_emails:
+            try:
 
-            if self.cml_api.user_in_long_lived_labs(user_email):
-                continue
+                if self.cml_api.user_in_long_lived_labs(user_email):
+                    continue
 
-            # grab all labs from both cml and database
-            user_cml_labs = self.cml_api.get_user_labs(user_email)
-            user_database_labs = self.dynamodb.get_cml_user_labs(user_email)
+                # grab all labs from both cml and database
+                user_cml_labs = self.cml_api.get_user_labs(user_email)
+                user_database_labs = self.dynamodb.get_cml_user_labs(user_email)
 
-            # delete any labs in database that are not in cml server
-            self.update_user_database_labs(
-                user_database_labs, user_cml_labs, user_email
-            )
+                # delete any labs in database that are not in cml server
+                self.update_user_database_labs(
+                    user_database_labs, user_cml_labs, user_email
+                )
 
-            # grab database labs again since might have been updated
-            user_database_labs = self.dynamodb.get_cml_user_labs(user_email)
+                # grab database labs again since might have been updated
+                user_database_labs = self.dynamodb.get_cml_user_labs(user_email)
 
-            labs_to_stop = []
-            labs_to_delete = []
-            labs_warning_stopped = []
-            labs_warning_deleted = []
+                labs_to_stop = []
+                labs_to_delete = []
+                labs_warning_stopped = []
+                labs_warning_deleted = []
 
-            for lab_id, lab_data in user_database_labs.items():
-                lab_title = lab_data["lab_title"]
-                lab_is_stopped = lab_data["lab_is_stopped"]
-                lab_stopped_date = lab_data["lab_stopped_date"]
-                card_sent_date = lab_data["card_sent_date"]
-                user_responded_date = lab_data["user_responded_date"]
-                lab_discovered_date = lab_data["lab_discovered_date"]
+                for lab_id, lab_data in user_database_labs.items():
+                    lab_title = lab_data["lab_title"]
+                    lab_is_stopped = lab_data["lab_is_stopped"]
+                    lab_stopped_date = lab_data["lab_stopped_date"]
+                    card_sent_date = lab_data["card_sent_date"]
+                    user_responded_date = lab_data["user_responded_date"]
+                    lab_discovered_date = lab_data["lab_discovered_date"]
 
-                # check see if user was sent a card and never responded in time
-                if self.lab_to_stop(
-                    card_sent_date,
-                    user_responded_date,
-                    lab_discovered_date,
-                    lab_is_stopped,
-                ):
-                    self.logging.info("Adding lab to be stopped")
-                    labs_to_stop.append(
-                        {
-                            "lab_id": lab_id,
-                            "reason_lab_stopped": self.reason_lab_stopped,
-                        }
-                    )
+                    self.logging.info("Lab %s", lab_title)
 
-                # check see if lab within warning stopped period
-                elif self.lab_to_warn_wiping(
-                    user_responded_date, card_sent_date, lab_is_stopped
-                ):
-                    self.logging.info("Adding lab to warning for being stopped")
-                    labs_warning_stopped.append(
-                        (lab_id, lab_title, user_responded_date)
-                    )
+                    # check see if user was sent a card and never responded in time
+                    if self.lab_to_stop(
+                        card_sent_date,
+                        user_responded_date,
+                        lab_discovered_date,
+                        lab_is_stopped,
+                    ):
+                        self.logging.info("Adding lab to be stopped")
+                        labs_to_stop.append(
+                            {
+                                "lab_id": lab_id,
+                                "reason_lab_stopped": self.reason_lab_stopped,
+                            }
+                        )
 
-                # check see if within deletion period
-                elif self.lab_to_delete(
-                    lab_stopped_date, user_responded_date, lab_is_stopped
-                ):
-                    self.logging.info("Adding lab to be deleted")
-                    labs_to_delete.append({"lab_id": lab_id, "user_email": user_email})
+                    # check see if lab within warning stopped period
+                    elif self.lab_to_warn_wiping(
+                        user_responded_date, card_sent_date, lab_is_stopped
+                    ):
+                        self.logging.info("Adding lab to warning for being stopped")
+                        labs_warning_stopped.append(
+                            (lab_id, lab_title, user_responded_date)
+                        )
 
-                # check see if lab within stopped period
-                elif self.lab_to_warn_delete(
-                    lab_stopped_date,
-                    user_responded_date,
-                    lab_is_stopped,
-                    lab_id,
-                    lab_title,
-                    user_email,
-                ):
-                    self.logging.info("Adding lab to warning for being stopped")
-                    labs_warning_deleted.append((lab_title, lab_stopped_date))
+                    # check see if within deletion period
+                    elif self.lab_to_delete(
+                        lab_stopped_date, user_responded_date, lab_is_stopped
+                    ):
+                        self.logging.info("Adding lab to be deleted")
+                        labs_to_delete.append(
+                            {"lab_id": lab_id, "user_email": user_email}
+                        )
 
-                # Checks to see if a stopped lab has been reactivated
-                elif lab_is_stopped and self.cml_api.check_lab_active(lab_id):
-                    self.dynamodb.update_cml_lab_used_date(
-                        user_email, lab_id, lab_title
-                    )
-                    self.logging.info("Lab reset %s", lab_title)
+                    # check see if lab within stopped period
+                    elif self.lab_to_warn_delete(
+                        lab_stopped_date,
+                        user_responded_date,
+                        lab_is_stopped,
+                        lab_id,
+                        lab_title,
+                        user_email,
+                    ):
+                        self.logging.info("Adding lab to warning for being stopped")
+                        labs_warning_deleted.append((lab_title, lab_stopped_date))
 
-            # Stop labs
-            self.cml_api.stop_labs(labs_to_stop, user_email)
+                    # Checks to see if a stopped lab has been reactivated
+                    elif lab_is_stopped and self.cml_api.check_lab_active(lab_id):
+                        self.dynamodb.update_cml_lab_used_date(
+                            user_email, lab_id, lab_title
+                        )
+                        self.logging.info("Lab reset %s", lab_title)
 
-            # Send card warning labs to be stopped
-            self.send_labbing_card(labs_warning_stopped, user_email)
+                # Stop labs
+                self.cml_api.stop_labs(labs_to_stop, user_email)
 
-            # Send card warning labs to be deleted
-            self.send_deletion_card(labs_warning_deleted, user_email)
+                # Send card warning labs to be stopped
+                self.send_labbing_card(labs_warning_stopped, user_email)
 
-            # Add Labs to delete
-            all_labs_to_delete += labs_to_delete
+                # Send card warning labs to be deleted
+                self.send_deletion_card(labs_warning_deleted, user_email)
+
+                # Add Labs to delete
+                all_labs_to_delete += labs_to_delete
+
+                success_counter += 1
+
+            except Exception as e:
+                self.logging.error(
+                    "Error iterating through %s's labs: %s", user_email, str(e)
+                )
+                self.cml_api.send_admin_error_message(None)
+                fail_counter += 1
 
         # Delete labs
         self.cml_api.start_delete_process(all_labs_to_delete)
