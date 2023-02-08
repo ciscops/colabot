@@ -292,7 +292,7 @@ class CMLManager:
     def send_deletion_card(self, labs_to_send: list, user_email: str) -> bool:
         """Sends the deletion card to the user with the labs to be deleted"""
 
-        if not labs_to_send:
+        if not labs_to_send: 
             return False
 
         message = "The following labs are scheduled to be deleted. If you would like to keep your lab, please start it.\n"
