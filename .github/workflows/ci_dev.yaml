@@ -38,7 +38,7 @@ jobs:
           password: ${{ secrets.GHCR_PASS }} # set up secret token with access rights to packages
 
       - name: Build and push image
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           network: host
           context: ./
