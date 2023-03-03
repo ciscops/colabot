@@ -12,16 +12,16 @@ class Dynamoapi:
         logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
         self.logging = logging.getLogger()
 
-        if "DYNAMODB_CML_LABS_TABLE" in os.environ:
-            self.db_cml_name = os.getenv("DYNAMODB_CML_LABS_TABLE")
-        else:
-            logging.error("Environment variable DYNAMODB_CML_LABS_TABLE must be set")
+        try:
+            self.DB_CML_NAME = os.environ["DYNAMODB_CML_LABS_TABLE"]
+        except KeyError as e:
+            logging.error("Environment variable %s must be set", str(e))
             sys.exit(1)
 
         self.cml_table = None
         self.dynamodb = None
-        self.cml_labs_tag = "#cml_labs"
-        self.lab_id_tag = "#lab_id"
+        self.CML_LABS_TAG = "#cml_labs"
+        self.LAB_ID_TAG = "#lab_id"
 
     def get_dynamo_cml_table(self):
         """
@@ -32,7 +32,7 @@ class Dynamoapi:
         if self.dynamodb is None:
             self.dynamodb = boto3.resource("dynamodb")
         if self.cml_table is None:
-            self.cml_table = self.dynamodb.Table(self.db_cml_name)
+            self.cml_table = self.dynamodb.Table(self.DB_CML_NAME)
 
     def get_all_cml_users(self) -> list:
         """gets all the user emails from the cml database"""
@@ -51,6 +51,7 @@ class Dynamoapi:
 
         return: dictionary pair of lab (id) and last_used date (data) {lab_id: last_used}
         """
+        self.logging.info("Email %s", user_email)
         self.get_dynamo_cml_table()
         response = self.cml_table.query(
             KeyConditionExpression=Key("email").eq(user_email),
@@ -64,6 +65,7 @@ class Dynamoapi:
             KeyConditionExpression=Key("email").eq(user_email)
         )
 
+        # Turn into dictionary
         table_labs = response["Items"][0]["cml_labs"]
         for lab_id in table_labs:
             for key, val in table_labs[lab_id].items():
@@ -94,7 +96,7 @@ class Dynamoapi:
             self.cml_table.update_item(
                 Key={"email": email},
                 UpdateExpression="SET #cml_labs= :value",
-                ExpressionAttributeNames={self.cml_labs_tag: "cml_labs"},
+                ExpressionAttributeNames={self.CML_LABS_TAG: "cml_labs"},
                 ExpressionAttributeValues={":value": {}},
             )
 
@@ -103,14 +105,14 @@ class Dynamoapi:
             Key={"email": email},
             UpdateExpression="SET #cml_labs.#lab_id= :lab_data",
             ExpressionAttributeNames={
-                self.cml_labs_tag: "cml_labs",
-                self.lab_id_tag: lab_id,
+                self.CML_LABS_TAG: "cml_labs",
+                self.LAB_ID_TAG: lab_id,
             },
             ExpressionAttributeValues={
                 ":lab_data": {
                     "lab_title": lab_title,
-                    "lab_is_wiped": False,
-                    "lab_wiped_date": "",
+                    "lab_is_stopped": False,
+                    "lab_stopped_date": "",
                     "card_sent_date": "",
                     "user_responded_date": date_string,
                     "lab_discovered_date": date_string,
@@ -128,24 +130,24 @@ class Dynamoapi:
         """Updates the last used date for a lab"""
         self.add_cml_lab(email, lab_id, lab_title, update_date)
 
-    def update_cml_lab_wiped(
-        self, email: str, lab_id: str, lab_wiped_date: datetime = datetime.now()
+    def update_cml_lab_stopped(
+        self, email: str, lab_id: str, lab_stopped_date: datetime = datetime.now()
     ):
-        """upadtes the wiped lab fields"""
+        """Updates the stopped lab fields"""
         self.get_dynamo_cml_table()
-        date_string = str(int(datetime.timestamp(lab_wiped_date)))
+        date_string = str(int(datetime.timestamp(lab_stopped_date)))
 
         self.cml_table.update_item(
             Key={"email": email},
             UpdateExpression=(
-                """SET #cml_labs.#lab_id.#lab_wiped_date= :value1, #cml_labs.#lab_id.#lab_wiped= :value2,"""
+                """SET #cml_labs.#lab_id.#lab_stopped_date= :value1, #cml_labs.#lab_id.#lab_stopped= :value2,"""
                 """#cml_labs.#lab_id.#card_sent_date= :value3"""
             ),
             ExpressionAttributeNames={
-                self.cml_labs_tag: "cml_labs",
-                self.lab_id_tag: lab_id,
-                "#lab_wiped_date": "lab_wiped_date",
-                "#lab_wiped": "lab_is_wiped",
+                self.CML_LABS_TAG: "cml_labs",
+                self.LAB_ID_TAG: lab_id,
+                "#lab_stopped_date": "lab_stopped_date",
+                "#lab_stopped": "lab_is_stopped",
                 "#card_sent_date": "card_sent_date",
             },
             ExpressionAttributeValues={
@@ -158,7 +160,7 @@ class Dynamoapi:
     def update_cml_lab_card_sent(
         self, email: str, lab_id: str, card_sent_date: datetime = datetime.now()
     ):
-        """upadtes the card_sent_date field"""
+        """Updates the card_sent_date field"""
         self.get_dynamo_cml_table()
         date_string = str(int(datetime.timestamp(card_sent_date)))
 
@@ -166,15 +168,15 @@ class Dynamoapi:
             Key={"email": email},
             UpdateExpression="SET #cml_labs.#lab_id.#card_sent_date= :date",
             ExpressionAttributeNames={
-                self.cml_labs_tag: "cml_labs",
-                self.lab_id_tag: lab_id,
+                self.CML_LABS_TAG: "cml_labs",
+                self.LAB_ID_TAG: lab_id,
                 "#card_sent_date": "card_sent_date",
             },
             ExpressionAttributeValues={":date": date_string},
         )
 
     def delete_cml_lab(self, email: str, lab_id: str):
-        """Adds a new lab to a user - has to have cml_labs field"""
+        """Deletes a lab from a user - Note: user has to have cml_labs field"""
         self.get_dynamo_cml_table()
 
         try:
@@ -182,8 +184,8 @@ class Dynamoapi:
                 Key={"email": email},
                 UpdateExpression="remove #cml_labs.#lab_id",
                 ExpressionAttributeNames={
-                    self.cml_labs_tag: "cml_labs",
-                    self.lab_id_tag: lab_id,
+                    self.CML_LABS_TAG: "cml_labs",
+                    self.LAB_ID_TAG: lab_id,
                 },
             )
         except Exception as e:
