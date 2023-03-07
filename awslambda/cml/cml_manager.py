@@ -16,7 +16,7 @@ class CMLManager:
         self.logging = logging.getLogger()
 
         try:
-            self.WARN_DAYS = int(os.environ["LAB_WARN_DAYS"])
+            self.STOP_WARN_DAYS = int(os.environ["LAB_STOP_WARN_DAYS"])
             self.DELETE_DAYS = int(os.environ["LAB_DELETE_DAYS"])
             self.DELETE_WARNING_DAYS = int(os.environ["LAB_DELETE_WARNING_DAYS"])
             self.CARD_RESPOND_DAYS = int(os.environ["LAB_CARD_RESPOND_DAYS"])
@@ -58,7 +58,7 @@ class CMLManager:
         all_labs_to_delete = []
         for user_email in all_user_emails:
             try:
-
+ 
                 if self.cml_api.user_in_long_lived_labs(user_email):
                     continue
 
@@ -70,6 +70,9 @@ class CMLManager:
                 self.update_user_database_labs(
                     user_database_labs, user_cml_labs, user_email
                 )
+
+                # TODO: Delete after first prod push
+                continue
 
                 # grab database labs again since might have been updated
                 user_database_labs = self.dynamodb.get_cml_user_labs(user_email)
@@ -105,7 +108,7 @@ class CMLManager:
                         )
 
                     # check see if lab within warning stopped period
-                    elif self.lab_to_warn_wiping(
+                    elif self.lab_to_warn_stopping(
                         user_responded_date, card_sent_date, lab_is_stopped
                     ):
                         self.logging.info("Adding lab to warning for being stopped")
@@ -163,7 +166,8 @@ class CMLManager:
                 fail_counter += 1
 
         # Delete labs
-        self.cml_api.start_delete_process(all_labs_to_delete)
+        # TODO: uncomment after first prod push
+        # self.cml_api.start_delete_process(all_labs_to_delete)
 
         return (success_counter, fail_counter)
 
@@ -174,7 +178,9 @@ class CMLManager:
         for cml_lab_id in user_cml_labs:
             if cml_lab_id not in user_database_labs:
                 self.logging.info("ADD %s adding lab to database", user_email)
-                user_responded_date = user_cml_labs[cml_lab_id]["created_date"]
+                # TODO: Change after first prod push
+                # user_responded_date = user_cml_labs[cml_lab_id]["created_date"]
+                user_responded_date = datetime.today()
                 lab_title = user_cml_labs[cml_lab_id]["title"]
                 self.dynamodb.add_cml_lab(
                     user_email, cml_lab_id, lab_title, user_responded_date
@@ -187,13 +193,13 @@ class CMLManager:
 
         return True
 
-    def lab_to_warn_wiping(
+    def lab_to_warn_stopping(
         self,
         user_responded_date: datetime,
         card_sent_date: datetime,
         lab_is_stopped: bool,
     ) -> bool:
-        """Determines if lab within wiping warning period"""
+        """Determines if lab within stopping warning period"""
 
         if (
             lab_is_stopped
@@ -202,7 +208,7 @@ class CMLManager:
         ):
             return False
 
-        if (datetime.today() - user_responded_date).days > self.WARN_DAYS:
+        if (datetime.today() - user_responded_date).days > self.STOP_WARN_DAYS:
             return True
 
         return False
@@ -222,7 +228,7 @@ class CMLManager:
             not lab_is_stopped
             or not isinstance(lab_stopped_date, datetime)
             or not isinstance(user_responded_date, datetime)
-            or (datetime.today() - user_responded_date).days <= self.WARN_DAYS
+            or (datetime.today() - user_responded_date).days <= self.STOP_WARN_DAYS
         ):
             return False
 
@@ -257,7 +263,7 @@ class CMLManager:
 
         if (
             not isinstance(card_sent_date, datetime)
-            or (datetime.today() - user_responded_date).days <= self.WARN_DAYS
+            or (datetime.today() - user_responded_date).days <= self.STOP_WARN_DAYS
         ):
             return False
 
@@ -279,7 +285,7 @@ class CMLManager:
         if (
             not lab_is_stopped
             or not isinstance(user_responded_date, datetime)
-            or (datetime.today() - user_responded_date).days <= self.WARN_DAYS
+            or (datetime.today() - user_responded_date).days <= self.STOP_WARN_DAYS
         ):
             return False
 
@@ -292,7 +298,7 @@ class CMLManager:
     def send_deletion_card(self, labs_to_send: list, user_email: str) -> bool:
         """Sends the deletion card to the user with the labs to be deleted"""
 
-        if not labs_to_send: 
+        if not labs_to_send:
             return False
 
         message = "The following labs are scheduled to be deleted. If you would like to keep your lab, please start it.\n"
