@@ -58,7 +58,7 @@ class CMLManager:
         all_labs_to_delete = []
         for user_email in all_user_emails:
             try:
-
+ 
                 if self.cml_api.user_in_long_lived_labs(user_email):
                     continue
 
