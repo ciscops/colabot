@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+from webbrowser import get
 
 
 class DefaultConfig:
@@ -46,3 +47,5 @@ class DefaultConfig:
     AWS_REGION_COLAB = os.environ.get("AWS_REGION_COLAB", "xxxx")
     AWS_ACCESS_KEY_ID_COLAB = os.environ.get("AWS_ACCESS_KEY_ID_COLAB", "xxxx")
     AWS_SECRET_ACCESS_KEY_COLAB = os.environ.get("AWS_SECRET_ACCESS_KEY_COLAB", "xxxx")
+    COLABOT_CYPHER = os.environ.get("COLABOT_SECRET")
+

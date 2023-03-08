@@ -102,6 +102,7 @@ jobs:
           AWS_REGION_COLAB: ${{ secrets.AWS_REGION_COLAB }}
           AWS_ACCESS_KEY_ID_COLAB: ${{ secrets.AWS_ACCESS_KEY_ID_COLAB }}
           AWS_PASSWORD_COLAB: ${{ secrets.AWS_SECRET_ACCESS_KEY_COLAB }}
+          COLABOT_SECRET: ${{ secrets.COLABOT_SECRET }}
         run: python3 process-j2.py
 
       - name: Apply and rollout

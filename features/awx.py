@@ -3,14 +3,20 @@
 import logging
 import json
 import re
-from datetime import date
+import tempfile
+from datetime import datetime, date
+from cryptography.fernet import Fernet
 import aiohttp
 import pymongo
 import urllib3
 import boto3
+from boto3.dynamodb.conditions import Key
+import yaml
+from virl2_client import ClientLibrary
 from jinja2 import Template
 from config import DefaultConfig as CONFIG
 from webex import WebExClient
+from .CML import CML
 
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -570,7 +576,6 @@ async def rotate_aws_key(activity):
         )
 
         card_file = "./cards/aws_iam_rotate_keys.json"
-        # verify this doesn't cause problems
         with open(f"{card_file}", encoding="utf8") as file_:
             template = Template(file_.read())
         card = template.render(
@@ -609,6 +614,215 @@ async def handle_rotate_keys_card(activity):
 
     await create_key_and_message_user(activity, user, webex)
 
+    
+    
+async def handle_labbing_card(activity):
+    """handles the are cml lab check in card"""
+    webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
+    card_type = activity["inputs"]["type"]
+    all_labs = json.loads(activity["inputs"]["allLabIds"].replace("'", '"'))
+    user_email = activity["inputs"]["email"]
+    card_sent_date = activity["inputs"]["card_sent_date"]
+    card_response_limit = activity["inputs"]["card_response_limit"]
+
+    logging.debug(
+        "this is happening %s and %s",
+        (datetime.today() - datetime.fromtimestamp(int(card_sent_date))).days,
+        int(card_response_limit),
+    )
+
+    if (datetime.today() - datetime.fromtimestamp(int(card_sent_date))).days > int(
+        card_response_limit
+    ):
+        message = f"Card is past response timeframe, please respond to a card that is no older than {card_response_limit} days"
+        await webex.edit_message(activity["messageId"], message, activity["roomId"])
+        return
+
+    labs_to_save = []
+    labs_to_delete = []
+
+    dynamodb = boto3.resource(
+        "dynamodb",
+        region_name="",  # TODO change these from colab when going to prod
+        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
+        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
+    )
+
+    table = dynamodb.Table(
+        # Table Name
+    )  # TODO remove dev extension when pushing to prod
+
+    cml_server = CONFIG.SERVER_LIST.split(",")[0]
+    user_and_domain = user_email.split("@")
+    cml_password = await get_cml_password(user_email, table)
+    cml_user = CML(user_and_domain[0], cml_password, cml_server)
+
+    url = "https://" + cml_server + "/"
+    client = ClientLibrary(
+        url,
+        user_email.split("@")[0],
+        cml_password,
+        ssl_verify=False,
+        raise_for_auth_failure=True,
+    )
+
+    if card_type == "KeepAll":  # call update method for all labs
+        logging.debug("Keep all labs selected, keeping all labs")
+        labs_to_save = all_labs
+        await edit_card(
+            activity, webex, labs_to_save, labs_to_delete, activity["messageId"]
+        )
+        await update_used_labs_in_dynamo(all_labs.keys(), user_email, table)
+
+    if card_type == "DeleteAll":  # call delete method for all labs
+        logging.debug("Delete all labs selected, wiping and deleting all labs")
+        labs_to_delete = all_labs
+        await edit_card(
+            activity, webex, labs_to_save, labs_to_delete, activity["messageId"]
+        )
+        await wipe_and_delete_labs(
+            activity, all_labs.keys(), user_email, table, cml_user, client, webex
+        )
+
+    # if user opts to select which labs to keep or delete, evaluate each lab individually
+    if card_type == "Selection":
+        labs_to_save = {}
+        labs_to_delete = {}
+
+        for lab_id, lab_name in all_labs.items():
+            if activity["inputs"][lab_id] == "delete":
+                labs_to_delete.update({lab_id: lab_name})
+            elif activity["inputs"][lab_id] == "keep":
+                labs_to_save.update({lab_id: lab_name})
+
+        await edit_card(
+            activity, webex, labs_to_save, labs_to_delete, activity["messageId"]
+        )
+
+        for lab in labs_to_save:
+            await update_used_labs_in_dynamo([lab], user_email, table)
+
+        for lab in labs_to_delete:
+            await wipe_and_delete_labs(
+                activity,
+                [lab],
+                user_email,
+                table,
+                cml_user,
+                client,
+                webex,
+            )
+
+
+async def wipe_and_delete_labs(
+    activity, labs, user_email, table, cml_user, client, webex
+):
+    """Wipes the labs, sends the user each lab's yaml file, and messages the user"""
+
+    for lab_id in labs:
+        if await cml_user.get_token():
+            await cml_user.stop_lab(lab_id)
+            await download_and_send_lab_toplogy(activity, lab_id, client, webex)
+            await cml_user.wipe_lab(lab_id)
+            await delete_lab_from_dynamo(user_email, lab_id, table)
+            await cml_user.delete_lab(lab_id)
+
+
+async def get_cml_password(user_email, table):
+    """Gets the user's cml password"""
+    response = table.query(KeyConditionExpression=Key("email").eq(user_email))
+
+    cml_password = response["Items"][0]["password"]
+    fernet_decrypt = Fernet(CONFIG.COLABOT_CYPHER)
+    decrypted_key = fernet_decrypt.decrypt(bytes(cml_password, "utf-8"))
+    key = decrypted_key.decode()
+
+    return key
+
+
+async def update_used_labs_in_dynamo(labs, user_email, table):
+    """Updates the information of the current used labs"""
+    for lab in labs:
+        try:
+            date_responded = str(int(datetime.timestamp(datetime.now())))
+
+            table.update_item(
+                Key={"email": user_email},
+                UpdateExpression="set #cml_labs.#lab_id.#responded= :card_responded_date , #cml_labs.#lab_id.#card_sent_date= :remove_sent_date",
+                ExpressionAttributeNames={
+                    "#cml_labs": "cml_labs",
+                    "#lab_id": lab,
+                    "#responded": "user_responded_date",
+                    "#card_sent_date": "card_sent_date",
+                },
+                ExpressionAttributeValues={
+                    ":card_responded_date": date_responded,
+                    ":remove_sent_date": "",
+                },
+            )
+        except Exception as e:
+            logging.error("Problem updating lab used date: %s", str(e))
+
+
+async def delete_lab_from_dynamo(user_email, lab_id, table):
+    """Deletes the lab from the dynamoDB table"""
+
+    try:
+        table.update_item(
+            Key={"email": user_email},
+            UpdateExpression="remove #cml_labs.#lab_id",
+            ExpressionAttributeNames={
+                "#cml_labs": "cml_labs",
+                "#lab_id": lab_id,
+            },
+        )
+    except Exception as e:
+        logging.error("Problem deleting lab: %s", str(e))
+
+
+async def download_and_send_lab_toplogy(activity, lab_id, client, webex):
+    """Downloads the lab-to-be-wiped topology and sends it to the user"""
+
+    lab = client.join_existing_lab(lab_id)
+    lab_title = lab.title
+    yaml_string = lab.download()
+
+    with open(
+        tempfile.NamedTemporaryFile(
+            suffix=".yaml", prefix=f'{lab_title.replace(" ","_")}_'
+        ).name,
+        "w",
+        encoding="utf-8",
+    ) as outfile:
+        yaml.dump(yaml.full_load(yaml_string), outfile, default_flow_style=False)
+
+        message = dict(
+            roomId=activity["roomId"],
+            files=[outfile.name],
+        )
+
+        await webex.send_message_with_file(message)
+
+
+async def edit_card(
+    activity, webex, labs_to_save=None, labs_to_delete=None, message_id=None
+):
+    """Edits the webex card to show change log for all the labs"""
+    message = ""
+
+    if labs_to_save:
+        for lab in labs_to_save.values():
+            message += "Lab **" + lab + "** was saved\n"
+
+    if labs_to_delete:
+        for lab in labs_to_delete.values():
+            message += (
+                "Lab **"
+                + lab
+                + "** was deleted, the topology file will be attached below\n"
+            )
+
+    await webex.edit_message(message_id, message, activity["roomId"])
 
 async def delete_accounts(activity):
     cml_servers = CONFIG.SERVER_LIST.split(",")

@@ -5,6 +5,8 @@ import json
 import logging
 import aiohttp
 import requests
+from webexteamssdk import WebexTeamsAPI
+
 
 
 class WebExClient:
@@ -56,6 +58,17 @@ class WebExClient:
             except Exception:
                 logging.info("Exception posting WebEx message")
                 return {}
+
+    async def send_message_with_file(self, message=None):
+        if not message:
+            return None
+
+        api = WebexTeamsAPI(access_token=self.webex_bot_token)
+        api.messages.create(
+            roomId=message.get("roomId"),
+            markdown=message.get("text"),
+            files=message.get("files"),
+        )
 
     async def edit_message(self, message_id, message, room_id):
         URL = f"https://webexapis.com/v1/messages/{message_id}"
