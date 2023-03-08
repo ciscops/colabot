@@ -75,7 +75,7 @@ class KeyManager:
                     self.logging.info("Checking keys for user: %s", name)
                     for access_key in user_access_key_list:
                         self.process_key(access_key, user_email, user)
-                        
+
                 success_counter += 1
             except Exception as e:
                 self.logging.error("ERROR: %s", str(e))
@@ -83,7 +83,6 @@ class KeyManager:
 
         self.logging.info("Keys deleted %s", self.temp_key_deleted_counter)
         return (success_counter, fail_counter)
-
 
     def process_key(self, access_key, user_email, user):
         key_age = access_key.create_date
@@ -99,7 +98,6 @@ class KeyManager:
         self.logging.info(
             "%sKey was created %s days ago", self.log_indent, key_created_days
         )
-
 
         if key_status != "Active":
             self.delete_key(
@@ -180,7 +178,6 @@ class KeyManager:
             "%sKey is within acceptable usage timeframes", self.log_indent
         )
 
-
     def create_new_key(self, user_email, key_id, user):
         access_key_pair = user.create_access_key_pair()
         new_access_key_id = access_key_pair.access_key_id
@@ -234,7 +231,6 @@ class KeyManager:
             self.logging.info(
                 "%sKey was set to inactive, deleting key", self.log_indent
             )
-
 
         self.send_message_to_user(user_email, message)
 
