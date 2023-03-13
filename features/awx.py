@@ -824,6 +824,7 @@ async def edit_card(
 
     await webex.edit_message(message_id, message, activity["roomId"])
 
+
 async def delete_accounts(activity):
     cml_servers = CONFIG.SERVER_LIST.split(",")
     if activity.get("text") == "delete accounts":
