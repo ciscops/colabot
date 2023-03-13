@@ -48,4 +48,3 @@ class DefaultConfig:
     AWS_ACCESS_KEY_ID_COLAB = os.environ.get("AWS_ACCESS_KEY_ID_COLAB", "xxxx")
     AWS_SECRET_ACCESS_KEY_COLAB = os.environ.get("AWS_SECRET_ACCESS_KEY_COLAB", "xxxx")
     COLABOT_CYPHER = os.environ.get("COLABOT_SECRET")
-
