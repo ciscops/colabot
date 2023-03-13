@@ -84,7 +84,6 @@ class KeyManager:
         self.logging.info("Keys deleted %s", self.temp_key_deleted_counter)
         return (success_counter, fail_counter)
 
-
     def process_key(self, access_key, user_email, user):
         key_age = access_key.create_date
         currentdate = date.today()
@@ -178,7 +177,6 @@ class KeyManager:
         self.logging.info(
             "%sKey is within acceptable usage timeframes", self.log_indent
         )
-
 
     def create_new_key(self, user_email, key_id, user):
         access_key_pair = user.create_access_key_pair()

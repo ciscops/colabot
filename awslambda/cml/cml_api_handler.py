@@ -645,7 +645,7 @@ class CMLAPI:
 
     def send_admin_error_message(self, lab: str = None) -> bool:
         """Sends the error message to the webex admin room"""
-        # TODO: Stop all labs if critical
+        # TODO: Want to stop all labs if critical?
 
         if lab:
             message = f"The following lab encoutered an error while running CML Manage Labs: \nLab {lab}\n\n <pre>{traceback.format_exc()}</code></pre>"

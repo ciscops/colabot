@@ -614,8 +614,7 @@ async def handle_rotate_keys_card(activity):
 
     await create_key_and_message_user(activity, user, webex)
 
-    
-    
+
 async def handle_labbing_card(activity):
     """handles the are cml lab check in card"""
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
@@ -649,7 +648,7 @@ async def handle_labbing_card(activity):
     )
 
     table = dynamodb.Table(
-        "colab_directory" # Table Name
+        "colab_directory"  # Table Name
     )  # TODO remove dev extension when pushing to prod
 
     cml_server = CONFIG.SERVER_LIST.split(",")[0]
