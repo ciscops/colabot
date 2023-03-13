@@ -70,9 +70,6 @@ class CMLManager:
                     user_database_labs, user_cml_labs, user_email
                 )
 
-                # TODO: Delete after first prod push
-                continue
-
                 # grab database labs again since might have been updated
                 user_database_labs = self.dynamodb.get_cml_user_labs(user_email)
 
@@ -165,8 +162,7 @@ class CMLManager:
                 fail_counter += 1
 
         # Delete labs
-        # TODO: uncomment after first prod push
-        # self.cml_api.start_delete_process(all_labs_to_delete)
+        self.cml_api.start_delete_process(all_labs_to_delete)
 
         return (success_counter, fail_counter)
 
@@ -177,8 +173,7 @@ class CMLManager:
         for cml_lab_id in user_cml_labs:
             if cml_lab_id not in user_database_labs:
                 self.logging.info("ADD %s adding lab to database", user_email)
-                # TODO: Change after first prod push
-                # user_responded_date = user_cml_labs[cml_lab_id]["created_date"]
+                user_responded_date = user_cml_labs[cml_lab_id]["created_date"]
                 user_responded_date = datetime.today()
                 lab_title = user_cml_labs[cml_lab_id]["title"]
                 self.dynamodb.add_cml_lab(

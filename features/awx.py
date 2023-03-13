@@ -644,12 +644,12 @@ async def handle_labbing_card(activity):
     dynamodb = boto3.resource(
         "dynamodb",
         region_name="",  # TODO change these from colab when going to prod
-        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
-        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
+        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY,
     )
 
     table = dynamodb.Table(
-        # Table Name
+        "colab_directory" # Table Name
     )  # TODO remove dev extension when pushing to prod
 
     cml_server = CONFIG.SERVER_LIST.split(",")[0]
