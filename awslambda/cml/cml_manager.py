@@ -174,7 +174,6 @@ class CMLManager:
             if cml_lab_id not in user_database_labs:
                 self.logging.info("ADD %s adding lab to database", user_email)
                 user_responded_date = user_cml_labs[cml_lab_id]["created_date"]
-                user_responded_date = datetime.today()
                 lab_title = user_cml_labs[cml_lab_id]["title"]
                 self.dynamodb.add_cml_lab(
                     user_email, cml_lab_id, lab_title, user_responded_date
