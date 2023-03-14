@@ -299,7 +299,7 @@ class CMLManager:
             days_till_deletion = (
                 lab_stopped_date + timedelta(days=self.DELETE_DAYS) - datetime.today()
             ).days
-
+            lab_title = lab_title.replace("'", "`")
             message += (
                 f"\n- Lab: {lab_title} | Days till deletion: {days_till_deletion} days"
             )
@@ -330,6 +330,7 @@ class CMLManager:
         seperate = "true"
         for lab_id, lab_title, last_used_date in labs:
             last_seen = (datetime.today() - last_used_date).days
+            lab_title = lab_title.replace("'", "`")
             labs_to_send.append(
                 {
                     "name": lab_title,
