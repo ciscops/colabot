@@ -642,25 +642,25 @@ async def handle_labbing_card(activity):
 
     dynamodb = boto3.resource(
         "dynamodb",
-        region_name=CONFIG.AWS_REGION_COLAB,  # TODO change these from colab when going to prod
-        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
-        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
+        region_name=CONFIG.AWS_REGION,  # TODO change these from colab when going to prod
+        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY,
     )
 
     table = dynamodb.Table(
-        "colab_directory_dev"  # Table Name
+        "colab_directory"  # Table Name
     )  # TODO remove dev extension when pushing to prod
 
     cml_server = CONFIG.SERVER_LIST.split(",")[0]
-    #user_and_domain = user_email.split("@")
-    #cml_password = await get_cml_password(user_email, table)
-    cml_user = CML(CONFIG.CML_USERNAME, CONFIG.CML_PASSWORD, cml_server)
+    user_and_domain = user_email.split("@")
+    cml_password = await get_cml_password(user_email, table)
+    cml_user = CML(user_and_domain[0], cml_password, cml_server)
 
     url = "https://" + cml_server + "/"
     client = ClientLibrary(
         url,
-        CONFIG.CML_USERNAME,
-        CONFIG.CML_PASSWORD,
+        user_email.split("@")[0],
+        cml_password,
         ssl_verify=False,
         raise_for_auth_failure=True,
     )
