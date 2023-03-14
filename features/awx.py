@@ -642,7 +642,7 @@ async def handle_labbing_card(activity):
 
     dynamodb = boto3.resource(
         "dynamodb",
-        region_name="",  # TODO change these from colab when going to prod
+        region_name=CONFIG.AWS_REGION,
         aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID,
         aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY,
     )
