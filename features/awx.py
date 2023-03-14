@@ -619,7 +619,7 @@ async def handle_labbing_card(activity):
     """handles the are cml lab check in card"""
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
     card_type = activity["inputs"]["type"]
-    all_labs = json.loads(activity["inputs"]["allLabIds"].replace("'", '"'))
+    all_labs = activity["inputs"]["allLabIds"]
     user_email = activity["inputs"]["email"]
     card_sent_date = activity["inputs"]["card_sent_date"]
     card_response_limit = activity["inputs"]["card_response_limit"]
