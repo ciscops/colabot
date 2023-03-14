@@ -644,7 +644,7 @@ async def handle_labbing_card(activity):
         "dynamodb",
         region_name=CONFIG.AWS_REGION,  # TODO change these from colab when going to prod
         aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS,
+        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY,
     )
 
     table = dynamodb.Table(
