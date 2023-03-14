@@ -54,7 +54,11 @@
                         "type": "Selection",
                         "email": "{{ user_email }}",
                         "card_feature_index": "cml_labbing_card",
-                        "allLabIds": "{{ all_lab_ids }}",
+                        "allLabIds": {
+                        {% for lab_id, lab_title in all_lab_ids.items() %}
+                            "{{ lab_id }}": "{{ lab_title }}"{{ ',' if not loop.last }}
+                        {% endfor %}
+                        },
                         "card_sent_date": "{{ card_sent_date }}",
                         "card_response_limit": "{{ card_response_limit }}"
                     }
@@ -67,7 +71,11 @@
                         "type": "DeleteAll",
                         "email": "{{ user_email }}",
                         "card_feature_index": "cml_labbing_card",
-                        "allLabIds": "{{ all_lab_ids }}",
+                        "allLabIds": {
+                        {% for lab_id, lab_title in all_lab_ids.items() %}
+                            "{{ lab_id }}": "{{ lab_title }}"{{ ',' if not loop.last }}
+                        {% endfor %}
+                        },
                         "card_sent_date": "{{ card_sent_date }}",
                         "card_response_limit": "{{ card_response_limit }}"
                     }
@@ -80,7 +88,11 @@
                         "type": "KeepAll",
                         "email": "{{ user_email }}",
                         "card_feature_index": "cml_labbing_card",
-                        "allLabIds": "{{ all_lab_ids }}",
+                        "allLabIds": {
+                        {% for lab_id, lab_title in all_lab_ids.items() %}
+                            "{{ lab_id }}": "{{ lab_title }}"{{ ',' if not loop.last }}
+                        {% endfor %}
+                        },
                         "card_sent_date": "{{ card_sent_date }}",
                         "card_response_limit": "{{ card_response_limit }}"
                     }
