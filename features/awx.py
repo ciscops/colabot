@@ -652,15 +652,15 @@ async def handle_labbing_card(activity):
     )  # TODO remove dev extension when pushing to prod
 
     cml_server = CONFIG.SERVER_LIST.split(",")[0]
-    user_and_domain = user_email.split("@")
-    cml_password = await get_cml_password(user_email, table)
-    cml_user = CML(user_and_domain[0], cml_password, cml_server)
+    #user_and_domain = user_email.split("@")
+    #cml_password = await get_cml_password(user_email, table)
+    cml_user = CML(CONFIG.CML_USERNAME, CONFIG.CML_PASSWORD, cml_server)
 
     url = "https://" + cml_server + "/"
     client = ClientLibrary(
         url,
-        user_email.split("@")[0],
-        cml_password,
+        CONFIG.CML_USERNAME,
+        CONFIG.CML_PASSWORD,
         ssl_verify=False,
         raise_for_auth_failure=True,
     )
