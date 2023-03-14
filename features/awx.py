@@ -619,7 +619,7 @@ async def handle_labbing_card(activity):
     """handles the are cml lab check in card"""
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
     card_type = activity["inputs"]["type"]
-    all_labs = json.loads(activity["inputs"]["allLabIds"].replace("'", '"'))
+    all_labs = activity["inputs"]["allLabIds"]
     user_email = activity["inputs"]["email"]
     card_sent_date = activity["inputs"]["card_sent_date"]
     card_response_limit = activity["inputs"]["card_response_limit"]
@@ -642,7 +642,7 @@ async def handle_labbing_card(activity):
 
     dynamodb = boto3.resource(
         "dynamodb",
-        region_name=CONFIG.AWS_REGION,
+        region_name=CONFIG.AWS_REGION,  # TODO change these from colab when going to prod
         aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID,
         aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY,
     )
