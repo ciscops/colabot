@@ -5,12 +5,14 @@ import json
 import re
 import tempfile
 from datetime import datetime, date
+import ipaddress
 from cryptography.fernet import Fernet
 import aiohttp
 import pymongo
 import urllib3
 import boto3
 from boto3.dynamodb.conditions import Key
+import pynetbox
 import yaml
 from virl2_client import ClientLibrary
 from jinja2 import Template
@@ -1083,3 +1085,65 @@ async def get_iam_user(iam_username, iam=None):
         return
 
     return user
+
+
+async def request_ip(activity):
+    """Allocates a static ip from netbox for lab use"""
+    date_format = "%m/%d/%Y"
+    url = "https://netbox3.aws.ciscops.net"
+    token = "0123456789abcdef0123456789abcdef01234567"
+
+    username = activity["sender_email"].split("@")[0]
+
+    nb = pynetbox.api(url, token)
+
+    # Find static ip pool
+    ip_ranges = nb.ipam.ip_ranges.all()
+    ip_range = None
+    for ip_range in ip_ranges:
+        if "Static IPs" in ip_range["description"]:
+            break
+
+    # ip_type = ip_range.family.label
+    # check if ipv4 or 6 - below assumes 4
+
+    start_address = ip_range.start_address
+    mask = start_address[-3:]
+    net = ipaddress.ip_network(start_address, False)
+
+    # Find first available ip
+    valid_ip = False
+    for ip in net:
+        ip = str(ip) + mask
+
+        # make sure to only check at start of range, not start of net
+        if ip == start_address:
+            valid_ip = True
+        if not valid_ip:
+            continue
+
+        address = nb.ipam.ip_addresses.get(address=ip)
+        if address is None:
+            # Not made - so create
+            address = nb.ipam.ip_addresses.create(get_ipv4_dict(ip))
+            break
+
+        if address.custom_fields["username_assigned"] is None:
+            break
+
+    if address is None:
+        raise Exception("There are no more ips available")
+
+    # assign to user
+    address.custom_fields["username_assigned"] = username
+    address.custom_fields["date_last_used"] = date.today().strftime(date_format)
+    address.save()
+
+    webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
+    message = f"""New static IP Address assigned: { address }"""
+    await webex.post_message_to_webex(message)
+
+
+def get_ipv4_dict(ip_address: str):
+    """Helper function for static ip requests"""
+    return {"family": 4, "address": ip_address, "vrf": None}

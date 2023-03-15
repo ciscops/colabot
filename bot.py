@@ -48,6 +48,7 @@ help_menu_list = [
     "**Reset AWS key** > delete key and create new key\n",
     "**Delete AWS key** > deletes access key\n",
     "**AWS key status** > shows the status of all aws access keys\n",
+    "**Request ip address** > allocates an static ip address\n",
     "**Create accounts** > create base COLAB accounts\n",
     "**Delete accounts** > delete COLAB accounts\n",
     "**Reset passwords** > resets all COLAB associated passwords\n",
@@ -305,6 +306,9 @@ class COLABot:
 
             elif self.activity.get("text") == "delete accounts":
                 await awx.delete_accounts(self.activity)
+
+            elif self.activity.get("text") == "request ip addresss":
+                await awx.request_ip(self.activity)
 
             elif (
                 self.activity.get("text")[:3] == "cml"
