@@ -1089,6 +1089,7 @@ async def get_iam_user(iam_username, iam=None):
 
 async def request_ip(activity):
     """Allocates a static ip from netbox for lab use"""
+    webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
     date_format = "%m/%d/%Y"
     url = "https://netbox3.aws.ciscops.net"
     token = "0123456789abcdef0123456789abcdef01234567"
@@ -1132,14 +1133,14 @@ async def request_ip(activity):
             break
 
     if address is None:
-        raise Exception("There are no more ips available")
+        await webex.post_message_to_webex("There are no more ips available")
+        return
 
     # assign to user
     address.custom_fields["username_assigned"] = username
     address.custom_fields["date_last_used"] = date.today().strftime(date_format)
     address.save()
 
-    webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
     message = f"""New static IP Address assigned: { address }"""
     await webex.post_message_to_webex(message)
 
