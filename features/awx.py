@@ -11,7 +11,7 @@ import aiohttp
 import pymongo
 import urllib3
 import boto3
-from boto3.dynamodb.conditions import Key
+from boto3.dynamodb.conditions import Key, Attr
 import pynetbox
 import yaml
 from virl2_client import ClientLibrary
@@ -1089,22 +1089,38 @@ async def get_iam_user(iam_username, iam=None):
 
 async def request_ip(activity):
     """Allocates a static ip from netbox for lab use"""
-    webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
     date_format = "%m/%d/%Y"
+    date_string = date.today().strftime(date_format)
     url = "https://netbox3.aws.ciscops.net"
     token = "0123456789abcdef0123456789abcdef01234567"
-
     username = activity["sender_email"].split("@")[0]
 
+    ## APIs
     nb = pynetbox.api(url, token)
 
-    # Find static ip pool
+    webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
+
+    dynamodb = boto3.resource(
+        "dynamodb",
+        region_name=CONFIG.AWS_REGION,  # TODO change these from colab when going to prod
+        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY,
+    )
+
+    table = dynamodb.Table(
+        "colab_directory"  # Table Name
+    )  # TODO remove dev extension when pushing to prod
+
+    # Find static ip pool on netbox
     ip_ranges = nb.ipam.ip_ranges.all()
     ip_range = None
     for ip_range in ip_ranges:
         if "Static IPs" in ip_range["description"]:
             break
-
+    if ip_range is None:
+        message = f"""No IP pool could be found on Netbox"""
+        await webex.post_message_to_webex(message)
+        return False
     # ip_type = ip_range.family.label
     # check if ipv4 or 6 - below assumes 4
 
@@ -1125,7 +1141,7 @@ async def request_ip(activity):
 
         address = nb.ipam.ip_addresses.get(address=ip)
         if address is None:
-            # Not made - so create
+            # IP not made on netbox - so create
             address = nb.ipam.ip_addresses.create(get_ipv4_dict(ip))
             break
 
@@ -1134,16 +1150,44 @@ async def request_ip(activity):
 
     if address is None:
         await webex.post_message_to_webex("There are no more ips available")
-        return
+        return False
 
-    # assign to user
+    # assign to user on netbox
     address.custom_fields["username_assigned"] = username
-    address.custom_fields["date_last_used"] = date.today().strftime(date_format)
+    address.custom_fields["date_last_used"] = date_string
     address.save()
 
+    ## insert ip into database
+    
+    # check to see if ip field already there
+    response = table.query(
+        KeyConditionExpression=Key("email").eq(activity["sender_email"]),
+        FilterExpression=Attr("ip_addresses").exists(),
+    )
+
+    # create ip field map if it doesn't exist
+    if response["Count"] == 0:
+        table.update_item(
+            Key={"email": activity["sender_email"]},
+            UpdateExpression="SET #ip_addresses= :value",
+            ExpressionAttributeNames={"#ip_addresses": "ip_addresses"},
+            ExpressionAttributeValues={":value": ""},
+        )
+
+    # insert new ip
+    table.update_item(
+        Key={"email": activity["sender_email"]},
+        UpdateExpression="SET #ip_addresses.#ip_address= :ip_data",
+        ExpressionAttributeNames={
+            "#ip_addresses": "ip_addresses",
+            "#ip_address": address,
+        },
+        ExpressionAttributeValues={":ip_data": date_string},
+    )
+
+    # message user
     message = f"""New static IP Address assigned: { address }"""
     await webex.post_message_to_webex(message)
-
 
 def get_ipv4_dict(ip_address: str):
     """Helper function for static ip requests"""
