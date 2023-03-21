@@ -307,7 +307,7 @@ class COLABot:
             elif self.activity.get("text") == "delete accounts":
                 await awx.delete_accounts(self.activity)
 
-            elif self.activity.get("text") == "request ip addresss":
+            elif self.activity.get("text") == "request ip":
                 await awx.request_ip(self.activity)
 
             elif (
