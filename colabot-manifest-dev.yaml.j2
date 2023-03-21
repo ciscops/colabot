@@ -119,7 +119,14 @@ spec:
                 name: colabot-dev-1-secret
                 key: aws_password
           - name: COLABOT_SECRET
-            value: {{ COLABOT_SECRET }}      
+            value: {{ COLABOT_SECRET }}    
+          - name: AWS_DYNAMO_TABLE
+            value: {{ DYNAMO_TABLE_DEV }}
+          - name: NETBOX_URL
+            value: {{ NETBOX_URL_DEV }}    
+          - name: NETBOX_TOKEN
+            value: {{ NETBOX_TOKEN_DEV }} 
+
 
 ---
 

@@ -44,4 +44,8 @@ class DefaultConfig:
     AWS_REGION = os.environ.get("AWS_REGION", "xxxx")
     AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID", "xxxx")
     AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY", "xxxx")
+    AWS_DYNAMO_TABLE = os.environ.get("AWS_DYNAMO_TABLE")
     COLABOT_CYPHER = os.environ.get("COLABOT_SECRET")
+    NETBOX_URL = os.environ.get("NETBOX_URL")
+    NETBOX_TOKEN = os.environ.get("NETBOX_TOKEN")
+    
