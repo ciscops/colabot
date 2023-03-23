@@ -110,7 +110,7 @@ spec:
           - name: ADMINISTRATORS
             value: {{ ADMINISTRATORS_DEV }}
           - name: AWS_ACCESS_KEY_ID
-            value: {{ AWS_ACCESS_KEY_ID }}
+            value: {{ AWS_ACCESS_KEY_ID_COLAB }}
           - name: AWS_REGION
             value: 'us-east-1'
           - name: AWS_SECRET_ACCESS_KEY
@@ -118,17 +118,15 @@ spec:
               secretKeyRef:
                 name: colabot-dev-1-secret
                 key: aws_password
-          - name: AWS_ACCESS_KEY_ID_COLAB
-            value: {{ AWS_ACCESS_KEY_ID_COLAB }}
-          - name: AWS_REGION_COLAB
-            value: {{ AWS_REGION_COLAB }}
-          - name: AWS_SECRET_ACCESS_KEY_COLAB
-            valueFrom:
-              secretKeyRef:
-                name: colabot-dev-1-secret
-                key: aws_password_colab
           - name: COLABOT_SECRET
-            value: {{ COLABOT_SECRET }}      
+            value: {{ COLABOT_SECRET }}    
+          - name: AWS_DYNAMO_TABLE
+            value: {{ DYNAMO_TABLE_DEV }}
+          - name: NETBOX_URL
+            value: {{ NETBOX_URL_DEV }}    
+          - name: NETBOX_TOKEN
+            value: {{ NETBOX_TOKEN_DEV }} 
+
 
 ---
 
