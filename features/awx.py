@@ -1098,7 +1098,7 @@ async def request_ip(activity):
         if "static ips" in ip_range["description"].lower():
             break
     if ip_range is None:
-        message = f"""No IP pool could be found on Netbox"""
+        message = """No IP pool could be found on Netbox"""
         await webex.post_message_to_webex(message)
         return False
     
@@ -1153,7 +1153,7 @@ async def request_ip(activity):
             Key={"email": activity["sender_email"]},
             UpdateExpression="SET #ip_addresses= :value",
             ExpressionAttributeNames={"#ip_addresses": "ip_addresses"},
-            ExpressionAttributeValues={":value": ""},
+            ExpressionAttributeValues={":value": {}},
         )
 
     # insert new ip
@@ -1164,7 +1164,11 @@ async def request_ip(activity):
             "#ip_addresses": "ip_addresses",
             "#ip_address": address,
         },
-        ExpressionAttributeValues={":ip_data": date_string},
+        ExpressionAttributeValues={
+            ":ip_data": {
+                "date_last_used": date_string,
+            }
+        },
     )
 
     # message user
