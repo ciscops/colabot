@@ -1089,17 +1089,7 @@ async def request_ip(activity):
     ## APIs
     nb = pynetbox.api(url, token)
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
-    #table = get_dynamo_colab_table()
-    dynamodb = boto3.resource(
-        "dynamodb",
-        region_name=CONFIG.AWS_REGION,  # TODO change these from colab when going to prod
-        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY,
-    )
-
-    table = dynamodb.Table(
-        CONFIG.AWS_DYNAMO_TABLE  # Table Name
-    )
+    table = get_dynamo_colab_table()
 
     # Find static ip pool on netbox
     ip_ranges = nb.ipam.ip_ranges.all()
@@ -1108,11 +1098,14 @@ async def request_ip(activity):
         if "static ips" in ip_range["description"].lower():
             break
     if ip_range is None:
-        message = """No IP pool could be found on Netbox"""
+        message = dict(
+            text="No IP pool could be found on Netbox",
+            toPersonId=activity["sender"],
+        )
         await webex.post_message_to_webex(message)
         return False
-    
-    #ip_type = ip_range.family.label
+
+    # ip_type = ip_range.family.label
     # check if ipv4 or 6 - below assumes 4
 
     start_address = ip_range.start_address
@@ -1141,7 +1134,11 @@ async def request_ip(activity):
             break
 
     if address is None:
-        await webex.post_message_to_webex("There are no more ips available")
+        message = dict(
+            text="There are no more ips available",
+            toPersonId=activity["sender"],
+        )
+        await webex.post_message_to_webex(message)
         return False
 
     # assign to user on netbox
@@ -1150,7 +1147,7 @@ async def request_ip(activity):
     address.save()
 
     ## insert ip into database
-    
+
     # check to see if ip field already there
     response = table.query(
         KeyConditionExpression=Key("email").eq(activity["sender_email"]),
@@ -1182,12 +1179,17 @@ async def request_ip(activity):
     )
 
     # message user
-    message = f"""New static IP Address assigned: { address }"""
+    message = dict(
+        text=f"New static IP Address assigned: { str(address) }",
+        toPersonId=activity["sender"],
+    )
     await webex.post_message_to_webex(message)
+
 
 def get_ipv4_dict(ip_address: str):
     """Helper function for static ip requests"""
     return {"family": 4, "address": ip_address, "vrf": None}
+
 
 def get_dynamo_colab_table():
     """Returns dynamo colab table"""
@@ -1198,8 +1200,6 @@ def get_dynamo_colab_table():
         aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY,
     )
 
-    table = dynamodb.Table(
-        CONFIG.AWS_DYNAMO_TABLE  # Table Name
-    )
+    table = dynamodb.Table(CONFIG.AWS_DYNAMO_TABLE)  # Table Name
 
     return table
