@@ -1089,7 +1089,17 @@ async def request_ip(activity):
     ## APIs
     nb = pynetbox.api(url, token)
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
-    table = get_dynamo_colab_table()
+    #table = get_dynamo_colab_table()
+    dynamodb = boto3.resource(
+        "dynamodb",
+        region_name=CONFIG.AWS_REGION,  # TODO change these from colab when going to prod
+        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY,
+    )
+
+    table = dynamodb.Table(
+        CONFIG.AWS_DYNAMO_TABLE  # Table Name
+    )
 
     # Find static ip pool on netbox
     ip_ranges = nb.ipam.ip_ranges.all()
