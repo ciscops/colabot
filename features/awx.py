@@ -1081,8 +1081,9 @@ async def get_iam_user(iam_username, iam=None):
 async def request_ip(activity):
     """Allocates a static ip from netbox for cml lab use"""
     date_string = str(int(datetime.timestamp(datetime.now())))
-    url = CONFIG.NETBOX_URL
-    token = CONFIG.NETBOX_TOKEN
+    url = str(CONFIG.NETBOX_URL)
+    logging.info("MY AWESOME URL: %s", url)
+    token = str(CONFIG.NETBOX_TOKEN)
     username = activity["sender_email"].split("@")[0]
 
     ## APIs
