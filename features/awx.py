@@ -1172,7 +1172,7 @@ async def request_ip(activity):
         UpdateExpression="SET #ip_addresses.#ip_address= :ip_data",
         ExpressionAttributeNames={
             "#ip_addresses": "ip_addresses",
-            "#ip_address": address,
+            "#ip_address": str(address),
         },
         ExpressionAttributeValues={
             ":ip_data": {
