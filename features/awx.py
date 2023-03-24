@@ -1183,7 +1183,7 @@ def get_available_ip(
         address = nb.ipam.ip_addresses.get(address=ip)
         if address is None:
             # IP not made on netbox - so create
-            address = nb.ipam.ip_addresses.create(get_ipv4_dict(ip))
+            address = nb.ipam.ip_addresses.create(get_ipv4_creation_dict(ip))
             break
 
         # ip created but not assigned - what we want

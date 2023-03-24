@@ -41,7 +41,8 @@ help_menu_list = [
     "**CML show IP addresses** > show IP addresses\n",
     "**CML show server utilization** > show current CPU and Memory usage\n",
     "**CML stop lab** > stop labs of your choice\n",
-    "**Request static IP address** > allocates an static ip address for CML\n",
+    "**Request IP** > allocates a static ip address for CML\n",
+    "**List my IPs** > lists static IPs allocated to you for CML"
     "**Create AWS account** > create AWS COLAB account\n",
     "**Create VPN account** > create an AnyConnect to COLAB VPN account\n",
     "**Create AWS key** > create aws access key\n",
@@ -309,6 +310,9 @@ class COLABot:
 
             elif self.activity.get("text") == "request ip":
                 await awx.request_ip(self.activity)
+
+            elif self.activity.get("text") == "list my ips":
+                await awx.list_my_ips(self.activity)
 
             elif (
                 self.activity.get("text")[:3] == "cml"
