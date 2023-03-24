@@ -42,7 +42,7 @@ help_menu_list = [
     "**CML show server utilization** > show current CPU and Memory usage\n",
     "**CML stop lab** > stop labs of your choice\n",
     "**Request IP** > allocates a static ip address for CML\n",
-    "**List my IPs** > lists static IPs allocated to you for CML"
+    "**List my IPs** > lists static IPs allocated to you for CML\n",
     "**Create AWS account** > create AWS COLAB account\n",
     "**Create VPN account** > create an AnyConnect to COLAB VPN account\n",
     "**Create AWS key** > create aws access key\n",
