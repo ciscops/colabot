@@ -1080,6 +1080,7 @@ async def get_iam_user(iam_username, iam=None):
 
 async def request_ip(activity):
     """Allocates a static ip from netbox for cml lab use"""
+    ip_limit = 10
     date_string = str(int(datetime.timestamp(datetime.now())))
     url = str(CONFIG.NETBOX_URL)
     logging.info("MY AWESOME URL: %s", url)
@@ -1090,6 +1091,20 @@ async def request_ip(activity):
     nb = pynetbox.api(url, token)
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
     table = get_dynamo_colab_table()
+
+    ## make sure user under ip limit
+    response = table.query(
+            KeyConditionExpression=Key("email").eq(activity["sender_email"])
+        )
+
+    if "ip_addresses" in response["Items"][0] and len(response["Items"][0]["ip_addresses"]) >= ip_limit:
+        message = dict(
+            text=f"You have reached the limit of { ip_limit } reserved ip addresses",
+            toPersonId=activity["sender"],
+        )
+        await webex.post_message_to_webex(message)
+        return False
+
 
     # Find static ip pool on netbox
     ip_ranges = nb.ipam.ip_ranges.all()
@@ -1130,7 +1145,7 @@ async def request_ip(activity):
             break
 
         # ip created but not assigned
-        if address.custom_fields["username_assigned"] is None:
+        if address.description == "" and address.status == "active":
             break
 
     if address is None:
@@ -1142,8 +1157,8 @@ async def request_ip(activity):
         return False
 
     # assign to user on netbox
-    address.custom_fields["username_assigned"] = username
-    address.custom_fields["date_last_used"] = date_string
+    address.description = username
+    address.status = 'reserved'
     address.save()
 
     ## insert ip into database
@@ -1184,6 +1199,8 @@ async def request_ip(activity):
         toPersonId=activity["sender"],
     )
     await webex.post_message_to_webex(message)
+
+    return True
 
 
 def get_ipv4_dict(ip_address: str):
