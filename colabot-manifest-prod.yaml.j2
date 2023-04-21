@@ -98,6 +98,8 @@ spec:
               secretKeyRef:
                 name: colabot-prod-1-secret
                 key: nlp_secret
+          - name: VCENTER_SERVER
+            value: {{ VCENTER_SERVER }}
           - name: ADMINISTRATORS
             value: {{ ADMINISTRATORS_PROD }}
           - name: AWS_ACCESS_KEY_ID

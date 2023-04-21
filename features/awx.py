@@ -73,6 +73,7 @@ async def create_accounts(activity):
             "cml_server_list": urls_cml_servers,
             "colab_user_email": activity["sender_email"],
             "colab_user_username": user_and_domain[0],
+            "vcenter_address": CONFIG.VCENTER_SERVER,
         }
     }
     auth = aiohttp.BasicAuth(
@@ -147,6 +148,7 @@ async def create_aws_account(activity):
             "cml_server_list": urls_cml_servers,
             "colab_user_email": activity["sender_email"],
             "colab_user_username": user_and_domain[0],
+            "vcenter_address": CONFIG.VCENTER_SERVER,
         }
     }
     auth = aiohttp.BasicAuth(
@@ -207,6 +209,7 @@ async def create_vpn_account(activity):
             "cml_server_list": urls_cml_servers,
             "colab_user_email": activity["sender_email"],
             "colab_user_username": user_and_domain[0],
+            "vcenter_address": CONFIG.VCENTER_SERVER,
         }
     }
     auth = aiohttp.BasicAuth(
@@ -953,6 +956,7 @@ async def delete_accounts(activity):
                 "colab_user_email": activity["sender_email"],
                 "colab_user_username": user_and_domain[0],
                 "colab_user_password": activity["inputs"]["colab_password"],
+                "vcenter_address": CONFIG.VCENTER_SERVER,
             }
         }
         auth = aiohttp.BasicAuth(
@@ -1026,6 +1030,7 @@ async def bot_delete_accounts(activity):
             "colab_user_email": activity["sender_email"],
             "colab_user_username": user_and_domain[0],
             "colab_room_id": CONFIG.AUTHORIZED_ROOMS,
+            "vcenter_address": CONFIG.VCENTER_SERVER,
         }
     }
     auth = aiohttp.BasicAuth(

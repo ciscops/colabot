@@ -36,6 +36,7 @@ class DefaultConfig:
     AWX_PASSWORD = os.environ.get("AWX_PASSWORD", "")
     NLP_SERVER = os.environ.get("NLP_SERVER", "nlp-server.example.com")
     NLP_SECRET = os.environ.get("NLP_SECRET", "xxxx")
+    VCENTER_SERVER = os.environ.get("VCENTER_SERVER", "vcenter.example.com")
     AWX_SERVER = os.environ.get("AWX_SERVER", "xxxx")
     ADMINISTRATORS = os.environ.get(
         "ADMINISTRATORS", "admin1@domain.com,admin2@domain.com"
