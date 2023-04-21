@@ -98,7 +98,6 @@ jobs:
           AWX_SERVER: ${{ secrets.AWX_SERVER }}
           AWX_USERNAME: ${{ secrets.AWX_USERNAME }}
           NLP_SERVER_PROD: ${{ secrets.NLP_SERVER_PROD }}
-          VCENTER_SERVER: ${{ secrets.VCENTER_SERVER }}
           ADMINISTRATORS_PROD: ${{ secrets.ADMINISTRATORS_PROD }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_REGION_COLAB: ${{ secrets.AWS_REGION_COLAB }}
