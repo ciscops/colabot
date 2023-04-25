@@ -376,9 +376,9 @@ async def reset_aws_key(activity, iam_username, key_list):
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
     iam = boto3.resource(
         "iam",
-        region_name=CONFIG.AWS_REGION_COLAB,
-        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
-        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
+        region_name=CONFIG.AWS_REGION,
+        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY,
     )
 
     user = await get_iam_user(iam_username, iam)
@@ -456,9 +456,9 @@ async def delete_aws_key(activity, iam_username, key_list, iam=None, webex=None)
     if iam is None:
         iam = boto3.resource(
             "iam",
-            region_name=CONFIG.AWS_REGION_COLAB,
-            aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
-            aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
+            region_name=CONFIG.AWS_REGION,
+            aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY,
         )
 
     key_message = PRE_CODE_SNIPPET
@@ -1070,9 +1070,9 @@ async def get_iam_user(iam_username, iam=None):
     if iam is None:
         iam = boto3.resource(
             "iam",
-            region_name=CONFIG.AWS_REGION_COLAB,
-            aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_COLAB,
-            aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_COLAB,
+            region_name=CONFIG.AWS_REGION,
+            aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY,
         )
 
     try:
