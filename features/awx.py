@@ -114,8 +114,8 @@ async def create_accounts(activity):
                 attachments=[],
             )
         else:
-            message = dict(
-                text=awx_server_error_message + str(res.status),
+            message = dict( # + str(res.status)
+                text=awx_server_error_message,
                 roomId=activity["roomId"],
                 attachments=[],
             )
