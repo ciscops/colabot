@@ -155,7 +155,7 @@ async def create_aws_account(activity):
         login=CONFIG.AWX_USERNAME, password=CONFIG.AWX_PASSWORD, encoding="utf-8"
     )
     session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=60), auth=auth)
-    logging.debug("%s %s", logging_message, session)
+    logging.debug("%s %s URL: %s", logging_message, session, url)
     try:
         async with session.request(
             method="POST", url=url, headers=headers, data=json.dumps(body), ssl=False
