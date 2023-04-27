@@ -68,7 +68,7 @@ async def create_accounts(activity):
         id_template = "10"  # for dev
     
 
-    url1 = f"https://{CONFIG.AWX_SERVER}"
+    url1 = f"https://{CONFIG.AWX_SERVER}:443"
 
     try:
         async with aiohttp.ClientSession(trust_env=True, timeout=aiohttp.ClientTimeout(total=60)) as session:
