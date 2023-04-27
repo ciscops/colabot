@@ -67,7 +67,7 @@ async def create_accounts(activity):
         id_template = "10"  # for dev
     
 
-    url1 = f"https://{CONFIG.AWX_SERVER}"
+    url1 = f"https://www.google.com"
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(url1) as response:
