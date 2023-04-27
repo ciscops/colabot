@@ -72,7 +72,7 @@ async def create_accounts(activity):
 
     try:
         async with aiohttp.ClientSession(trust_env=True, timeout=aiohttp.ClientTimeout(total=60)) as session:
-            async with session.get(url1) as response:
+            async with session.request(url=url1, method="GET", ssl=False) as response:
                 if response.status == 200:
                     logging.debug(f"Success: {url1} is accessible")
                 else:
