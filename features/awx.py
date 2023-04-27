@@ -71,16 +71,7 @@ async def create_accounts(activity):
     url1 = f"https://{CONFIG.AWX_SERVER}"
 
     try:
-        response = requests.get(url1)
-        if response.status_code == 200:
-            logging.debug(f"Success: {url1} is accessible")
-        else:
-            logging.debug(f"Error: {url1} returned status code {response.status_code}")
-    except requests.exceptions.RequestException as error:
-        logging.debug(f"Error: {url1} could not be accessed ({error})")
-
-    try:
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(trust_env=True) as session:
             async with session.get(url1) as response:
                 if response.status == 200:
                     logging.debug(f"Success: {url1} is accessible")
