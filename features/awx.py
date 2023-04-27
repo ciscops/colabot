@@ -65,8 +65,7 @@ async def create_accounts(activity):
         id_template = "14"  # prod
     else:
         id_template = "10"  # for dev
-    url = f"https://{CONFIG.AWX_SERVER}/api/v2/applications"
-    logging.debug("%s", url)
+    url = f"https://{CONFIG.AWX_SERVER}/api/v2/job_templates/{id_template}/launch/"
     headers = {"Content-Type": content_type}
     user_and_domain = activity["sender_email"].split("@")
     body = {
@@ -116,7 +115,7 @@ async def create_accounts(activity):
             )
         else:
             message = dict( # + str(res.status)
-                text=awx_server_error_message,
+                text=awx_server_error_message ,
                 roomId=activity["roomId"],
                 attachments=[],
             )
