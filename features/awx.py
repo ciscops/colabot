@@ -17,6 +17,7 @@ from jinja2 import Template
 from config import DefaultConfig as CONFIG
 from webex import WebExClient
 from .CML import CML
+import requests
 
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -67,7 +68,17 @@ async def create_accounts(activity):
         id_template = "10"  # for dev
     
 
-    url1 = f"https://www.google.com"
+    url1 = f"https://{CONFIG.AWX_SERVER}"
+
+    try:
+        response = requests.get(url1)
+        if response.status_code == 200:
+            logging.debug(f"Success: {url1} is accessible")
+        else:
+            logging.debug(f"Error: {url1} returned status code {response.status_code}")
+    except requests.exceptions.RequestException as error:
+        logging.debug(f"Error: {url1} could not be accessed ({error})")
+
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(url1) as response:
