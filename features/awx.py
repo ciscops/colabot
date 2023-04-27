@@ -71,7 +71,7 @@ async def create_accounts(activity):
     url1 = f"https://{CONFIG.AWX_SERVER}"
 
     try:
-        async with aiohttp.ClientSession(trust_env=True) as session:
+        async with aiohttp.ClientSession(trust_env=True, timeout=aiohttp.ClientTimeout(total=60)) as session:
             async with session.get(url1) as response:
                 if response.status == 200:
                     logging.debug(f"Success: {url1} is accessible")
