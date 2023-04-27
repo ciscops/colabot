@@ -82,6 +82,7 @@ async def create_accounts(activity):
     session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=60), auth=auth)
     logging.debug("%s %s URL: %s", logging_message, session, url)
     try:
+        logging.debug("Attempt connection to awx")
         async with session.request(
             method="POST", url=url, headers=headers, data=json.dumps(body), ssl=False
         ) as res:
