@@ -104,7 +104,7 @@ async def create_accounts(activity):
             else:
                 await session.close()
     except Exception as e:
-        logging.warning(e)
+        logging.warning(e + 'warning message 1')
         if activity.get("parentId"):
             message = dict(
                 text=awx_server_error_message + str(res.status),
@@ -122,7 +122,7 @@ async def create_accounts(activity):
         try:
             await session.close()
         except Exception as e1:
-            logging.warning(e1)
+            logging.warning(e1 + "warning message 2")
 
 
 async def create_aws_account(activity):
