@@ -80,8 +80,7 @@ async def create_accounts(activity):
         login=CONFIG.AWX_USERNAME, password=CONFIG.AWX_PASSWORD, encoding="utf-8"
     )
     session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=60), auth=auth)
-    logging.debug("%s %s URL: %s", logging_message, session, url)
-    res = { "status" : "empty" }
+    logging.debug("%s %s ", logging_message, session)
     try:
         logging.debug("Attempt connection to awx")
         async with session.request(
