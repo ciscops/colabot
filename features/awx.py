@@ -65,7 +65,8 @@ async def create_accounts(activity):
         id_template = "14"  # prod
     else:
         id_template = "10"  # for dev
-    url = f"https://{CONFIG.AWX_SERVER}/api/v2/"
+    url = f"https://{CONFIG.AWX_SERVER}/api/v2/applications"
+    logging.debug("%s", url)
     headers = {"Content-Type": content_type}
     user_and_domain = activity["sender_email"].split("@")
     body = {
