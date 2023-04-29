@@ -124,6 +124,12 @@ class KeyManager:
                 "%sKey was last used %s days ago", self.log_indent, key_last_used_date
             )
 
+            unused_warn_days = 5
+            unused_delete_days = 45
+            for i in range(unused_warn_days + 1):
+                if key_created_days == self.rotate_days + i and key_last_used_date >= unused_delete_days - unused_warn_days + i:
+                    do_unused = True
+
             key_in_not_used_period = key_last_used_date >= self.warn_days - 5
 
             if (
