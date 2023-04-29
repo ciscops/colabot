@@ -48,4 +48,3 @@ class DefaultConfig:
     COLABOT_CYPHER = os.environ.get("COLABOT_SECRET")
     NETBOX_URL = os.environ.get("NETBOX_URL")
     NETBOX_TOKEN = os.environ.get("NETBOX_TOKEN")
-    
