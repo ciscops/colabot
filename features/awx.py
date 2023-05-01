@@ -17,6 +17,7 @@ from jinja2 import Template
 from config import DefaultConfig as CONFIG
 from webex import WebExClient
 from .CML import CML
+import requests
 
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -80,8 +81,9 @@ async def create_accounts(activity):
         login=CONFIG.AWX_USERNAME, password=CONFIG.AWX_PASSWORD, encoding="utf-8"
     )
     session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=60), auth=auth)
-    logging.debug("%s %s", logging_message, session)
+    logging.debug("%s %s ", logging_message, session)
     try:
+        logging.debug("Attempt connection to awx")
         async with session.request(
             method="POST", url=url, headers=headers, data=json.dumps(body), ssl=False
         ) as res:
