@@ -68,10 +68,11 @@ async def create_accounts(activity):
         id_template = "10"  # for dev
     
 
-    url1 = f"https://{CONFIG.AWX_SERVER}:443"
+    url1 = f"https://{CONFIG.AWX_SERVER}"
+    logging.debug("URL to connect to: %s", url1)
 
     try:
-        async with aiohttp.ClientSession(trust_env=True, timeout=aiohttp.ClientTimeout(total=60)) as session:
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=60)) as session:
             async with session.request(url=url1, method="GET", ssl=False) as response:
                 if response.status == 200:
                     logging.debug(f"Success: {url1} is accessible")
