@@ -66,23 +66,6 @@ async def create_accounts(activity):
         id_template = "14"  # prod
     else:
         id_template = "10"  # for dev
-    
-
-    url1 = f"https://{CONFIG.AWX_SERVER}"
-    logging.debug("URL to connect to: %s", url1)
-
-    try:
-        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=60)) as session:
-            async with session.request(url=url1, method="GET", ssl=False) as response:
-                if response.status == 200:
-                    logging.debug(f"Success: {url1} is accessible")
-                else:
-                    logging.debug(f"Error: {url1} returned status code {response.status}")
-    except aiohttp.ClientError as error:
-        logging.debug(f"Error: {url1} could not be accessed ({error})")
-    
-    
-    
     url = f"https://{CONFIG.AWX_SERVER}/api/v2/job_templates/{id_template}/launch/"
     headers = {"Content-Type": content_type}
     user_and_domain = activity["sender_email"].split("@")
@@ -132,8 +115,8 @@ async def create_accounts(activity):
                 attachments=[],
             )
         else:
-            message = dict( # + str(res.status)
-                text=awx_server_error_message ,
+            message = dict(
+                text=awx_server_error_message + str(res.status),
                 roomId=activity["roomId"],
                 attachments=[],
             )
