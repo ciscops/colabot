@@ -8,7 +8,9 @@ from boto3.dynamodb.conditions import Key, Attr
 
 
 class KeyManager:
-    def __init__(self, group, rotate_days, warn_days, delete_days):
+    def __init__(
+        self, group, rotate_days, unused_delete_days, unused_warn_days, rotate_delete_days
+    ):
         # Initialize logging
         logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
         self.logging = logging.getLogger()
@@ -51,10 +53,11 @@ class KeyManager:
         self.api = WebexTeamsAPI()
         self.dynamodb = boto3.resource("dynamodb")
         self.table = self.dynamodb.Table(self.dynamodb_table_name)
-        self.delete_days = int(delete_days)
+        self.rotate_delete_days = int(rotate_delete_days)
         self.group = group
         self.rotate_days = int(rotate_days)
-        self.warn_days = int(warn_days)
+        self.unused_delete_days = int(unused_delete_days)
+        self.unused_warn_days = int(unused_warn_days)
         self.temp_key_deleted_counter = 0
         self.log_indent = "." * 6
 
@@ -124,15 +127,25 @@ class KeyManager:
                 "%sKey was last used %s days ago", self.log_indent, key_last_used_date
             )
 
-            # test to see if already have been sending card for rotating or unused - and continue to do that so won't switch to the other in the middle 
-            unused_warn_days = 5 # replace 5
-            unused_delete_days = 45 # replace warn days
-            for i in range(unused_warn_days + 1):
-                if key_created_days == self.rotate_days + i and key_last_used_date >= unused_delete_days - unused_warn_days + i:
+            # check to see if 45 days unused delete happens in the 80-90 warn rotate range - prioritize 45 day unused
+            if (
+                self.unused_delete_days - key_last_used_date + key_created_days
+            ) < self.rotate_delete_days:
+                do_unused = True
+
+            # test to see if already have been sending card for rotating or unused - and continue to do that so won't switch to the other in the middle
+            for i in range(self.unused_warn_days + 1):
+                if (
+                    key_created_days == self.rotate_days + i
+                    and key_last_used_date
+                    >= self.unused_delete_days - self.unused_warn_days + i
+                ):
                     do_unused = True
                     break
 
-            key_in_not_used_period = key_last_used_date >= self.warn_days - 5
+            key_in_not_used_period = (
+                key_last_used_date >= self.unused_delete_days - self.unused_warn_days
+            )
 
         if key_created_days >= self.rotate_days and not do_unused:
             # key within the range where we warn and give them a new key
@@ -147,7 +160,7 @@ class KeyManager:
                 )
                 return
 
-            if key_created_days >= self.delete_days:
+            if key_created_days >= self.rotate_delete_days:
                 # key age is >= 90 days old delete key tells the user it's deleted
                 self.delete_key(
                     user_email=user_email,
@@ -171,7 +184,7 @@ class KeyManager:
 
         if key_in_not_used_period:
             # key has been used before and key is within 5 days of unused deadline
-            if key_last_used_date >= self.warn_days:
+            if key_last_used_date >= self.unused_delete_days:
                 # key last used > 45
                 self.delete_key(
                     user_email=user_email,
@@ -204,7 +217,7 @@ class KeyManager:
 
         message = (
             f"Current access key is {self.rotate_days} days old, a new access key has been created. "
-            + f"\n - Old access key {key_id} has {self.delete_days - self.rotate_days} days left before it is expired."
+            + f"\n - Old access key {key_id} has {self.rotate_delete_days - self.rotate_days} days left before it is expired."
             + f"\n - New access key **Access key ID** = ({new_access_key_id}) | **Secret access key** = ({new_secret_access_key})"
         )
 
@@ -232,18 +245,18 @@ class KeyManager:
 
         message = ""
         if expired:
-            message = f"Access key ({key_id}) \n - Age: {key_created_days} days old \n - Maximum lifespan: {self.delete_days} days \n - Status: **Deleted** \n - Reason: exceeds lifespan"
+            message = f"Access key ({key_id}) \n - Age: {key_created_days} days old \n - Maximum lifespan: {self.rotate_delete_days} days \n - Status: **Deleted** \n - Reason: exceeds lifespan"
             self.logging.info(
                 "%sKey is %s old or older, deleting key",
                 self.log_indent,
-                str(self.delete_days),
+                str(self.rotate_delete_days),
             )
         if unused:
-            message = f"Access key ({key_id}) \n - Last used: {self.warn_days} days ago \n - Maximum unused lifespan: {self.warn_days} days \n - Status: **Deleted** \n - Reason: key is not used"
+            message = f"Access key ({key_id}) \n - Last used: {self.unused_delete_days} days ago \n - Maximum unused lifespan: {self.unused_delete_days} days \n - Status: **Deleted** \n - Reason: key is not used"
             self.logging.info(
                 "%sKey has not been used in %s days, deleting key",
                 self.log_indent,
-                str(self.warn_days),
+                str(self.unused_delete_days),
             )
         if inactive:
             message = f"Access key ({key_id}) \n - Status: **Deleted** \n - Reason: key was set to inactive"
@@ -256,20 +269,20 @@ class KeyManager:
     def warn_user(self, user_email, expire, unused, days_to_warn, key_id):
         message = ""
         if expire:
-            message = f"Access key ({key_id}) \n - Age: {days_to_warn} days old \n - Expiration in: {self.delete_days - days_to_warn} days \n - Status: **Warning** \n - Reason: reaching key age limit of {self.delete_days} days \n"
+            message = f"Access key ({key_id}) \n - Age: {days_to_warn} days old \n - Expiration in: {self.rotate_delete_days - days_to_warn} days \n - Status: **Warning** \n - Reason: reaching key age limit of {self.rotate_delete_days} days \n"
             self.logging.info(
                 "%sKey age is between %s-%s days old, warning user of expiration",
                 self.log_indent,
                 str(self.rotate_days),
-                str(self.delete_days),
+                str(self.rotate_delete_days),
             )
         if unused:
-            message = f"Access key ({key_id}) \n - Last used: {days_to_warn} days ago \n - Expiration in: {self.warn_days - days_to_warn} days \n - Status: **Warning** \n - Reason: reaching key unused limit of {self.warn_days} days \n"
+            message = f"Access key ({key_id}) \n - Last used: {days_to_warn} days ago \n - Expiration in: {self.unused_delete_days - days_to_warn} days \n - Status: **Warning** \n - Reason: reaching key unused limit of {self.unused_delete_days} days \n"
             self.logging.info(
                 "%sKey has not been used in %s-%s days, warning user of expiration",
                 self.log_indent,
-                str(self.warn_days - 5),
-                str(self.warn_days),
+                str(self.unused_delete_days - self.unused_warn_days),
+                str(self.unused_delete_days),
             )
 
         self.send_message_to_user(user_email, message)
