@@ -152,31 +152,31 @@ class KeyManager:
                 key_last_used_date >= self.unused_delete_days - self.unused_warn_days
             )
 
-        ## next 3 if's: check if key within the range where we warn and give them a new key
-
-        if key_created_days == self.rotate_days and not do_unused:
-            # Key age is 80, create a new key and deliver to user. Also warn user their now old key will expire in 90 - key age
-
-            self.create_new_key(
-                user_email=user_email,
-                key_id=key_id,
-                user=user,
-            )
-            return
-
-        if key_created_days >= self.rotate_delete_days and not do_unused:
-            # key age is >= 90 days old delete key tells the user it's deleted
-            self.delete_key(
-                user_email=user_email,
-                key_id=key_id,
-                expired=True,
-                unused=False,
-                key_created_days=key_created_days,
-                user=user,
-            )
-            return
-
         if key_created_days >= self.rotate_days and not do_unused:
+            # key within the range where we warn and give them a new key
+
+            if key_created_days == self.rotate_days:
+                # Key age is 80, create a new key and deliver to user. Also warn user their now old key will expire in 90 - key age
+
+                self.create_new_key(
+                    user_email=user_email,
+                    key_id=key_id,
+                    user=user,
+                )
+                return
+
+            if key_created_days >= self.rotate_delete_days:
+                # key age is >= 90 days old delete key tells the user it's deleted
+                self.delete_key(
+                    user_email=user_email,
+                    key_id=key_id,
+                    expired=True,
+                    unused=False,
+                    key_created_days=key_created_days,
+                    user=user,
+                )
+                return
+
             # Key age is between 81 and 89 days, warn user that their key is expiring in 90 - key age
             self.warn_user(
                 user_email=user_email,
@@ -187,21 +187,20 @@ class KeyManager:
             )
             return
 
-        ## next 2 if's: key has been used before and key is within 5 days of unused deadline
-
-        if key_last_used_date >= self.unused_delete_days:
-            # key last used > 45
-            self.delete_key(
-                user_email=user_email,
-                key_id=key_id,
-                expired=False,
-                unused=True,
-                key_created_days=key_created_days,
-                user=user,
-            )
-            return
-
         if key_in_not_used_period:
+            # key has been used before and key is within 5 days of unused deadline
+            if key_last_used_date >= self.unused_delete_days:
+                # key last used > 45
+                self.delete_key(
+                    user_email=user_email,
+                    key_id=key_id,
+                    expired=False,
+                    unused=True,
+                    key_created_days=key_created_days,
+                    user=user,
+                )
+                return
+
             # Key was last used between 40 and 45 days
             self.warn_user(
                 user_email=user_email,
