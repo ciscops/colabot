@@ -124,44 +124,15 @@ class KeyManager:
                 "%sKey was last used %s days ago", self.log_indent, key_last_used_date
             )
 
-            unused_warn_days = 5
-            unused_delete_days = 45
+            # test to see if already have been sending card for rotating or unused - and continue to do that so won't switch to the other in the middle 
+            unused_warn_days = 5 # replace 5
+            unused_delete_days = 45 # replace warn days
             for i in range(unused_warn_days + 1):
                 if key_created_days == self.rotate_days + i and key_last_used_date >= unused_delete_days - unused_warn_days + i:
                     do_unused = True
+                    break
 
             key_in_not_used_period = key_last_used_date >= self.warn_days - 5
-
-            if (
-                key_created_days == self.rotate_days + 0
-                and key_last_used_date >= self.warn_days - 5 + 0
-            ):
-                do_unused = True
-            elif (
-                key_created_days == self.rotate_days + 1
-                and key_last_used_date >= self.warn_days - 5 + 1
-            ):
-                do_unused = True
-            elif (
-                key_created_days == self.rotate_days + 2
-                and key_last_used_date >= self.warn_days - 5 + 2
-            ):
-                do_unused = True
-            elif (
-                key_created_days == self.rotate_days + 3
-                and key_last_used_date >= self.warn_days - 5 + 3
-            ):
-                do_unused = True
-            elif (
-                key_created_days == self.rotate_days + 4
-                and key_last_used_date >= self.warn_days - 5 + 4
-            ):
-                do_unused = True
-            elif (
-                key_created_days == self.rotate_days + 5
-                and key_last_used_date >= self.warn_days - 5 + 5
-            ):
-                do_unused = True
 
         if key_created_days >= self.rotate_days and not do_unused:
             # key within the range where we warn and give them a new key
