@@ -1156,6 +1156,9 @@ async def request_ip(activity):
 
 async def list_my_ips(activity):
     """Lists static ip addresses allocated to a user"""
+
+    logging.info("START listing ips")
+
     ## APIs
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
     table = get_dynamo_colab_table()
@@ -1165,6 +1168,8 @@ async def list_my_ips(activity):
 
     # check if ip_address field not there
     if not bool(ip_addresses):
+        logging.info("User %s does not have any ips", activity['sender_email'].split('@')[0])
+
         message = dict(
             text="You do not currently have any allocated IPs",
             toPersonId=activity["sender"],
@@ -1197,8 +1202,8 @@ def get_ipv4_creation_dict(ip_address: str):
 def get_available_ip(
     nb: pynetbox.core.api.Api, ip_range: pynetbox.models.ipam.IpRanges
 ):
-
     """Returns the next available ip address as a Netbox ip object"""
+
     logging.info("Finding next available ip")
     start_address = ip_range.start_address
     mask = start_address[-3:]
@@ -1276,6 +1281,8 @@ def update_ip_dynamo(
 
 def get_ips_dynamo(table, user_email: str):
     """Returns the ip addresses associated with a user"""
+
+    logging.info("Retrieving IPs")
 
     response = table.query(KeyConditionExpression=Key("email").eq(user_email))
 
