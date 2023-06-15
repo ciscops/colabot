@@ -1196,7 +1196,7 @@ def get_available_ip(
 
 
 def update_ip_dynamo(
-    table: boto3.resources.factory.dynamodb.Table,
+    table,
     user_email: str,
     ip_address: str,
     date_string: str = None,
@@ -1239,7 +1239,7 @@ def update_ip_dynamo(
     logging.info("Updated IP on dynamo")
 
 
-def get_ips_dynamo(table: boto3.resources.factory.dynamodb.Table, user_email: str):
+def get_ips_dynamo(table, user_email: str):
     """Returns the ip addresses associated with a user"""
 
     response = table.query(KeyConditionExpression=Key("email").eq(user_email))
