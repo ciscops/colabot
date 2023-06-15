@@ -1091,7 +1091,6 @@ async def request_ip(activity):
     nb = pynetbox.api(nb_url, nb_token)
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
     table = get_dynamo_colab_table()
-    logging.warning("%s", str(type(table)))
 
     ## make sure user under ip limit
     ip_addresses = get_ips_dynamo(table, activity["sender_email"])
@@ -1126,6 +1125,7 @@ async def request_ip(activity):
     # check if ipv4 or 6 - below assumes 4
 
     address = get_available_ip(nb, ip_range)
+    logging.info("Got IP address %s", str(address))
 
     if address is None:
         message = dict(
@@ -1162,6 +1162,7 @@ def get_ipv4_dict(ip_address: str):
 def get_available_ip(
     nb: pynetbox.core.api.Api, ip_range: pynetbox.models.ipam.IpRanges
 ):
+
     """Returns the next available ip address as a Netbox ip object"""
     logging.info("Finding next available ip")
     start_address = ip_range.start_address
@@ -1194,7 +1195,12 @@ def get_available_ip(
     return address
 
 
-def update_ip_dynamo(table, user_email: str, ip_address: str, date_string: str = None):
+def update_ip_dynamo(
+    table: boto3.resources.factory.dynamodb.Table,
+    user_email: str,
+    ip_address: str,
+    date_string: str = None,
+):
     """Creates or updates a ip address with the date string in dynamo"""
 
     if date_string is None:
@@ -1233,8 +1239,9 @@ def update_ip_dynamo(table, user_email: str, ip_address: str, date_string: str =
     logging.info("Updated IP on dynamo")
 
 
-def get_ips_dynamo(table, user_email):
+def get_ips_dynamo(table: boto3.resources.factory.dynamodb.Table, user_email: str):
     """Returns the ip addresses associated with a user"""
+
     response = table.query(KeyConditionExpression=Key("email").eq(user_email))
 
     if "ip_addresses" not in response["Items"][0]:
@@ -1245,6 +1252,7 @@ def get_ips_dynamo(table, user_email):
 
 def get_dynamo_colab_table():
     """Returns dynamo colab table"""
+
     dynamodb = boto3.resource(
         "dynamodb",
         region_name=CONFIG.AWS_REGION,  # TODO change these from colab when going to prod
