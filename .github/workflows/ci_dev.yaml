@@ -86,7 +86,7 @@ jobs:
           MONGO_DB_ROOT_PASSWORD: ${{ secrets.MONGO_DB_ROOT_PASSWORD }}
           AWX_PASSWORD: ${{ secrets.AWX_PASSWORD }}
           NLP_SECRET: ${{ secrets.NLP_SECRET }}
-          AWS_PASSWORD: ${{ secrets.AWS_PASSWORD }}
+          AWS_PASSWORD: ${{ secrets.AWS_SECRET_ACCESS_KEY_COLAB }}
           BOT_ID_DEV: ${{ secrets.BOT_ID_DEV }}
           BOT_NAME_DEV: ${{ secrets.BOT_NAME_DEV }}
           AUTHORIZED_ROOMS_DEV: ${{ secrets.AUTHORIZED_ROOMS_DEV }}
@@ -100,11 +100,11 @@ jobs:
           NLP_SERVER_DEV: ${{ secrets.NLP_SERVER_DEV }}
           VCENTER_SERVER: ${{ secrets.VCENTER_SERVER }}
           ADMINISTRATORS_DEV: ${{ secrets.ADMINISTRATORS_DEV }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_REGION_COLAB: ${{ secrets.AWS_REGION_COLAB }}
-          AWS_ACCESS_KEY_ID_COLAB: ${{ secrets.AWS_ACCESS_KEY_ID_COLAB }}
-          AWS_PASSWORD_COLAB: ${{ secrets.AWS_SECRET_ACCESS_KEY_COLAB }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_COLAB }}
           COLABOT_SECRET: ${{ secrets.COLABOT_SECRET }}
+          DYNAMO_TABLE: ${{ secrets.DYNAMO_TABLE_DEV }}
+          NETBOX_URL: ${{ secrets.NETBOX_URL_DEV }}
+          NETBOX_TOKEN: ${{ secrets.NETBOX_TOKEN_DEV }}
         run: python3 process-j2.py
 
       - name: Apply and rollout

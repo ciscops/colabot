@@ -7,3 +7,5 @@ webexteamssdk==1.6
 virl2_client==2.4.0
 PyYAML==5.4
 cryptography==39.0.1
+ipaddress==1.0.23
+pynetbox==7.0.1

@@ -101,10 +101,10 @@ jobs:
           VCENTER_SERVER: ${{ secrets.VCENTER_SERVER }}
           ADMINISTRATORS_PROD: ${{ secrets.ADMINISTRATORS_PROD }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_REGION_COLAB: ${{ secrets.AWS_REGION_COLAB }}
-          AWS_ACCESS_KEY_ID_COLAB: ${{ secrets.AWS_ACCESS_KEY_ID_COLAB }}
-          AWS_PASSWORD_COLAB: ${{ secrets.AWS_SECRET_ACCESS_KEY_COLAB }}
           COLABOT_SECRET: ${{ secrets.COLABOT_SECRET }}
+          DYNAMO_TABLE: ${{ secrets.DYNAMO_TABLE_PROD }}
+          NETBOX_URL: ${{ secrets.NETBOX_URL_PROD }}
+          NETBOX_TOKEN: ${{ secrets.NETBOX_TOKEN_PROD }}
         run: python3 process-j2.py
 
       - name: Apply and rollout
