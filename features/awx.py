@@ -1185,7 +1185,7 @@ async def list_my_ips(activity):
         last_seen = (
             datetime.today() - datetime.fromtimestamp(int(ip_data["date_last_used"]))
         ).days
-        markdown += f"{ ip_address }: \n- Last seen: { last_seen } days ago\n\n"
+        markdown += f"{ ip_address }: \n- Last seen: { last_seen } days ago"
 
     # send message
     message = dict(
