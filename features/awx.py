@@ -1080,6 +1080,8 @@ async def get_iam_user(iam_username, iam=None):
 
 async def request_ip(activity):
     """Allocates a static ip from netbox for cml lab use"""
+
+    logging.info("Start Request IP")
     ip_limit = 10
     nb_url = str(CONFIG.NETBOX_URL)
     nb_token = str(CONFIG.NETBOX_TOKEN)
@@ -1089,11 +1091,13 @@ async def request_ip(activity):
     nb = pynetbox.api(nb_url, nb_token)
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
     table = get_dynamo_colab_table()
+    logging.warning("%s", str(type(table)))
 
     ## make sure user under ip limit
     ip_addresses = get_ips_dynamo(table, activity["sender_email"])
 
     if len(ip_addresses) >= ip_limit:
+        logging.info("User %s has reached limit of %s", username, str(ip_limit))
         message = dict(
             text=f"You have reached the limit of { ip_limit } reserved ip addresses",
             toPersonId=activity["sender"],
@@ -1116,6 +1120,7 @@ async def request_ip(activity):
         )
         await webex.post_message_to_webex(message)
         return False
+    logging.info("Found IP range %s", str(ip_range))
 
     # ip_type = ip_range.family.label
     # check if ipv4 or 6 - below assumes 4
@@ -1134,6 +1139,7 @@ async def request_ip(activity):
     address.description = username
     address.status = "reserved"
     address.save()
+    logging.info("Saved IP on netbox")
 
     ## insert ip into database
     update_ip_dynamo(table, activity["sender_email"], address)
@@ -1153,8 +1159,11 @@ def get_ipv4_dict(ip_address: str):
     return {"family": 4, "address": ip_address, "vrf": None}
 
 
-def get_available_ip(nb: pynetbox.api, ip_range: pynetbox.ipam.ip_range):
+def get_available_ip(
+    nb: pynetbox.core.api.Api, ip_range: pynetbox.models.ipam.IpRanges
+):
     """Returns the next available ip address as a Netbox ip object"""
+    logging.info("Finding next available ip")
     start_address = ip_range.start_address
     mask = start_address[-3:]
     net = ipaddress.ip_network(start_address, False)
@@ -1220,6 +1229,8 @@ def update_ip_dynamo(table, user_email: str, ip_address: str, date_string: str =
             }
         },
     )
+
+    logging.info("Updated IP on dynamo")
 
 
 def get_ips_dynamo(table, user_email):
