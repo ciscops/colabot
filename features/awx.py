@@ -1081,23 +1081,19 @@ async def get_iam_user(iam_username, iam=None):
 async def request_ip(activity):
     """Allocates a static ip from netbox for cml lab use"""
     ip_limit = 10
-    date_string = str(int(datetime.timestamp(datetime.now())))
-    url = str(CONFIG.NETBOX_URL)
-    logging.info("MY AWESOME URL: %s", url)
-    token = str(CONFIG.NETBOX_TOKEN)
+    nb_url = str(CONFIG.NETBOX_URL)
+    nb_token = str(CONFIG.NETBOX_TOKEN)
     username = activity["sender_email"].split("@")[0]
 
     ## APIs
-    nb = pynetbox.api(url, token)
+    nb = pynetbox.api(nb_url, nb_token)
     webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
     table = get_dynamo_colab_table()
 
     ## make sure user under ip limit
-    response = table.query(
-            KeyConditionExpression=Key("email").eq(activity["sender_email"])
-        )
+    ip_addresses = get_ips_dynamo(table, activity["sender_email"])
 
-    if "ip_addresses" in response["Items"][0] and len(response["Items"][0]["ip_addresses"]) >= ip_limit:
+    if len(ip_addresses) >= ip_limit:
         message = dict(
             text=f"You have reached the limit of { ip_limit } reserved ip addresses",
             toPersonId=activity["sender"],
@@ -1105,13 +1101,14 @@ async def request_ip(activity):
         await webex.post_message_to_webex(message)
         return False
 
-
     # Find static ip pool on netbox
     ip_ranges = nb.ipam.ip_ranges.all()
     ip_range = None
     for ip_range in ip_ranges:
         if "static ips" in ip_range["description"].lower():
             break
+        ip_range = None
+
     if ip_range is None:
         message = dict(
             text="No IP pool could be found on Netbox",
@@ -1123,6 +1120,41 @@ async def request_ip(activity):
     # ip_type = ip_range.family.label
     # check if ipv4 or 6 - below assumes 4
 
+    address = get_available_ip(nb, ip_range)
+
+    if address is None:
+        message = dict(
+            text="There are no more ips available",
+            toPersonId=activity["sender"],
+        )
+        await webex.post_message_to_webex(message)
+        return False
+
+    # assign to user on netbox
+    address.description = username
+    address.status = "reserved"
+    address.save()
+
+    ## insert ip into database
+    update_ip_dynamo(table, activity["sender_email"], address)
+
+    # message user
+    message = dict(
+        text=f"New static IP Address assigned: { str(address) }",
+        toPersonId=activity["sender"],
+    )
+    await webex.post_message_to_webex(message)
+
+    return True
+
+
+def get_ipv4_dict(ip_address: str):
+    """Helper function for static ip requests"""
+    return {"family": 4, "address": ip_address, "vrf": None}
+
+
+def get_available_ip(nb: pynetbox.api, ip_range: pynetbox.ipam.ip_range):
+    """Returns the next available ip address as a Netbox ip object"""
     start_address = ip_range.start_address
     mask = start_address[-3:]
     net = ipaddress.ip_network(start_address, False)
@@ -1144,35 +1176,31 @@ async def request_ip(activity):
             address = nb.ipam.ip_addresses.create(get_ipv4_dict(ip))
             break
 
-        # ip created but not assigned
+        # ip created but not assigned - what we want
         if address.description == "" and address.status == "active":
             break
 
-    if address is None:
-        message = dict(
-            text="There are no more ips available",
-            toPersonId=activity["sender"],
-        )
-        await webex.post_message_to_webex(message)
-        return False
+        address = None
 
-    # assign to user on netbox
-    address.description = username
-    address.status = 'reserved'
-    address.save()
+    return address
 
-    ## insert ip into database
+
+def update_ip_dynamo(table, user_email: str, ip_address: str, date_string: str = None):
+    """Creates or updates a ip address with the date string in dynamo"""
+
+    if date_string is None:
+        date_string = str(int(datetime.timestamp(datetime.now())))
 
     # check to see if ip field already there
     response = table.query(
-        KeyConditionExpression=Key("email").eq(activity["sender_email"]),
+        KeyConditionExpression=Key("email").eq(user_email),
         FilterExpression=Attr("ip_addresses").exists(),
     )
 
     # create ip field map if it doesn't exist
     if response["Count"] == 0:
         table.update_item(
-            Key={"email": activity["sender_email"]},
+            Key={"email": user_email},
             UpdateExpression="SET #ip_addresses= :value",
             ExpressionAttributeNames={"#ip_addresses": "ip_addresses"},
             ExpressionAttributeValues={":value": {}},
@@ -1180,11 +1208,11 @@ async def request_ip(activity):
 
     # insert new ip
     table.update_item(
-        Key={"email": activity["sender_email"]},
+        Key={"email": user_email},
         UpdateExpression="SET #ip_addresses.#ip_address= :ip_data",
         ExpressionAttributeNames={
             "#ip_addresses": "ip_addresses",
-            "#ip_address": str(address),
+            "#ip_address": str(ip_address),
         },
         ExpressionAttributeValues={
             ":ip_data": {
@@ -1193,19 +1221,15 @@ async def request_ip(activity):
         },
     )
 
-    # message user
-    message = dict(
-        text=f"New static IP Address assigned: { str(address) }",
-        toPersonId=activity["sender"],
-    )
-    await webex.post_message_to_webex(message)
 
-    return True
+def get_ips_dynamo(table, user_email):
+    """Returns the ip addresses associated with a user"""
+    response = table.query(KeyConditionExpression=Key("email").eq(user_email))
 
+    if "ip_addresses" not in response["Items"][0]:
+        return None
 
-def get_ipv4_dict(ip_address: str):
-    """Helper function for static ip requests"""
-    return {"family": 4, "address": ip_address, "vrf": None}
+    return response["Items"][0]["ip_addresses"]
 
 
 def get_dynamo_colab_table():
