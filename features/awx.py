@@ -1154,7 +1154,42 @@ async def request_ip(activity):
     return True
 
 
-def get_ipv4_dict(ip_address: str):
+async def list_my_ips(activity):
+    """Lists static ip addresses allocated to a user"""
+    ## APIs
+    webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
+    table = get_dynamo_colab_table()
+
+    ## Retrieve IPs from database
+    ip_addresses = get_ips_dynamo(table, activity["sender_email"])
+
+    # check if ip_address field not there
+    if not bool(ip_addresses):
+        message = dict(
+            text="You do not currently have any allocated IPs",
+            toPersonId=activity["sender"],
+        )
+        await webex.post_message_to_webex(message)
+        return False
+
+    # get all IPs
+    markdown = ""
+    for ip_address, ip_data in ip_addresses.items():
+        last_seen = (
+            datetime.today() - datetime.fromtimestamp(int(ip_data["date_last_used"]))
+        ).days
+        markdown += f"{ ip_address }: \n- Last seen: { last_seen } days ago\n\n"
+
+    # send message
+    message = dict(
+        text=markdown,
+        toPersonId=activity["sender"],
+    )
+    await webex.post_message_to_webex(message)
+    return True
+
+
+def get_ipv4_creation_dict(ip_address: str):
     """Helper function for static ip requests"""
     return {"family": 4, "address": ip_address, "vrf": None}
 
@@ -1245,7 +1280,7 @@ def get_ips_dynamo(table, user_email: str):
     response = table.query(KeyConditionExpression=Key("email").eq(user_email))
 
     if "ip_addresses" not in response["Items"][0]:
-        return None
+        return {}
 
     return response["Items"][0]["ip_addresses"]
 
