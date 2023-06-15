@@ -1168,7 +1168,9 @@ async def list_my_ips(activity):
 
     # check if ip_address field not there
     if not bool(ip_addresses):
-        logging.info("User %s does not have any ips", activity['sender_email'].split('@')[0])
+        logging.info(
+            "User %s does not have any ips", activity["sender_email"].split("@")[0]
+        )
 
         message = dict(
             text="You do not currently have any allocated IPs",
