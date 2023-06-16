@@ -31,6 +31,9 @@ awx_server_error_message = "Error contacting AWX server. "
 find_user_message = "Cannot find user"
 PRE_CODE_SNIPPET = "<pre>"
 AFTER_CODE_SNIPPET = "</code></pre>"
+MAIN_IP_TAG = "#ip_addresses"
+MAIN_IP_TAG_VAL = "ip_addresses"
+IP_TAG = "#ip_address"
 
 mongo_url = (
     "mongodb://"
@@ -1136,7 +1139,7 @@ async def request_ip(activity):
         return False
 
     # assign to user on netbox
-    address.description = username
+    address.description += " " + username
     address.status = "reserved"
     address.save()
     logging.info("Saved IP on netbox")
@@ -1198,6 +1201,8 @@ async def list_my_ips(activity):
 
 async def release_ips(activity):
     """Returns a list of IPs back to the static pool"""
+
+    logging.info("Start release ips")
     nb_url = str(CONFIG.NETBOX_URL)
     nb_token = str(CONFIG.NETBOX_TOKEN)
     username = activity["sender_email"].split("@")[0]
@@ -1210,10 +1215,11 @@ async def release_ips(activity):
     table = get_dynamo_colab_table()
 
     # Retrieve IPs from database
-    all_ip_addresses = get_ips_dynamo(table, activity['sender_email'])
+    all_ip_addresses = get_ips_dynamo(table, activity["sender_email"])
 
     # check if ip_address field not there
     if not bool(all_ip_addresses):
+        logging.info("User has no ips")
         message = dict(
             text="You do not currently have any allocated IPs",
             toPersonId=activity["sender"],
@@ -1222,11 +1228,13 @@ async def release_ips(activity):
         return False
 
     # get ips indicated by user to return
-    #ips = activity['ips']
-    ips = 'all'
+    # ips = activity['ips']
+    ips = "all"
 
-    if ips != 'all':  # Get specific IPs indicated by the user
-        ip_addresses = {ip: all_ip_addresses[ip] for ip in ips if ip in all_ip_addresses}
+    if ips != "all":  # Get specific IPs indicated by the user
+        ip_addresses = {
+            ip: all_ip_addresses[ip] for ip in ips if ip in all_ip_addresses
+        }
         non_returned_ips = [ip for ip in ips if ip not in ip_addresses]
 
     else:  # Return all IPs
@@ -1242,25 +1250,20 @@ async def release_ips(activity):
             continue
 
         # unassign to user on netbox
-        address.description = ""
+        address.description.replace(f" {username}", "")
         address.status = "active"
         address.save()
 
-        ## Return in Database
-        table.update_item(
-            Key={"email": activity["sender_email"]},
-            UpdateExpression="REMOVE #ip_addresses.#ip_address",
-            ExpressionAttributeNames={
-                "#ip_addresses": "ip_addresses",
-                "#ip_address": str(ip_address),
-            },
-        )
+        remove_ip_dynamo(table, activity["sender_email"], ip_address)
 
         returned_ips.append(ip_address)
+    logging.info("IPs released")
 
     # Message user if bad ip - either not valid or they do not own it
     if non_returned_ips:
-        markdown = "**IPS NOT RETURNED**\n- **Reason:** Not valid ip or not allocated to you"
+        markdown = (
+            "**IPs Not Returned**\n- **Reason:** Not valid ip or not allocated to you"
+        )
         for ip in non_returned_ips:
             markdown += f"\n- { ip }"
 
@@ -1270,11 +1273,10 @@ async def release_ips(activity):
         )
         await webex.post_message_to_webex(message)
 
-
     if returned_ips:
-        markdown = "**IPS RETURNED**\n" + "\n".join(f"- {ip}" for ip in returned_ips)
+        markdown = "**IPs Returned**\n" + "\n".join(f"- {ip}" for ip in returned_ips)
 
-    else: # No ips returned
+    else:  # No ips returned
         markdown = "There are no valid allocated IPs to return"
 
     message = dict(
@@ -1336,6 +1338,8 @@ def update_ip_dynamo(
 ):
     """Creates or updates a ip address with the date string in dynamo"""
 
+    logging.info("Updating ip %s", str(ip_address))
+
     if date_string is None:
         date_string = str(int(datetime.timestamp(datetime.now())))
 
@@ -1350,7 +1354,7 @@ def update_ip_dynamo(
         table.update_item(
             Key={"email": user_email},
             UpdateExpression="SET #ip_addresses= :value",
-            ExpressionAttributeNames={"#ip_addresses": "ip_addresses"},
+            ExpressionAttributeNames={MAIN_IP_TAG: MAIN_IP_TAG_VAL},
             ExpressionAttributeValues={":value": {}},
         )
 
@@ -1359,8 +1363,8 @@ def update_ip_dynamo(
         Key={"email": user_email},
         UpdateExpression="SET #ip_addresses.#ip_address= :ip_data",
         ExpressionAttributeNames={
-            "#ip_addresses": "ip_addresses",
-            "#ip_address": str(ip_address),
+            MAIN_IP_TAG: MAIN_IP_TAG_VAL,
+            IP_TAG: str(ip_address),
         },
         ExpressionAttributeValues={
             ":ip_data": {
@@ -1370,6 +1374,21 @@ def update_ip_dynamo(
     )
 
     logging.info("Updated IP on dynamo")
+
+
+def remove_ip_dynamo(table, user_email: str, ip_address: str):
+    """Removes an IP address from a user's database"""
+
+    logging.info("Removing ip %s from database", ip_address)
+
+    table.update_item(
+        Key={"email": user_email},
+        UpdateExpression="REMOVE #ip_addresses.#ip_address",
+        ExpressionAttributeNames={
+            MAIN_IP_TAG: MAIN_IP_TAG_VAL,
+            IP_TAG: ip_address,
+        },
+    )
 
 
 def get_ips_dynamo(table, user_email: str):
