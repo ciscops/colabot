@@ -1196,8 +1196,99 @@ async def list_my_ips(activity):
     return True
 
 
+async def release_ips(activity):
+    """Returns a list of IPs back to the static pool"""
+    nb_url = str(CONFIG.NETBOX_URL)
+    nb_token = str(CONFIG.NETBOX_TOKEN)
+    username = activity["sender_email"].split("@")[0]
+    non_returned_ips = []
+    returned_ips = []
+
+    ## APIs
+    nb = pynetbox.api(nb_url, nb_token)
+    webex = WebExClient(webex_bot_token=activity["webex_bot_token"])
+    table = get_dynamo_colab_table()
+
+    # Retrieve IPs from database
+    all_ip_addresses = get_ips_dynamo(table, activity['sender_email'])
+
+    # check if ip_address field not there
+    if not bool(all_ip_addresses):
+        message = dict(
+            text="You do not currently have any allocated IPs",
+            toPersonId=activity["sender"],
+        )
+        await webex.post_message_to_webex(message)
+        return False
+
+    # get ips indicated by user to return
+    #ips = activity['ips']
+    ips = 'all'
+
+    if ips != 'all':  # Get specific IPs indicated by the user
+        ip_addresses = {ip: all_ip_addresses[ip] for ip in ips if ip in all_ip_addresses}
+        non_returned_ips = [ip for ip in ips if ip not in ip_addresses]
+
+    else:  # Return all IPs
+        ip_addresses = all_ip_addresses
+
+    # Return IPs
+    for ip_address in ip_addresses:
+        ## Return in Netbox
+        address = nb.ipam.ip_addresses.get(address=ip_address)
+        if address is None or username not in address.description:
+            # IP not made on netbox - ERROR, or not assigned to this user
+            non_returned_ips.append(ip_address)
+            continue
+
+        # unassign to user on netbox
+        address.description = ""
+        address.status = "active"
+        address.save()
+
+        ## Return in Database
+        table.update_item(
+            Key={"email": activity["sender_email"]},
+            UpdateExpression="REMOVE #ip_addresses.#ip_address",
+            ExpressionAttributeNames={
+                "#ip_addresses": "ip_addresses",
+                "#ip_address": str(ip_address),
+            },
+        )
+
+        returned_ips.append(ip_address)
+
+    # Message user if bad ip - either not valid or they do not own it
+    if non_returned_ips:
+        markdown = "**IPS NOT RETURNED**\n- **Reason:** Not valid ip or not allocated to you"
+        for ip in non_returned_ips:
+            markdown += f"\n- { ip }"
+
+        message = dict(
+            text=markdown,
+            toPersonId=activity["sender"],
+        )
+        await webex.post_message_to_webex(message)
+
+
+    if returned_ips:
+        markdown = "**IPS RETURNED**\n" + "\n".join(f"- {ip}" for ip in returned_ips)
+
+    else: # No ips returned
+        markdown = "There are no valid allocated IPs to return"
+
+    message = dict(
+        text=markdown,
+        toPersonId=activity["sender"],
+    )
+    await webex.post_message_to_webex(message)
+
+    return True
+
+
 def get_ipv4_creation_dict(ip_address: str):
     """Helper function for static ip requests"""
+
     return {"family": 4, "address": ip_address, "vrf": None}
 
 
