@@ -59,7 +59,7 @@ help_menu_list = [
     "**help** > display available commands\n",
 ]
 
-release_ips_pattern = r"release ips (?:all|\d{1,3}(?:\.\d{1,3}){3}(?:\s+\d{1,3}(?:\.\d{1,3}){3})*)"  # command = release ips [all | ips]
+release_ips_pattern = r"release ips (?:all|\d{1,3}(?:\.\d{1,3}){3}(?:/\d{1,2})?(?:\s+\d{1,3}(?:\.\d{1,3}){3}(?:/\d{1,2})?)*)"  # command = release ips [all | ips]
 
 
 class COLABot:
@@ -312,17 +312,19 @@ class COLABot:
             elif self.activity.get("text") == "delete accounts":
                 await awx.delete_accounts(self.activity)
 
-            elif re.findall(
-                release_ips_pattern, self.activity.get("text")
-            ):  # command = release ips [all | ips]
-                matches = re.findall(release_ips_pattern, self.activity.get("text"))
-                self.activity["ips_to_release"] = matches[0].split(" ")[2:]
+            elif self.activity.get("text") == "request ip":
                 await awx.request_ip(self.activity)
 
             elif self.activity.get("text") == "list my ips":
                 await awx.list_my_ips(self.activity)
 
-            elif self.activity.get("original_text") == "release ips":
+            elif re.findall(
+                release_ips_pattern, self.activity.get("original_text")
+            ):  # command = release ips [all | ips]
+                matches = re.findall(
+                    release_ips_pattern, self.activity.get("original_text")
+                )
+                self.activity["ips_to_release"] = matches[0].split(" ")[2:]
                 await awx.release_ips(self.activity)
 
             elif (
