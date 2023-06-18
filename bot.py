@@ -6,6 +6,7 @@ import hmac
 import json
 import time
 import logging
+import re
 import aiohttp
 import pymongo
 import urllib3
@@ -41,6 +42,9 @@ help_menu_list = [
     "**CML show IP addresses** > show IP addresses\n",
     "**CML show server utilization** > show current CPU and Memory usage\n",
     "**CML stop lab** > stop labs of your choice\n",
+    "**Request IP** > allocates a static ip address for CML\n",
+    "**List my IPs** > lists static IPs allocated to you for CML\n",
+    "**Release IPs** all | [ips] > return static IPs allocated to you for CML back to pool\n",
     "**Create AWS account** > create AWS COLAB account\n",
     "**Create VPN account** > create an AnyConnect to COLAB VPN account\n",
     "**Create AWS key** > create aws access key\n",
@@ -54,6 +58,8 @@ help_menu_list = [
     "**Admin alert CML users** > admins can alerts users of servers\n",
     "**help** > display available commands\n",
 ]
+
+release_ips_pattern = r"release ips (?:all|\d{1,3}(?:\.\d{1,3}){3}(?:/\d{1,2})?(?:\s+\d{1,3}(?:\.\d{1,3}){3}(?:/\d{1,2})?)*)"  # command = release ips [all | ips]
 
 
 class COLABot:
@@ -305,6 +311,21 @@ class COLABot:
 
             elif self.activity.get("text") == "delete accounts":
                 await awx.delete_accounts(self.activity)
+
+            elif self.activity.get("text") == "request ip":
+                await awx.request_ip(self.activity)
+
+            elif self.activity.get("text") == "list my ips":
+                await awx.list_my_ips(self.activity)
+
+            elif re.findall(
+                release_ips_pattern, self.activity.get("original_text")
+            ):  # command = release ips [all | ips]
+                matches = re.findall(
+                    release_ips_pattern, self.activity.get("original_text")
+                )
+                self.activity["ips_to_release"] = matches[0].split(" ")[2:]
+                await awx.release_ips(self.activity)
 
             elif (
                 self.activity.get("text")[:3] == "cml"
