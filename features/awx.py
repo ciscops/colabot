@@ -1183,12 +1183,14 @@ async def list_my_ips(activity):
         return False
 
     # get all IPs
+    length = max(len(ip) for ip in ip_addresses)
     markdown = ""
     for ip_address, ip_data in ip_addresses.items():
         last_seen = (
             datetime.today() - datetime.fromtimestamp(int(ip_data["date_last_used"]))
         ).days
-        markdown += f"{ ip_address }: Last seen { last_seen } days ago\n"
+        formatted_ip = f"{ip_address:<{length}}"  # format so all the same length
+        markdown += f"{ formatted_ip }: Last seen { last_seen } days ago\n"
 
     # send message
     message = dict(
@@ -1228,17 +1230,16 @@ async def release_ips(activity):
         return False
 
     # get ips indicated by user to return
-    # ips = activity['ips']
-    ips = "all"
+    ips = activity["ips_to_release"]
 
-    if ips != "all":  # Get specific IPs indicated by the user
+    if "all" in ips:  # Return all IPs
+        ip_addresses = all_ip_addresses
+
+    else:  # Get specific IPs indicated by the user
         ip_addresses = {
             ip: all_ip_addresses[ip] for ip in ips if ip in all_ip_addresses
         }
         non_returned_ips = [ip for ip in ips if ip not in ip_addresses]
-
-    else:  # Return all IPs
-        ip_addresses = all_ip_addresses
 
     # Return IPs
     for ip_address in ip_addresses:
